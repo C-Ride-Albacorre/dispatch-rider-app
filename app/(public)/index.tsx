@@ -1,4 +1,5 @@
-import { Fonts } from '@/constants/theme';
+import Button from '@/components/ui/buttons/button';
+import { Colors, Fonts } from '@/constants/theme';
 import AppleButton from '@/features/auth/components/apple-button';
 import GoogleButton from '@/features/auth/components/google-button';
 import {
@@ -40,20 +41,19 @@ export default function Index() {
         {/* Buttons */}
         <View className="w-full mt-8 space-y-4">
           <Animated.View entering={FadeInDown.delay(100)}>
-            <AppleButton />
+            <Button onPress={() => console.log('Login')} variant="outline">
+              Become a Rider
+            </Button>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(200)}>
-            <GoogleButton />
+            <Button onPress={() => console.log('Login')} variant="primary">
+              Login
+            </Button>
           </Animated.View>
 
           <Animated.View entering={FadeInDown.delay(300)}>
-            <TouchableOpacity
-              style={styles.otherButton}
-              onPress={() => console.log('Other options')}
-            >
-              <Text style={styles.otherButtonText}>Other Options</Text>
-            </TouchableOpacity>
+            <GoogleButton />
           </Animated.View>
         </View>
 
@@ -93,20 +93,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.brandSemiBold,
     fontSize: 20,
     textAlign: 'center',
-  },
-
-  otherButton: {
-    backgroundColor: '#f0f0f0',
-    paddingVertical: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  otherButtonText: {
-    color: '#666666',
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
   },
 
   privacy: {

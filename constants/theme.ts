@@ -1,13 +1,15 @@
 export const Colors = {
   primary: '#D4AF37',
   background: '#FFFFFF',
-  text: '#000000',
+  text: '#1A1A1A',
   error: '#FF0000',
   success: '#00FF00',
   warning: '#FFA500',
   info: '#17A2B8',
   dark: '#2C3E50',
   light: '#ECF0F1',
+  border: '#E8E8E8',
+  googleBlue: '#4285F4',
 };
 
 export const Fonts = {
