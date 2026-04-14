@@ -1,17 +1,19 @@
 import { Stack } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AuthLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="login/index" options={{ headerShown: false }} />
-
-      <Stack.Screen
-        name="register/index"
-        options={{
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <Stack
+        screenOptions={{
           headerShown: false,
-      
+          contentStyle: { backgroundColor: 'white' },
         }}
-      />
-    </Stack>
+      >
+        <Stack.Screen name="login/index" />
+
+        <Stack.Screen name="register/index" />
+      </Stack>
+    </SafeAreaView>
   );
 }
