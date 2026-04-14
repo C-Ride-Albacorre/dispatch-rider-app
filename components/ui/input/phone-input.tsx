@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     fontSize: 16,
     color: Colors.text,
-    fontFamily: Fonts.brandMedium,
+    fontFamily: Fonts.brandRegular,
   },
 
   error: { fontSize: 12, color: '#ef4444' },

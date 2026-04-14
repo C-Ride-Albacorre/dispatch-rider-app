@@ -4,7 +4,7 @@ import Input from '@/components/ui/input/input';
 import PhoneInput from '@/components/ui/input/phone-input';
 import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -22,6 +22,7 @@ export default function Page() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const router = useRouter();
   return (
@@ -72,15 +73,30 @@ export default function Page() {
             placeholder="********"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
+            rightIcon={
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="#999"
+              />
+            }
+            onRightIconPress={() => setShowPassword(!showPassword)}
           />
 
           <Input label="Referral Code (Optional)" placeholder="Enter Code" />
 
+          <Button size="lg">Register</Button>
 
-          <Button size='lg'>
-            Register
-          </Button>
+          <View style={styles.action}>
+            <Text style={styles.actionText}>Already have an account?</Text>
+
+            <Link href={'/login'} asChild>
+              <TouchableOpacity>
+                <Text style={styles.actionLink}>Login</Text>
+              </TouchableOpacity>
+            </Link>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -133,5 +149,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 16,
+  },
+
+  action: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 4,
+  },
+
+  actionText: {
+    color: Colors.text,
+    fontFamily: Fonts.brandMedium,
+    fontSize: 16,
+  },
+
+  actionLink: {
+    color: Colors.primary,
+    fontFamily: Fonts.brandSemiBold,
+    fontSize: 16,
   },
 });

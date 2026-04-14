@@ -1,15 +1,45 @@
 import { Colors, Fonts } from '@/constants/theme';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  TouchableOpacity,
+} from 'react-native';
+
+type InputProps = {
+  label?: string;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
+  onRightIconPress?: () => void;
+} & React.ComponentProps<typeof TextInput>;
 
 export default function Input({
   label,
+  leftIcon,
+  rightIcon,
+  onRightIconPress,
   ...props
-}: { label?: string } & React.ComponentProps<typeof TextInput>) {
+}: InputProps) {
   return (
     <View style={styles.field}>
       {label && <Text style={styles.label}>{label}</Text>}
 
-      <TextInput {...props} style={[styles.input, props.style]} />
+      <View style={styles.inputContainer}>
+        {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
+
+        <TextInput
+          {...props}
+          style={[styles.input, props.style]}
+          placeholderTextColor="#999"
+        />
+
+        {rightIcon && (
+          <TouchableOpacity onPress={onRightIconPress}>
+            <View style={styles.iconRight}>{rightIcon}</View>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -22,19 +52,32 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 16,
-
     color: Colors.text,
     fontFamily: Fonts.brandMedium,
   },
 
-  input: {
-    // borderWidth: 1,
-    // borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.inputBackground,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    width: '100%',
   },
 
+  input: {
+    flex: 1,
+    paddingVertical: 16,
+    fontSize: 16,
+    fontFamily: Fonts.brandRegular,
+    color: Colors.text,
+  },
 
+  iconLeft: {
+    marginRight: 8,
+  },
+
+  iconRight: {
+    marginLeft: 8,
+  },
 });
