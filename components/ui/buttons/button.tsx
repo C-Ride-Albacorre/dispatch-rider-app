@@ -126,7 +126,7 @@ const textVariantStyles = StyleSheet.create({
     color: Colors.primary,
   },
   google: {
-    color: Colors.background,
+    color: Colors.text,
   },
 });
 

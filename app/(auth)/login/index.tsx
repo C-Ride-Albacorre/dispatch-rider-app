@@ -1,6 +1,9 @@
 // import { Image, Text, View } from 'react-native';
 
-import { Text, View } from 'react-native';
+import { Colors } from '@/constants/theme';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // export default function Login() {
 //   return (
@@ -78,9 +81,25 @@ import { Text, View } from 'react-native';
 // }
 
 export default function Login() {
+  const router = useRouter();
   return (
     <View className="flex-1 items-center justify-center bg-red-500">
+      <TouchableOpacity style={styles.returnBtn} onPress={() => router.back()}>
+        <Ionicons name="arrow-back" size={24} />
+      </TouchableOpacity>
+
       <Text className="text-white text-xl">Login</Text>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  returnBtn: {
+    alignSelf: 'flex-start',
+    padding: 8,
+    borderRadius: 40,
+    backgroundColor: Colors.light,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
