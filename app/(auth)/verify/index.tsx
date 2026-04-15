@@ -3,7 +3,7 @@ import Button from '@/components/ui/buttons/button';
 import OtpInput from '@/components/ui/input/otp-input';
 import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -64,7 +64,9 @@ export default function Verify() {
           onChange={(otp) => setCode(otp)}
         />
 
-        <Button>Verify Account</Button>
+        <Link href={'/onboarding'} asChild>
+          <Button>Verify Account</Button>
+        </Link>
 
         <View style={styles.resendContainer}>
           <TouchableOpacity>
@@ -88,7 +90,6 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     flexGrow: 1,
-
     gap: 24,
   },
 
