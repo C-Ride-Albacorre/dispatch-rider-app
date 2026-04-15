@@ -4,8 +4,13 @@ import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import Button from '@/components/ui/buttons/button';
 
-export default function Documents() {
+export default function Documents({
+  setStep,
+}: {
+  setStep: (step: string) => void;
+}) {
   const [license, setLicense] = useState<string | null>(null);
   const [insurance, setInsurance] = useState<string | null>(null);
   const [registration, setRegistration] = useState<string | null>(null);
@@ -22,6 +27,14 @@ export default function Documents() {
       setFile(file.name);
     }
   };
+
+  const handleNextStep = () => {
+    setStep('4');
+  };
+
+  function handlePreviousStep(){
+    setStep('3')
+  }
 
   return (
     <View style={styles.container}>
@@ -56,6 +69,11 @@ export default function Documents() {
           onPress={() => pickDocument(setRegistration)}
           fileName={registration || undefined}
         />
+
+        <View style={styles.buttonContainer}>
+          <Button onPress={handlePreviousStep} variant="outline">Previous</Button>
+          <Button onPress={handleNextStep}>Continue</Button>
+        </View>
       </View>
     </View>
   );
@@ -104,5 +122,11 @@ const styles = StyleSheet.create({
   form: {
     marginTop: 24,
     gap: 20,
+  },
+
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
   },
 });

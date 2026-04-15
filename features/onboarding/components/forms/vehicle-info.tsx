@@ -5,7 +5,18 @@ import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function PersonalInfo() {
+export default function PersonalInfo({
+  setStep,
+}: {
+  setStep: (step: string) => void;
+}) {
+  const handleNextStep = () => {
+    setStep('3');
+  };
+
+  function handlePreviousStep() {
+    setStep('2');
+  }
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
@@ -73,8 +84,10 @@ export default function PersonalInfo() {
         />
 
         <View style={styles.buttonContainer}>
-          <Button variant="outline">Previous</Button>
-          <Button>Continue</Button>
+          <Button onPress={handlePreviousStep} variant="outline">
+            Previous
+          </Button>
+          <Button onPress={handleNextStep}>Continue</Button>
         </View>
       </View>
     </View>
@@ -210,17 +223,16 @@ const styles = StyleSheet.create({
     borderRadius: 24,
   },
 
-  evSubText:{
+  evSubText: {
     fontSize: 10,
     fontFamily: Fonts.brandMedium,
     color: Colors.background,
   },
 
-
-  evDescription:{
+  evDescription: {
     fontSize: 14,
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
     lineHeight: 20,
-  }
+  },
 });

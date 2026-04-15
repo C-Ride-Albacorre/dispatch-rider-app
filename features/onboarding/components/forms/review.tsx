@@ -5,8 +5,13 @@ import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import * as DocumentPicker from 'expo-document-picker';
+import Button from '@/components/ui/buttons/button';
 
-export default function Review() {
+export default function Review({
+  setStep,
+}: {
+  setStep: (step: string) => void;
+}) {
   const [license, setLicense] = useState<string | null>(null);
   const [insurance, setInsurance] = useState<string | null>(null);
   const [registration, setRegistration] = useState<string | null>(null);
@@ -24,6 +29,9 @@ export default function Review() {
     }
   };
 
+  const handlePreviousStep = () => {
+    setStep('3');
+  };
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
@@ -147,6 +155,13 @@ export default function Review() {
             </View>
           </View>
         </View>
+
+        <View style={styles.buttonContainer}>
+          <Button onPress={handlePreviousStep} variant="outline">
+            Previous
+          </Button>
+          <Button>Continue</Button>
+        </View>
       </View>
     </View>
   );
@@ -222,7 +237,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
   },
 
-  document:{
-        marginTop: 8,
-  }
+  document: {
+    marginTop: 8,
+  },
+
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+  },
 });

@@ -5,7 +5,14 @@ import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function PersonalInfo() {
+export default function PersonalInfo({
+  setStep,
+}: {
+  setStep: (step: string) => void;
+}) {
+  const handleNextStep = () => {
+    setStep('2');
+  };
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
@@ -35,8 +42,10 @@ export default function PersonalInfo() {
         <Input label="State" placeholder="Enter your state" />
 
         <View style={styles.buttonContainer}>
-          <Button variant='outline' disabled>Previous</Button>
-          <Button>Continue</Button>
+          <Button variant="outline" disabled>
+            Previous
+          </Button>
+          <Button onPress={handleNextStep}>Continue</Button>
         </View>
       </View>
     </View>

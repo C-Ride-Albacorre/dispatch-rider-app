@@ -6,6 +6,7 @@ import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +19,8 @@ import {
 
 export default function Onboarding() {
   const router = useRouter();
+  const [step, setStep] = useState('1');
+
   return (
     <KeyboardAvoidingView
       style={styles.keyboardSafeArea}
@@ -44,15 +47,15 @@ export default function Onboarding() {
           </Text>
         </View>
 
-        <StepIndicator current={1} />
+        <StepIndicator current={parseInt(step, 10)} />
 
-        <PersonalInfo />
+        {step === '1' && <PersonalInfo setStep={setStep} />}
 
-        <VehicleInfo />
+        {step === '2' && <VehicleInfo setStep={setStep} />}
 
-        <Documents />
+        {step === '3' && <Documents setStep={setStep} />}
 
-        <Review />
+        {step === '4' && <Review setStep={setStep} />}
       </ScrollView>
     </KeyboardAvoidingView>
   );
