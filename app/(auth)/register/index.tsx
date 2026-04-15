@@ -14,7 +14,6 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  Image,
 } from 'react-native';
 
 export default function Page() {
@@ -86,7 +85,9 @@ export default function Page() {
 
           <Input label="Referral Code (Optional)" placeholder="Enter Code" />
 
-          <Button size="lg">Register</Button>
+          <Link href={'/verify'} asChild>
+            <Button size="lg">Register</Button>
+          </Link>
 
           <View style={styles.action}>
             <Text style={styles.actionText}>Already have an account?</Text>

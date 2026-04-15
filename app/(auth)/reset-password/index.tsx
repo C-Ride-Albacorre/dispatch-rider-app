@@ -3,30 +3,25 @@ import Button from '@/components/ui/buttons/button';
 import Input from '@/components/ui/input/input';
 import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from 'react-native';
 
-export default function Login() {
+export default function ResetPassword() {
   const router = useRouter();
 
-  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={styles.keyboardSafeArea} behavior="padding">
       <ScrollView contentContainerStyle={styles.container}>
         <View>
           <TouchableOpacity
@@ -40,13 +35,6 @@ export default function Login() {
         </View>
 
         <View style={styles.form}>
-          <Input
-            label="Email"
-            placeholder="john.doe@example.com"
-            value={email}
-            onChangeText={setEmail}
-          />
-
           <Input
             label="Password"
             placeholder="********"
@@ -63,25 +51,23 @@ export default function Login() {
             onRightIconPress={() => setShowPassword(!showPassword)}
           />
 
-          <View style={styles.forgotPasswordContainer}>
-            <Link href={'/forget-password'} asChild>
-              <TouchableOpacity>
-                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+          <Input
+            label="Confirm Password"
+            placeholder="********"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+            rightIcon={
+              <Ionicons
+                name={showPassword ? 'eye-off' : 'eye'}
+                size={24}
+                color="#999"
+              />
+            }
+            onRightIconPress={() => setShowPassword(!showPassword)}
+          />
 
-          <Button size="lg">Sign in</Button>
-
-          <View style={styles.action}>
-            <Text style={styles.actionText}>Don't have an account?</Text>
-
-            <Link href={'/register'} asChild>
-              <TouchableOpacity>
-                <Text style={styles.actionLink}>Register</Text>
-              </TouchableOpacity>
-            </Link>
-          </View>
+          <Button>Reset Password</Button>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -99,11 +85,6 @@ const styles = StyleSheet.create({
     gap: 24,
   },
 
-  form: {
-    marginTop: 32,
-    gap: 24,
-  },
-
   returnBtn: {
     alignSelf: 'flex-start',
     padding: 8,
@@ -113,34 +94,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  forgotPasswordContainer: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
 
-  forgotPasswordText:{
-
-
-    color: Colors.primary,
-    fontFamily: Fonts.brandMedium,
-    fontSize: 16,
-  },
-
-  action: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 4,
-  },
-
-  actionText: {
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-    fontSize: 16,
-  },
-
-  actionLink: {
-    color: Colors.primary,
-    fontFamily: Fonts.brandSemiBold,
-    fontSize: 16,
-  },
+  form:{
+    gap: 24,
+  }
 });
