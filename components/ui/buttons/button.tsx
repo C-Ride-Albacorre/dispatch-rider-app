@@ -11,7 +11,7 @@ import {
 
 type ButtonProps = {
   children: React.ReactNode;
-  variant?: 'primary' | 'outline' | 'ghost' | 'google';
+  variant?: 'primary' | 'outline' | 'ghost' | 'google' | 'green';
   size?: 'sm' | 'md' | 'lg';
   rounded?: 'md' | 'lg' | 'full';
   disabled?: boolean;
@@ -113,6 +113,9 @@ const variantStyles = StyleSheet.create({
   google: {
     backgroundColor: Colors.googleBlue,
   },
+  green: {
+    backgroundColor: Colors.success,
+  },
 });
 
 const textVariantStyles = StyleSheet.create({
@@ -126,6 +129,9 @@ const textVariantStyles = StyleSheet.create({
     color: Colors.primary,
   },
   google: {
+    color: Colors.text,
+  },
+  green: {
     color: Colors.text,
   },
 });
