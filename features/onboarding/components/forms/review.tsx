@@ -6,6 +6,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import * as DocumentPicker from 'expo-document-picker';
 import Button from '@/components/ui/buttons/button';
+import { Link } from 'expo-router';
 
 export default function Review({
   setStep,
@@ -160,7 +161,10 @@ export default function Review({
           <Button onPress={handlePreviousStep} variant="outline">
             Previous
           </Button>
-          <Button>Continue</Button>
+
+          <Link href={'/dashboard'} asChild>
+            <Button>Continue</Button>
+          </Link>
         </View>
       </View>
     </View>
