@@ -1,8 +1,15 @@
+import Footer from '@/components/layout/footer';
 import Button from '@/components/ui/buttons/button';
 import { Colors, Fonts } from '@/constants/theme';
+import AvailableDelivery from '@/features/dashboard/components/available-delivery';
+import CompletedDeliveries from '@/features/dashboard/components/completed-deliveries';
+import DeliveryDetails from '@/features/dashboard/components/delivery-details';
+import Earnings from '@/features/dashboard/components/earnings';
 import DashboardHeader from '@/features/dashboard/components/header';
+import Performance from '@/features/dashboard/components/performance';
 import StatCard from '@/features/dashboard/components/stat-card';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useState } from 'react';
 import {
   Image,
   ScrollView,
@@ -13,6 +20,10 @@ import {
 } from 'react-native';
 
 export default function Dashboard() {
+  const [activeTab, setActiveTab] = useState<
+    'available' | 'completed' | 'performance' | 'earnings'
+  >('available');
+
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -49,154 +60,87 @@ export default function Dashboard() {
           />
         </View>
 
-        <View style={styles.deliveryDetails}>
-          <View style={styles.deliveryHeader}>
-            <View style={styles.deliveryStatus}>
-              <View style={styles.dot}></View>
-              <Text style={styles.statusText}>Active Delivery</Text>
-            </View>
+        <DeliveryDetails />
 
-            <Text style={styles.deliveryId}>CRD-2024-1234</Text>
+        <View style={styles.tabContent}>
+          <View style={styles.tabContainer}>
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'available' && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab('available')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'available' && styles.activeTabText,
+                ]}
+              >
+                Available
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'completed' && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab('completed')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'completed' && styles.activeTabText,
+                ]}
+              >
+                Completed
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.tab,
+                activeTab === 'performance' && styles.activeTab,
+              ]}
+              onPress={() => setActiveTab('performance')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'performance' && styles.activeTabText,
+                ]}
+              >
+                Performance
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'earnings' && styles.activeTab]}
+              onPress={() => setActiveTab('earnings')}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === 'earnings' && styles.activeTabText,
+                ]}
+              >
+                Earnings
+              </Text>
+            </TouchableOpacity>
           </View>
 
-          <View style={styles.deliveryInfo}>
-            <View style={styles.deliveryRoute}>
-              <View style={styles.routeIcon}>
-                <Ionicons
-                  name="navigate-outline"
-                  size={20}
-                  color={Colors.primary}
-                />
-              </View>
+          {activeTab === 'available' && <AvailableDelivery />}
 
-              <View style={styles.routeDetails}>
-                <Text style={styles.routeLabel}>Pickup</Text>
-                <Text style={styles.routeAddress}>123 Main St, Lagos</Text>
-              </View>
+          {activeTab === 'completed' && <CompletedDeliveries />}
 
-              
-            </View>
+          {activeTab === 'performance' && <Performance />}
 
-            <View style={styles.deliveryRoute}>
-              <View style={styles.routeIcon}>
-                <Ionicons
-                  name="location-outline"
-                  size={20}
-                  color={Colors.primary}
-                />
-              </View>
-
-              <View style={styles.routeDetails}>
-                <Text style={styles.routeLabel}>Dropoff</Text>
-                <Text style={styles.routeAddress}>456 Elm St, Lagos</Text>
-              </View>
-            </View>
-
-            <View style={styles.deliveryCustomer}>
-              <Text style={styles.customerLabel}>Customer</Text>
-
-              <View style={styles.customerInfo}>
-                <View style={styles.customerDetails}>
-                  <Text style={styles.customerName}>John Doe</Text>
-                  <Text style={styles.customerPhone}>+234 800 123 4567</Text>
-                </View>
-
-                <Button
-                  variant="outline"
-                  leftIcon={
-                    <Ionicons
-                      name="call-outline"
-                      size={16}
-                      color={Colors.primary}
-                    />
-                  }
-                >
-                  Call
-                </Button>
-              </View>
-            </View>
-
-            <View style={styles.deliveryItems}>
-              <Text style={styles.itemsLabel}>Items</Text>
-              <View style={styles.itemsList}>
-                <View style={styles.item}>
-                  <Image
-                    source={require('@/assets/images/item.jpg')}
-                    style={styles.itemImage}
-                  />
-
-                  <Text style={styles.itemText}> Burger x2</Text>
-                </View>
-
-                <View style={styles.item}>
-                  <Image
-                    source={require('@/assets/images/item.jpg')}
-                    style={styles.itemImage}
-                  />
-
-                  <Text style={styles.itemText}> Burger x2</Text>
-                </View>
-                <View style={styles.item}>
-                  <Image
-                    source={require('@/assets/images/item.jpg')}
-                    style={styles.itemImage}
-                  />
-
-                  <Text style={styles.itemText}> Burger x2</Text>
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.deliveryEarnings}>
-              <Text style={styles.earningsLabel}>Earnings</Text>
-
-              <Text style={styles.earningsAmount}>NGN 3,500</Text>
-            </View>
-
-            <View style={styles.deliveryProgress}>
-              <View style={styles.progressHeader}>
-                <Text style={styles.progressLabel}>Delivery Progress</Text>
-
-                <Text style={styles.etaText}>ETA 12mins</Text>
-              </View>
-
-              <View style={styles.progressBarContainer}>
-                <View style={styles.progressBar}></View>
-              </View>
-
-              <Text style={styles.etaText}>5 mins to pickup</Text>
-            </View>
-
-            <View style={styles.deliveryActions}>
-              <Button
-                variant="green"
-                leftIcon={
-                  <Ionicons
-                    name="navigate-outline"
-                    size={16}
-                    color={Colors.text}
-                  />
-                }
-              >
-                Navigate
-              </Button>
-
-              <Button
-                variant="primary"
-                leftIcon={
-                  <Ionicons
-                    name="checkmark-outline"
-                    size={16}
-                    color={Colors.text}
-                  />
-                }
-              >
-                Mark as Delivered
-              </Button>
-            </View>
-          </View>
+          {activeTab === 'earnings' && <Earnings />}
         </View>
       </View>
+
+      <Footer />
     </ScrollView>
   );
 }
@@ -212,211 +156,40 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 
-  deliveryDetails: {
-    gap: 44,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: Colors.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
-
-  deliveryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  deliveryStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.success,
-    marginRight: 6,
-  },
-
-  statusText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
-
-  deliveryId: {
-    fontSize: 12,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.background,
-    padding: 4,
-    backgroundColor: Colors.success,
-    borderRadius: 25,
-  },
-
-  deliveryInfo: {
+  tabContent: {
     gap: 24,
   },
 
-  deliveryRoute: {
+  tabContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+    borderRadius: 14,
+    backgroundColor: Colors.inputBackground,
+    padding: 4,
+    marginVertical: 20,
+    gap: 4,
   },
 
-  routeIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 4,
+  tab: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
+    paddingVertical: 8,
+    borderRadius: 10,
+    gap: 6,
   },
 
-  routeDetails: {
-    gap: 4,
-  },
-
-  routeLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  routeAddress: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
+  activeTab: {
+    backgroundColor: '#fff',
     color: Colors.text,
   },
-
-  deliveryCustomer: {
-    gap: 2
-  },
-
-  customerLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  customerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  customerDetails: {
-    gap: 4,
-  },
-
-  customerName: {
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
-
-  customerPhone: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  deliveryItems: {
-    gap: 8,
-  },
-
-  itemsLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  itemsList: {
-    gap: 16,
-  },
-
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-
-  itemImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    objectFit: 'cover',
-  },
-
-  itemText: {
+  tabText: {
     fontSize: 14,
     fontFamily: Fonts.brandMedium,
+    color: Colors.textSecondary,
+  },
+
+  activeTabText: {
     color: Colors.text,
-  },
-
-  deliveryEarnings: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  earningsLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  earningsAmount: {
-    fontSize: 18,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.primary,
-  },
-
-  deliveryProgress: {
-    gap: 8,
-  },
-
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  progressLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  etaText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  progressBarContainer: {
-    width: '100%',
-    height: 8,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 4,
-  },
-
-  progressBar: {
-    width: '60%',
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 4,
-  },
-
-  deliveryActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
   },
 });

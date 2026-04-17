@@ -11,7 +11,7 @@ import {
 
 type ButtonProps = {
   children: React.ReactNode;
-  variant?: 'primary' | 'outline' | 'ghost' | 'google' | 'green';
+  variant?: 'primary' | 'outline' | 'ghost' | 'google' | 'green'| 'red' | 'redOutline';
   size?: 'sm' | 'md' | 'lg';
   rounded?: 'md' | 'lg' | 'full';
   disabled?: boolean;
@@ -116,6 +116,14 @@ const variantStyles = StyleSheet.create({
   green: {
     backgroundColor: Colors.success,
   },
+  red: {
+    backgroundColor: Colors.error,
+  },
+  redOutline: {
+    borderWidth: 1,
+    borderColor: Colors.error,
+    backgroundColor: Colors.error + '1A', // 10% opacity
+  },
 });
 
 const textVariantStyles = StyleSheet.create({
@@ -134,6 +142,13 @@ const textVariantStyles = StyleSheet.create({
   green: {
     color: Colors.text,
   },
+  red: {
+    color: Colors.text,
+  },
+  redOutline: {
+    color: Colors.error,
+  },
+
 });
 
 /* SIZES */

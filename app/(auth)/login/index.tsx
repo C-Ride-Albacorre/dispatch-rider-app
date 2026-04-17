@@ -71,7 +71,9 @@ export default function Login() {
             </Link>
           </View>
 
-          <Button size="lg">Sign in</Button>
+          <Link href={'/dashboard'} asChild>
+            <Button size="lg">Sign in</Button>
+          </Link>
 
           <View style={styles.action}>
             <Text style={styles.actionText}>Don't have an account?</Text>
@@ -118,9 +120,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 
-  forgotPasswordText:{
-
-
+  forgotPasswordText: {
     color: Colors.primary,
     fontFamily: Fonts.brandMedium,
     fontSize: 16,

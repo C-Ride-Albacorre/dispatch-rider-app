@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   // VALUE
   statValue: {
     fontSize: 22,
-    fontFamily: Fonts.brandBold,
+    fontFamily: Fonts.brandSemiBold,
     color: Colors.text,
   },
 
