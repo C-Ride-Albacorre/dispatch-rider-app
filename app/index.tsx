@@ -1,7 +1,8 @@
+import { scale } from '@/utils/scaling';
 import { router } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Animated, Image, StyleSheet, View, Easing } from 'react-native';
 import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 
 export default function Home() {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -77,7 +78,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   image: {
-    width: 128,
-    height: 128,
+    width: scale(128),
+    height: scale(128),
   },
 });

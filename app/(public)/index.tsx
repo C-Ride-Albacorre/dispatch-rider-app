@@ -1,10 +1,11 @@
 import Button from '@/components/ui/buttons/button';
 import { Colors, Fonts } from '@/constants/theme';
 
-import { Image, Linking, StyleSheet, Text, View } from 'react-native';
-import Animated, { FadeInDown } from 'react-native-reanimated';
+import { scale } from '@/utils/scaling';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
+import { Image, Linking, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 export default function Index() {
   const openWebBrowser = async (url: string) => {
@@ -43,6 +44,7 @@ export default function Index() {
             <Image
               source={require('../../assets/images/icon.png')}
               style={styles.logo}
+              resizeMode="contain"
             />
 
             <Animated.Text entering={FadeInDown} style={styles.tagline}>
@@ -114,11 +116,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
 
- logo: {
-    width: 64,
-    height: 64,
-    resizeMode: 'contain',
-    marginBottom: 20,
+  logo: {
+    width: scale(64),
+    height: scale(64),
+    marginBottom: scale(20),
   },
 
   contentContainer: {

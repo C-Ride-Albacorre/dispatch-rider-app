@@ -1,10 +1,11 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { normalize, scale } from '@/utils/scaling';
 import {
   StyleSheet,
   Text,
   TextInput,
-  View,
   TouchableOpacity,
+  View,
 } from 'react-native';
 
 type InputProps = {
@@ -51,7 +52,7 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: Colors.text,
     fontFamily: Fonts.brandMedium,
   },
@@ -60,24 +61,24 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.inputBackground,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+    borderRadius: scale(12),
+    paddingHorizontal: scale(12),
     width: '100%',
   },
 
   input: {
     flex: 1,
-    paddingVertical: 16,
-    fontSize: 16,
+    paddingVertical: scale(16),
+    fontSize: normalize(16),
     fontFamily: Fonts.brandRegular,
     color: Colors.text,
   },
 
   iconLeft: {
-    marginRight: 8,
+    marginRight: scale(8),
   },
 
   iconRight: {
-    marginLeft: 8,
+    marginLeft: scale(8),
   },
 });

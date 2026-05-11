@@ -2,6 +2,8 @@ import AuthPageHeader from '@/components/layout/auth-header';
 import Button from '@/components/ui/buttons/button';
 import OtpInput from '@/components/ui/input/otp-input';
 import { Colors, Fonts } from '@/constants/theme';
+import { useAuthStore } from '@/store/auth-store';
+import { maskPhone } from '@/utils/mask';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -20,6 +22,8 @@ export default function Verify() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const router = useRouter();
+
+  const verificationPhone = useAuthStore((state) => state.verificationPhone);
 
   const handleVerify = (otp: string) => {
     // Placeholder verification logic
@@ -50,15 +54,17 @@ export default function Verify() {
         <View style={styles.textContainer}>
           <Text style={styles.title}>Verify your account</Text>
           <Text style={styles.subtitle}>
-            We emailed you the six digit code to verify your account. Please
-            enter the code below to confirm your email address.
+            We have sent you the six digit code to verify your account. Please
+            Enter the verification code sent to{' '}
+            {maskPhone(verificationPhone || '')}
+            the code below to confirm your phone number.
           </Text>
         </View>
 
         <OtpInput
           errorMessage={errorMessage}
           onComplete={(otp) => {
-            // Trigger verification automatically when all 6 digits are in
+        
             handleVerify(otp);
           }}
           onChange={(otp) => setCode(otp)}

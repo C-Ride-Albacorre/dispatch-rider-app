@@ -1,17 +1,25 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { normalize, scale } from '@/utils/scaling';
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
+  TextStyle,
   TouchableOpacity,
   View,
   ViewStyle,
-  TextStyle,
-  ActivityIndicator,
 } from 'react-native';
 
 type ButtonProps = {
   children: React.ReactNode;
-  variant?: 'primary' | 'outline' | 'ghost' | 'google' | 'green'| 'red' | 'redOutline';
+  variant?:
+    | 'primary'
+    | 'outline'
+    | 'ghost'
+    | 'google'
+    | 'green'
+    | 'red'
+    | 'redOutline';
   size?: 'sm' | 'md' | 'lg';
   rounded?: 'md' | 'lg' | 'full';
   disabled?: boolean;
@@ -81,15 +89,15 @@ const styles = StyleSheet.create({
 
   text: {
     fontFamily: Fonts.brandMedium,
-    fontSize: 16,
+    fontSize: normalize(16),
   },
 
   iconLeft: {
-    marginRight: 8,
+    marginRight: scale(8),
   },
 
   iconRight: {
-    marginLeft: 8,
+    marginLeft: scale(8),
   },
 
   disabled: {
@@ -148,32 +156,31 @@ const textVariantStyles = StyleSheet.create({
   redOutline: {
     color: Colors.error,
   },
-
 });
 
 /* SIZES */
 const sizeStyles = StyleSheet.create({
   sm: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
+    paddingVertical: scale(10),
+    paddingHorizontal: scale(14),
   },
   md: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: scale(14),
+    paddingHorizontal: scale(16),
   },
   lg: {
-    paddingVertical: 18,
-    paddingHorizontal: 20,
+    paddingVertical: scale(18),
+    paddingHorizontal: scale(20),
   },
 });
 
 /* ROUNDED */
 const roundedStyles = StyleSheet.create({
   md: {
-    borderRadius: 8,
+    borderRadius: scale(8),
   },
   lg: {
-    borderRadius: 12,
+    borderRadius: scale(12),
   },
   full: {
     borderRadius: 999,

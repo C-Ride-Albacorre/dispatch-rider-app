@@ -29,12 +29,12 @@ export default function Login() {
     >
       <ScrollView contentContainerStyle={styles.container}>
         <View>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={styles.returnBtn}
             onPress={() => router.back()}
           >
             <Ionicons name="arrow-back" size={24} />
-          </TouchableOpacity>
+          </TouchableOpacity> */}
 
           <AuthPageHeader />
         </View>

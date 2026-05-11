@@ -1,4 +1,5 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import {
@@ -67,7 +68,7 @@ export default function DashboardHeader() {
             <Image
               source={require('@/assets/images/rider-image.jpg')}
               style={styles.profileImage}
-              resizeMode="contain"
+              resizeMode="cover"
             />
           </View>
         </View>
@@ -101,9 +102,8 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 80,
-    height: 80,
-    objectFit: 'contain',
+    width: scale(80),
+    height: scale(80),
   },
 
   statusContainer: {
@@ -120,10 +120,9 @@ const styles = StyleSheet.create({
   },
 
   profileImage: {
-    width: 44,
-    height: 44,
-    borderRadius: 200,
-    objectFit: 'cover',
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(22),
   },
 
   notificationButton: {

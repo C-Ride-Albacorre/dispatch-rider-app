@@ -12,6 +12,9 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
+import { AuthGate } from '@/features/auth/components/auth-gate';
+import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/components/ui/input/custom-toast';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -34,8 +37,12 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView className="flex-1">
       <ReactQueryProvider>
-        <Slot />
+        <AuthGate>
+          <Slot />
+        </AuthGate>
       </ReactQueryProvider>
+
+      <Toast config={toastConfig} />
     </GestureHandlerRootView>
   );
 }
