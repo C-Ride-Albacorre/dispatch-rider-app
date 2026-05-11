@@ -12,7 +12,7 @@ import {
   Animated,
 } from 'react-native';
 
-const OTP_LENGTH = 5;
+const OTP_LENGTH = 6;
 
 interface OtpInputProps {
   label?: string;

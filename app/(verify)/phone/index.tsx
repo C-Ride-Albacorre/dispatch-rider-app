@@ -1,12 +1,22 @@
 import AuthPageHeader from '@/components/layout/auth-header';
+
 import Button from '@/components/ui/buttons/button';
+
 import OtpInput from '@/components/ui/input/otp-input';
+
 import { Colors, Fonts } from '@/constants/theme';
+import { verifyPhoneAction } from '@/features/verify/action';
+
 import { useAuthStore } from '@/store/auth-store';
+
 import { maskPhone } from '@/utils/mask';
+
 import Ionicons from '@expo/vector-icons/Ionicons';
+
 import { Link, useRouter } from 'expo-router';
+
 import { useState } from 'react';
+
 import {
   KeyboardAvoidingView,
   Platform,
@@ -17,21 +27,52 @@ import {
   View,
 } from 'react-native';
 
-export default function Verify() {
+export default function VerifyPhoneScreen() {
   const [code, setCode] = useState('');
+
   const [errorMessage, setErrorMessage] = useState('');
+
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const verificationPhone = useAuthStore((state) => state.verificationPhone);
 
-  const handleVerify = (otp: string) => {
-    // Placeholder verification logic
-    if (otp === '123456') {
-      setErrorMessage('');
-    } else {
-      setErrorMessage('Invalid verification code');
+  const verificationToken = useAuthStore((state) => state.verificationToken);
+
+  const handleVerify = async () => {
+    if (code.length !== 6) {
+      setErrorMessage('Please enter the 6 digit code');
+
+      return;
     }
+
+    if (!verificationPhone || !verificationToken) {
+      setErrorMessage('Verification session expired');
+
+      return;
+    }
+
+    setLoading(true);
+
+    setErrorMessage('');
+
+    const result = await verifyPhoneAction({
+      phoneNumber: verificationPhone,
+      otp: code,
+      verificationToken,
+    });
+
+    setLoading(false);
+
+    if (!result.success) {
+      setErrorMessage(result.message || 'Invalid verification code');
+
+      return;
+    }
+
+    // 🔥 SUCCESS
+    router.replace('/(verify)/email');
   };
 
   return (
@@ -52,27 +93,30 @@ export default function Verify() {
         </View>
 
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Verify your account</Text>
+          <Text style={styles.title}>Verify your phone</Text>
+
           <Text style={styles.subtitle}>
-            We have sent you the six digit code to verify your account. Please
-            Enter the verification code sent to{' '}
-            {maskPhone(verificationPhone || '')}
-            the code below to confirm your phone number.
+            We sent a six digit code to {maskPhone(verificationPhone || '')}
           </Text>
         </View>
 
         <OtpInput
           errorMessage={errorMessage}
           onComplete={(otp) => {
-        
-            handleVerify(otp);
+            setCode(otp);
           }}
-          onChange={(otp) => setCode(otp)}
+          onChange={(otp) => {
+            setCode(otp);
+
+            if (errorMessage) {
+              setErrorMessage('');
+            }
+          }}
         />
 
-        <Link href={'/onboarding'} asChild>
-          <Button>Verify Account</Button>
-        </Link>
+        <Button disabled={loading} loading={loading} onPress={handleVerify}>
+          {loading ? 'Verifying...' : 'Verify Phone'}
+        </Button>
 
         <View style={styles.resendContainer}>
           <TouchableOpacity>
@@ -80,7 +124,9 @@ export default function Verify() {
           </TouchableOpacity>
 
           <TouchableOpacity>
-            <Text style={styles.resendText}>Change Email</Text>
+            <Link href="/(auth)/register" asChild>
+              <Text style={styles.resendText}>Change Phone</Text>
+            </Link>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -128,12 +174,8 @@ const styles = StyleSheet.create({
   },
 
   resendContainer: {
-    display: 'flex',
-    flexDirection: 'column',
     justifyContent: 'center',
-    alignContent: 'center',
-    textAlign: 'center',
-    gap: 16,
+    alignItems: 'center',
     marginTop: 20,
   },
 
@@ -141,6 +183,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: Fonts.brandMedium,
     color: Colors.primary,
-    textAlign: 'center',
   },
 });

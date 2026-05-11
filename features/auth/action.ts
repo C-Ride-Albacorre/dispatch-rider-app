@@ -52,7 +52,9 @@ export const loginAction = async (payload: LoginPayload) => {
   try {
     const data = await loginDriver(payload);
 
-    // 🔥 UNVERIFIED FLOW
+    console.log(' Login response:', data);
+
+    
     if (!data.success && data.status === 'UNVERIFIED') {
       await saveVerificationToken(data.verificationToken);
 
