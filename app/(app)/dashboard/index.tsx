@@ -8,7 +8,6 @@ import Earnings from '@/features/dashboard/components/earnings';
 import DashboardHeader from '@/features/dashboard/components/header';
 import Performance from '@/features/dashboard/components/performance';
 import StatCard from '@/features/dashboard/components/stat-card';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import {
   Image,

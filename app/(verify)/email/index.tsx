@@ -1,4 +1,5 @@
 import AuthPageHeader from '@/components/layout/auth-header';
+import SuccessModal from '@/components/layout/success-modal';
 
 import Button from '@/components/ui/buttons/button';
 
@@ -6,17 +7,19 @@ import OtpInput from '@/components/ui/input/otp-input';
 
 import { Colors, Fonts } from '@/constants/theme';
 
-import { verifyEmailAction, verifyPhoneAction } from '@/features/verify/action';
+import { resendOtpAction, verifyEmailAction } from '@/features/verify/action';
+import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
+import VerificationSuccessModal from '@/features/verify/components/verification-success-modal';
 
 import { useAuthStore } from '@/store/auth-store';
 
-import { maskPhone } from '@/utils/mask';
+import { maskEmail, maskPhone } from '@/utils/mask';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { Link, useRouter } from 'expo-router';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   KeyboardAvoidingView,
@@ -35,11 +38,19 @@ export default function VerifyEmailScreen() {
 
   const [loading, setLoading] = useState(false);
 
+  const [countdown, setCountdown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [nextSteps, setNextSteps] = useState<string[]>([]);
+
   const router = useRouter();
 
   const verificationEmail = useAuthStore((state) => state.verificationEmail);
 
   const verificationToken = useAuthStore((state) => state.verificationToken);
+
 
   const handleVerify = async () => {
     if (code.length !== 6) {
@@ -66,73 +77,151 @@ export default function VerifyEmailScreen() {
 
     setLoading(false);
 
+
+    console.log('Verification result:', result);
+
     if (!result.success) {
+      if (
+        result.message?.toLowerCase().includes('expired') ||
+        result.message?.toLowerCase().includes('invalid token')
+      ) {
+        setShowExpiredModal(true);
+        return;
+      }
+
       setErrorMessage(result.message || 'Invalid verification code');
 
       return;
     }
 
+    setNextSteps(result.data.nextSteps || []);
+
     // 🔥 SUCCESS
-    router.replace('/onboarding');
+    setShowSuccessModal(true);
   };
 
+  useEffect(() => {
+    if (countdown <= 0) {
+      setCanResend(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleResendOtp = async () => {
+    if (!canResend || resending) return;
+
+    if (!verificationEmail || !verificationToken) {
+      setErrorMessage('Verification session expired');
+      return;
+    }
+
+    setResending(true);
+
+    const result = await resendOtpAction(verificationEmail);
+
+    setResending(false);
+
+    if (!result.success) {
+      setErrorMessage(result.message || 'Failed to resend OTP');
+      return;
+    }
+
+    // restart timer
+    setCountdown(30);
+    setCanResend(false);
+  };
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View>
-          <TouchableOpacity
-            style={styles.returnBtn}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} />
-          </TouchableOpacity>
+    <>
+      <SuccessModal
+        title="Account Verified!"
+        path="/(app)/onboarding"
+        buttonText="Go to Dashboard"
+        showSuccessModal={showSuccessModal}
+        nextSteps={nextSteps}
+        setShowSuccessModal={setShowSuccessModal}
+      />
 
-          <AuthPageHeader />
-        </View>
+      <ExpiredTokenModal
+        showExpiredModal={showExpiredModal}
+        setShowExpiredModal={setShowExpiredModal}
+      />
 
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>Verify your email</Text>
+      <KeyboardAvoidingView
+        style={styles.keyboardSafeArea}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <View>
+            <TouchableOpacity
+              style={styles.returnBtn}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-back" size={24} />
+            </TouchableOpacity>
 
-          <Text style={styles.subtitle}>
-            We sent a six digit code to {maskPhone(verificationEmail || '')}
-          </Text>
-        </View>
+            <AuthPageHeader />
+          </View>
 
-        <OtpInput
-          errorMessage={errorMessage}
-          onComplete={(otp) => {
-            setCode(otp);
-          }}
-          onChange={(otp) => {
-            setCode(otp);
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>Verify your email</Text>
 
-            if (errorMessage) {
-              setErrorMessage('');
-            }
-          }}
-        />
+            <Text style={styles.subtitle}>
+              We sent a six digit code to {maskEmail(verificationEmail || '')}
+            </Text>
+          </View>
 
-        <Button disabled={loading} loading={loading} onPress={handleVerify}>
-         {loading ? 'Verifying...' : 'Verify Email'}
-        </Button>
+          <OtpInput
+            errorMessage={errorMessage}
+            onComplete={(otp) => {
+              setCode(otp);
+            }}
+            onChange={(otp) => {
+              setCode(otp);
 
-        <View style={styles.resendContainer}>
-          <TouchableOpacity>
-            <Text style={styles.resendText}>Resend Code</Text>
-          </TouchableOpacity>
+              if (errorMessage) {
+                setErrorMessage('');
+              }
+            }}
+          />
 
-          <TouchableOpacity>
+          <Button disabled={loading} loading={loading} onPress={handleVerify}>
+            {loading ? 'Verifying...' : 'Verify Email'}
+          </Button>
 
-            <Link href="/(auth)/register" asChild>
-              <Text style={styles.resendText}>Change Email</Text>
-            </Link>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <View style={styles.resendContainer}>
+            <TouchableOpacity
+              onPress={handleResendOtp}
+              disabled={!canResend || resending}
+            >
+              <Text
+                style={[
+                  styles.resendText,
+                  !canResend && styles.disabledResendText,
+                ]}
+              >
+                {resending
+                  ? 'Resending...'
+                  : canResend
+                    ? 'Resend Code'
+                    : `Resend Code in ${countdown}s`}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity>
+              <Link href="/(auth)/register" asChild>
+                <Text style={styles.resendText}>Change Email</Text>
+              </Link>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
@@ -142,7 +231,9 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 12,
     flexGrow: 1,
     gap: 24,
   },
@@ -179,11 +270,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
+    gap: 16,
   },
 
   resendText: {
     fontSize: 16,
     fontFamily: Fonts.brandMedium,
     color: Colors.primary,
+  },
+
+  disabledResendText: {
+    color: Colors.textSecondary,
   },
 });

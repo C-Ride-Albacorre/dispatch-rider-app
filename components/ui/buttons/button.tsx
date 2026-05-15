@@ -14,6 +14,7 @@ type ButtonProps = {
   children: React.ReactNode;
   variant?:
     | 'primary'
+    |'text'
     | 'outline'
     | 'ghost'
     | 'google'
@@ -110,6 +111,9 @@ const variantStyles = StyleSheet.create({
   primary: {
     backgroundColor: Colors.primary,
   },
+  text: {
+    backgroundColor: 'transparent',
+  },
   outline: {
     borderWidth: 1,
     borderColor: Colors.border,
@@ -137,6 +141,9 @@ const variantStyles = StyleSheet.create({
 const textVariantStyles = StyleSheet.create({
   primary: {
     color: Colors.text,
+  },
+  text: {
+    color: Colors.primary,
   },
   outline: {
     color: Colors.text,

@@ -1,59 +1,84 @@
 import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+
+const isWeb = Platform.OS === 'web';
+
+const setItem = async (key: string, value: string) => {
+  if (isWeb) {
+    localStorage.setItem(key, value);
+    return;
+  }
+
+  await SecureStore.setItemAsync(key, value);
+};
+
+const getItem = async (key: string) => {
+  if (isWeb) {
+    return localStorage.getItem(key);
+  }
+
+  return await SecureStore.getItemAsync(key);
+};
+
+const deleteItem = async (key: string) => {
+  if (isWeb) {
+    localStorage.removeItem(key);
+    return;
+  }
+
+  await SecureStore.deleteItemAsync(key);
+};
 
 export const saveAccessToken = async (token: string) => {
-  await SecureStore.setItemAsync('accessToken', token);
+  await setItem('accessToken', token);
 };
 
 export const saveRefreshToken = async (token: string) => {
-  await SecureStore.setItemAsync('refreshToken', token);
+  await setItem('refreshToken', token);
 };
 
 export const saveVerificationToken = async (token: string) => {
-  await SecureStore.setItemAsync('verificationToken', token);
+  await setItem('verificationToken', token);
 };
 
 export const getAccessToken = async () => {
-  return await SecureStore.getItemAsync('accessToken');
+  return await getItem('accessToken');
 };
 
 export const getRefreshToken = async () => {
-  return await SecureStore.getItemAsync('refreshToken');
+  return await getItem('refreshToken');
 };
 
 export const getVerificationToken = async () => {
-  return await SecureStore.getItemAsync('verificationToken');
+  return await getItem('verificationToken');
 };
 
 export const saveVerificationEmail = async (email: string) => {
-  await SecureStore.setItemAsync('verificationEmail', email);
+  await setItem('verificationEmail', email);
 };
 
 export const getVerificationEmail = async () => {
-  return await SecureStore.getItemAsync('verificationEmail');
+  return await getItem('verificationEmail');
 };
 
 export const saveVerificationPhone = async (phone: string) => {
-  await SecureStore.setItemAsync('verificationPhone', phone);
+  await setItem('verificationPhone', phone);
 };
 
 export const getVerificationPhone = async () => {
-  return await SecureStore.getItemAsync('verificationPhone');
+  return await getItem('verificationPhone');
 };
 
 export const clearVerificationData = async () => {
-  await SecureStore.deleteItemAsync('verificationToken');
-  await SecureStore.deleteItemAsync('verificationEmail');
-  await SecureStore.deleteItemAsync('verificationPhone');
+  await deleteItem('verificationToken');
+  await deleteItem('verificationEmail');
+  await deleteItem('verificationPhone');
 };
 
 export const clearTokens = async () => {
-  await SecureStore.deleteItemAsync('accessToken');
-
-  await SecureStore.deleteItemAsync('refreshToken');
-
-  await SecureStore.deleteItemAsync('verificationToken');
-
-  await SecureStore.deleteItemAsync('verificationEmail');
-
-  await SecureStore.deleteItemAsync('verificationPhone');
+  await deleteItem('accessToken');
+  await deleteItem('refreshToken');
+  await deleteItem('verificationToken');
+  await deleteItem('verificationEmail');
+  await deleteItem('verificationPhone');
 };

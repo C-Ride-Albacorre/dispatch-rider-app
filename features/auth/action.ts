@@ -14,52 +14,52 @@ import { LoginPayload, RegisterPayload } from './types';
 
 export const registerAction = async (payload: RegisterPayload) => {
   try {
-    const data = await registerDriver(payload);
+    const result = await registerDriver(payload);
 
-    console.log('Register response:', data);
+    console.log('Register response:', result);
 
-    await saveVerificationToken(data.verificationToken);
+    await saveVerificationToken(result.data.verificationToken);
 
-    await saveVerificationEmail(data.user.email);
+    await saveVerificationEmail(result.data.user.email);
 
-    await saveVerificationPhone(data.user.phoneNumber);
+    await saveVerificationPhone(result.data.user.phoneNumber);
 
     useAuthStore.getState().setAuth({
-      verificationToken: data.verificationToken,
-      verificationEmail: data.user.email,
-      verificationPhone: data.user.phoneNumber,
+      verificationToken: result.data.verificationToken,
+      verificationEmail: result.data.user.email,
+      verificationPhone: result.data.user.phoneNumber,
       authStatus: 'VERIFYING',
     });
 
     Toast.show({
       type: 'success',
       text1: 'Registration Successful',
-      text2: data.message,
+      text2: result.data.message,
     });
 
     return {
       success: true,
-      data,
+      data: result.data,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       success: false,
+      message: error?.response?.data?.message || 'Registration failed',
     };
   }
 };
 
 export const loginAction = async (payload: LoginPayload) => {
   try {
-    const data = await loginDriver(payload);
+    const result = await loginDriver(payload);
 
-    console.log(' Login response:', data);
+    console.log(' Login response:', result);
 
-    
-    if (!data.success && data.status === 'UNVERIFIED') {
-      await saveVerificationToken(data.verificationToken);
+    if (!result.success && result.status === 'UNVERIFIED') {
+      await saveVerificationToken(result.verificationToken);
 
       useAuthStore.getState().setAuth({
-        verificationToken: data.verificationToken,
+        verificationToken: result.data.verificationToken,
       });
 
       return {
@@ -69,14 +69,14 @@ export const loginAction = async (payload: LoginPayload) => {
     }
 
     // 🔥 VERIFIED FLOW
-    await saveAccessToken(data.accessToken);
+    await saveAccessToken(result.data.accessToken);
 
-    await saveRefreshToken(data.refreshToken);
+    await saveRefreshToken(result.data.refreshToken);
 
     useAuthStore.getState().setAuth({
-      accessToken: data.accessToken,
-
-      refreshToken: data.refreshToken,
+      accessToken: result.data.accessToken,
+      refreshToken: result.data.refreshToken,
+      authStatus: 'AUTHENTICATED',
     });
 
     Toast.show({

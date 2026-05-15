@@ -1,16 +1,27 @@
 import { scale } from '@/utils/scaling';
+
 import { router } from 'expo-router';
+
 import * as SplashScreen from 'expo-splash-screen';
+
 import { useEffect, useRef } from 'react';
+
 import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
+
+import { restoreAuth, useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.85)).current;
+
+  const scaleAnim = useRef(new Animated.Value(0.85)).current;
+
   const translateY = useRef(new Animated.Value(20)).current;
 
   useEffect(() => {
     const start = async () => {
+      // restore auth FIRST
+      await restoreAuth();
+
       await SplashScreen.hideAsync();
 
       Animated.sequence([
@@ -21,12 +32,14 @@ export default function Home() {
             easing: Easing.out(Easing.exp),
             useNativeDriver: true,
           }),
-          Animated.spring(scale, {
+
+          Animated.spring(scaleAnim, {
             toValue: 1,
             friction: 5,
             tension: 80,
             useNativeDriver: true,
           }),
+
           Animated.timing(translateY, {
             toValue: 0,
             duration: 600,
@@ -44,6 +57,21 @@ export default function Home() {
           useNativeDriver: true,
         }),
       ]).start(() => {
+        const { authStatus, verificationToken } = useAuthStore.getState();
+
+        // AUTHENTICATED
+        if (authStatus === 'AUTHENTICATED') {
+          router.replace('/(app)/dashboard');
+          return;
+        }
+
+        // VERIFYING
+        if (authStatus === 'VERIFYING' && verificationToken) {
+          router.replace('/(verify)/phone');
+          return;
+        }
+
+        // DEFAULT
         router.replace('/(public)');
       });
     };
@@ -58,7 +86,7 @@ export default function Home() {
           styles.logo,
           {
             opacity,
-            transform: [{ scale }, { translateY }],
+            transform: [{ scale: scaleAnim }, { translateY }],
           },
         ]}
       >
@@ -77,6 +105,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   image: {
     width: scale(128),
     height: scale(128),

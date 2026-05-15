@@ -5,7 +5,8 @@ import Button from '@/components/ui/buttons/button';
 import OtpInput from '@/components/ui/input/otp-input';
 
 import { Colors, Fonts } from '@/constants/theme';
-import { verifyPhoneAction } from '@/features/verify/action';
+import { resendOtpAction, verifyPhoneAction } from '@/features/verify/action';
+import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 
 import { useAuthStore } from '@/store/auth-store';
 
@@ -15,7 +16,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { Link, useRouter } from 'expo-router';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   KeyboardAvoidingView,
@@ -33,6 +34,11 @@ export default function VerifyPhoneScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const [loading, setLoading] = useState(false);
+
+  const [countdown, setCountdown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
 
   const router = useRouter();
 
@@ -66,71 +72,134 @@ export default function VerifyPhoneScreen() {
     setLoading(false);
 
     if (!result.success) {
+      if (
+        result.message?.toLowerCase().includes('expired') ||
+        result.message?.toLowerCase().includes('invalid token')
+      ) {
+        setShowExpiredModal(true);
+        return;
+      }
+
       setErrorMessage(result.message || 'Invalid verification code');
 
       return;
     }
 
     // 🔥 SUCCESS
-    router.replace('/(verify)/email');
+    router.push('/(verify)/email');
+  };
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      setCanResend(true);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown((prev) => prev - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  const handleResendOtp = async () => {
+    if (!canResend || resending) return;
+
+    if (!verificationPhone || !verificationToken) {
+      setErrorMessage('Verification session expired');
+      return;
+    }
+
+    setResending(true);
+
+    const result = await resendOtpAction(verificationPhone);
+
+    setResending(false);
+
+    if (!result.success) {
+      setErrorMessage(result.message || 'Failed to resend OTP');
+      return;
+    }
+
+    // restart timer
+    setCountdown(30);
+    setCanResend(false);
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.container}>
-        <View>
-          <TouchableOpacity
-            style={styles.returnBtn}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} />
-          </TouchableOpacity>
+    <>
+      <ExpiredTokenModal
+        showExpiredModal={showExpiredModal}
+        setShowExpiredModal={setShowExpiredModal}
+      />
+      <KeyboardAvoidingView
+        style={styles.keyboardSafeArea}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView contentContainerStyle={styles.container}>
+          <View>
+            <TouchableOpacity
+              style={styles.returnBtn}
+              onPress={() => router.back()}
+            >
+              <Ionicons name="arrow-back" size={24} />
+            </TouchableOpacity>
 
-          <AuthPageHeader />
-        </View>
+            <AuthPageHeader />
+          </View>
 
-        <View style={styles.textContainer}>
-          <Text style={styles.title}>Verify your phone</Text>
+          <View style={styles.textContainer}>
+            <Text style={styles.title}>Verify your phone</Text>
 
-          <Text style={styles.subtitle}>
-            We sent a six digit code to {maskPhone(verificationPhone || '')}
-          </Text>
-        </View>
+            <Text style={styles.subtitle}>
+              We sent a six digit code to {maskPhone(verificationPhone || '')}
+            </Text>
+          </View>
 
-        <OtpInput
-          errorMessage={errorMessage}
-          onComplete={(otp) => {
-            setCode(otp);
-          }}
-          onChange={(otp) => {
-            setCode(otp);
+          <OtpInput
+            errorMessage={errorMessage}
+            onComplete={(otp) => {
+              setCode(otp);
+            }}
+            onChange={(otp) => {
+              setCode(otp);
 
-            if (errorMessage) {
-              setErrorMessage('');
-            }
-          }}
-        />
+              if (errorMessage) {
+                setErrorMessage('');
+              }
+            }}
+          />
 
-        <Button disabled={loading} loading={loading} onPress={handleVerify}>
-          {loading ? 'Verifying...' : 'Verify Phone'}
-        </Button>
+          <Button disabled={loading} loading={loading} onPress={handleVerify}>
+            {loading ? 'Verifying...' : 'Verify Phone'}
+          </Button>
 
-        <View style={styles.resendContainer}>
-          <TouchableOpacity>
-            <Text style={styles.resendText}>Resend Code</Text>
-          </TouchableOpacity>
+          <View style={styles.resendContainer}>
+            <TouchableOpacity
+              onPress={handleResendOtp}
+              disabled={!canResend || resending}
+            >
+              <Text   style={[
+    styles.resendText,
+    !canResend && styles.disabledResendText,
+  ]}>
+                {resending
+                  ? 'Resending...'
+                  : canResend
+                    ? 'Resend Code'
+                    : `Resend Code in ${countdown}s`}
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity>
-            <Link href="/(auth)/register" asChild>
-              <Text style={styles.resendText}>Change Phone</Text>
-            </Link>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+            <TouchableOpacity>
+              <Link href="/(auth)/register" asChild>
+                <Text style={styles.resendText}>Change Phone</Text>
+              </Link>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
@@ -140,7 +209,9 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    paddingTop: 12,
     flexGrow: 1,
     gap: 24,
   },
@@ -177,11 +248,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 20,
+    gap: 16,
   },
 
   resendText: {
     fontSize: 16,
     fontFamily: Fonts.brandMedium,
     color: Colors.primary,
+  },
+
+  disabledResendText: {
+    color: Colors.textSecondary,
   },
 });

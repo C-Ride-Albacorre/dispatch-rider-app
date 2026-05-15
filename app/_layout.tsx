@@ -1,8 +1,13 @@
 import '../global.css';
+
 import { Slot } from 'expo-router';
+
 import * as SplashScreen from 'expo-splash-screen';
+
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
 import ReactQueryProvider from './providers/react-query-provider';
+
 import { useEffect } from 'react';
 
 import {
@@ -12,8 +17,9 @@ import {
   Poppins_600SemiBold,
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
-import { AuthGate } from '@/features/auth/components/auth-gate';
+
 import Toast from 'react-native-toast-message';
+
 import { toastConfig } from '@/components/ui/input/custom-toast';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,9 +43,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView className="flex-1">
       <ReactQueryProvider>
-        <AuthGate>
-          <Slot />
-        </AuthGate>
+        <Slot />
       </ReactQueryProvider>
 
       <Toast config={toastConfig} />

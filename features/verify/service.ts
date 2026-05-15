@@ -12,3 +12,9 @@ export const verifyEmail = async (payload: VerifyEmailPayload) => {
 
   return response.data.data;
 };
+
+export const resendOtp = async (identifier: string) => {
+  const response = await api.post('/auth/resend-otp', { identifier });
+
+  return response.data.data;
+};

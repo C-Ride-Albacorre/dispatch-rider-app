@@ -2,6 +2,8 @@ import AuthPageHeader from '@/components/layout/auth-header';
 
 import Button from '@/components/ui/buttons/button';
 
+import ErrorMessage from '@/components/ui/error/error-message';
+
 import Input from '@/components/ui/input/input';
 
 import PhoneInput from '@/components/ui/input/phone-input';
@@ -31,6 +33,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import SuccessModal from '@/components/layout/success-modal';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -39,12 +42,26 @@ export default function RegisterForm() {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const [nextSteps, setNextSteps] = useState<string[]>([]);
+
   const {
     control,
     handleSubmit,
     watch,
     formState: { errors },
-  } = useForm<RegisterPayload>();
+  } = useForm<RegisterPayload>({
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phoneNumber: '',
+      password: '',
+    },
+  });
 
   // 🔥 WATCH PASSWORD
   const password = watch('password') || '';
@@ -58,7 +75,11 @@ export default function RegisterForm() {
       const response = await registerAction(data);
 
       if (response.success) {
-        router.push('/(verify)/phone');
+        setNextSteps(response.data.nextSteps);
+
+        setShowSuccessModal(true);
+      } else {
+        setErrorMessage(response.message || 'Registration failed');
       }
     } finally {
       setLoading(false);
@@ -66,190 +87,191 @@ export default function RegisterForm() {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
+    <>
+      <SuccessModal
+        title="Registration Successful!"
+        path="/(verify)/phone"
+        buttonText="Verify Account"
+        showSuccessModal={showSuccessModal}
+        nextSteps={nextSteps}
+        setShowSuccessModal={setShowSuccessModal}
+      />
+
+      <KeyboardAvoidingView
+        style={styles.keyboardSafeArea}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <View>
-          {router.canGoBack() && (
-            <TouchableOpacity
-              style={styles.returnBtn}
-              onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={24} />
-            </TouchableOpacity>
-          )}
-
-          <AuthPageHeader />
-        </View>
-
-        <View style={styles.form}>
-          {/* FIRST NAME */}
-          <Controller
-            control={control}
-            name="firstName"
-            rules={{
-              required: 'First name is required',
-            }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="First Name"
-                placeholder="John"
-                value={value}
-                onChangeText={onChange}
-              />
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View>
+            {router.canGoBack() && (
+              <TouchableOpacity
+                style={styles.returnBtn}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="arrow-back" size={24} />
+              </TouchableOpacity>
             )}
-          />
 
-          {errors.firstName && (
-            <Text style={styles.errorText}>{errors.firstName.message}</Text>
-          )}
-
-          {/* LAST NAME */}
-          <Controller
-            control={control}
-            name="lastName"
-            rules={{
-              required: 'Last name is required',
-            }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Last Name"
-                placeholder="Doe"
-                value={value}
-                onChangeText={onChange}
-              />
-            )}
-          />
-
-          {errors.lastName && (
-            <Text style={styles.errorText}>{errors.lastName.message}</Text>
-          )}
-
-          {/* EMAIL */}
-          <Controller
-            control={control}
-            name="email"
-            rules={{
-              required: 'Email is required',
-
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-
-                message: 'Invalid email address',
-              },
-            }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Email"
-                placeholder="john@mail.com"
-                value={value}
-                onChangeText={onChange}
-              />
-            )}
-          />
-
-          {errors.email && (
-            <Text style={styles.errorText}>{errors.email.message}</Text>
-          )}
-
-          {/* PHONE */}
-          <Controller
-            control={control}
-            name="phoneNumber"
-            rules={{
-              required: 'Phone number is required',
-            }}
-            render={({ field: { onChange, value } }) => (
-              <PhoneInput
-                label="Phone Number"
-                placeholder="+234..."
-                value={value}
-                onChangePhone={onChange}
-              />
-            )}
-          />
-
-          {errors.phoneNumber && (
-            <Text style={styles.errorText}>{errors.phoneNumber.message}</Text>
-          )}
-
-          {/* PASSWORD */}
-          <Controller
-            control={control}
-            name="password"
-            rules={{
-              required: 'Password is required',
-
-              minLength: {
-                value: 6,
-                message: 'Password must be at least 6 characters',
-              },
-            }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                label="Password"
-                placeholder="********"
-                value={value}
-                secureTextEntry={!showPassword}
-                onChangeText={onChange}
-                rightIcon={
-                  <Ionicons
-                    name={showPassword ? 'eye-off' : 'eye'}
-                    size={22}
-                    color="#999"
-                  />
-                }
-                onRightIconPress={() => setShowPassword(!showPassword)}
-              />
-            )}
-          />
-
-          {/* PASSWORD ERROR */}
-          {errors.password && (
-            <Text style={styles.errorText}>{errors.password.message}</Text>
-          )}
-
-          {/* PASSWORD STRENGTH */}
-          {password.length > 0 && (
-            <Text
-              style={{
-                color: passwordStrength.color,
-
-                fontSize: 13,
-
-                fontFamily: Fonts.brandMedium,
-              }}
-            >
-              Password Strength: {passwordStrength.label}
-            </Text>
-          )}
-
-          {/* SUBMIT */}
-          <Button
-            size="lg"
-            loading={loading}
-            disabled={loading}
-            onPress={handleSubmit(onSubmit)}
-          >
-            {loading ? 'Creating Account...' : 'Register'}
-          </Button>
-
-          {/* FOOTER */}
-          <View style={styles.action}>
-            <Text style={styles.actionText}>Already have an account?</Text>
-
-            <TouchableOpacity onPress={() => router.push('/login')}>
-              <Text style={styles.actionLink}>Login</Text>
-            </TouchableOpacity>
+            <AuthPageHeader />
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+
+          {errorMessage && <ErrorMessage message={errorMessage} />}
+
+          <View style={styles.form}>
+            {/* FIRST NAME */}
+            <Controller
+              control={control}
+              name="firstName"
+              rules={{
+                required: 'First name is required',
+              }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="First Name"
+                  placeholder="John"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.firstName?.message}
+                />
+              )}
+            />
+
+            {/* LAST NAME */}
+            <Controller
+              control={control}
+              name="lastName"
+              rules={{
+                required: 'Last name is required',
+              }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Last Name"
+                  placeholder="Doe"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.lastName?.message}
+                />
+              )}
+            />
+
+            {/* EMAIL */}
+            <Controller
+              control={control}
+              name="email"
+              rules={{
+                required: 'Email is required',
+
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+
+                  message: 'Invalid email address',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Email"
+                  placeholder="john@mail.com"
+                  value={value}
+                  onChangeText={onChange}
+                  error={errors.email?.message}
+                />
+              )}
+            />
+
+            {errors.email && (
+              <Text style={styles.errorText}>{errors.email.message}</Text>
+            )}
+
+            {/* PHONE */}
+            <Controller
+              control={control}
+              name="phoneNumber"
+              rules={{
+                required: 'Phone number is required',
+              }}
+              render={({ field: { onChange, value } }) => (
+                <PhoneInput
+                  label="Phone Number"
+                  placeholder="(000) 000-0000"
+                  value={value}
+                  onChangePhone={onChange}
+                  errorMessage={errors.phoneNumber?.message}
+                />
+              )}
+            />
+
+            {/* PASSWORD */}
+            <Controller
+              control={control}
+              name="password"
+              rules={{
+                required: 'Password is required',
+
+                minLength: {
+                  value: 6,
+                  message: 'Password must be at least 6 characters',
+                },
+              }}
+              render={({ field: { onChange, value } }) => (
+                <Input
+                  label="Password"
+                  placeholder="********"
+                  value={value}
+                  secureTextEntry={!showPassword}
+                  onChangeText={onChange}
+                  rightIcon={
+                    <Ionicons
+                      name={showPassword ? 'eye-off' : 'eye'}
+                      size={22}
+                      color="#999"
+                    />
+                  }
+                  onRightIconPress={() => setShowPassword(!showPassword)}
+                  error={errors.password?.message}
+                />
+              )}
+            />
+
+            {/* PASSWORD STRENGTH */}
+            {password.length > 0 && (
+              <Text
+                style={{
+                  color: passwordStrength.color,
+
+                  fontSize: 13,
+
+                  fontFamily: Fonts.brandMedium,
+                }}
+              >
+                Password Strength: {passwordStrength.label}
+              </Text>
+            )}
+
+            {/* SUBMIT */}
+            <Button
+              size="lg"
+              loading={loading}
+              disabled={loading}
+              onPress={handleSubmit(onSubmit)}
+            >
+              {loading ? 'Creating Account...' : 'Register'}
+            </Button>
+
+            {/* FOOTER */}
+            <View style={styles.action}>
+              <Text style={styles.actionText}>Already have an account?</Text>
+
+              <TouchableOpacity onPress={() => router.push('/login')}>
+                <Text style={styles.actionLink}>Login</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
