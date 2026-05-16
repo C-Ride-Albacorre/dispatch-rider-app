@@ -1,5 +1,6 @@
 import { Colors, Fonts } from '@/constants/theme';
 import { normalize, scale } from '@/utils/scaling';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useEffect, useState } from 'react';
 
@@ -186,7 +187,7 @@ export default function PhoneInput({
 
               <Text style={styles.dialCode}>{selected.dial}</Text>
 
-              <Text style={styles.chevron}>▾</Text>
+              <Ionicons name="chevron-down" style={styles.chevron} />
             </>
           )}
         </TouchableOpacity>
@@ -291,12 +292,12 @@ export default function PhoneInput({
 
 const styles = StyleSheet.create({
   wrapper: {
-    gap: 8,
+    gap: scale(6),
     width: '100%',
   },
 
   label: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: Colors.text,
     fontFamily: Fonts.brandMedium,
   },
@@ -304,53 +305,59 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
+    borderRadius: scale(12),
     overflow: 'hidden',
     backgroundColor: Colors.inputBackground,
   },
 
   rowError: {
-    borderWidth: 1,
+    borderWidth: scale(1),
     borderColor: '#ef4444',
     backgroundColor: '#FEF2F2',
   },
 
+ 
+
   dialButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 16,
+    gap: scale(6),
+    paddingHorizontal: scale(12),
+    paddingVertical: scale(16),
   },
 
   flag: {
-    width: 22,
-    height: 16,
-    borderRadius: 2,
+    width: scale(22),
+    height: scale(16),
+    borderRadius: scale(2),
   },
 
   dialCode: {
-    fontSize: 15,
+    fontSize: normalize(15),
     color: Colors.text,
     fontFamily: Fonts.brandMedium,
   },
 
   chevron: {
-    fontSize: 12,
+    fontSize: normalize(12),
     color: '#9ca3af',
   },
 
   divider: {
-    width: 1,
-    height: 24,
+    width: scale(1),
+    height: scale(24),
     backgroundColor: Colors.border,
   },
 
   input: {
     flex: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 16,
-    fontSize: 16,
+
+    paddingVertical: scale(16),
+
+    fontSize: normalize(16),
+
+    fontFamily: Fonts.brandRegular,
+
     color: Colors.text,
   },
 
@@ -386,53 +393,53 @@ const styles = StyleSheet.create({
 
     alignItems: 'center',
 
-    paddingHorizontal: 16,
+    paddingHorizontal: scale(16),
 
-    paddingVertical: 14,
+    paddingVertical: scale(14),
 
-    borderBottomWidth: 1,
+    borderBottomWidth: scale(1),
 
     borderBottomColor: '#e5e7eb',
   },
 
   modalTitle: {
-    fontSize: 17,
+    fontSize: normalize(17),
     color: Colors.text,
     fontFamily: Fonts.brandMedium,
   },
 
   modalClose: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: '#3b82f6',
   },
 
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    margin: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    gap: scale(8),
+    margin: scale(12),
+    paddingHorizontal: scale(12),
+    paddingVertical: scale(10),
     backgroundColor: '#f3f4f6',
-    borderRadius: 10,
+    borderRadius: scale(10),
   },
 
   searchIcon: {
-    fontSize: 14,
+    fontSize: normalize(14),
   },
 
   searchInput: {
     flex: 1,
-    fontSize: 15,
+    fontSize: normalize(15),
     color: Colors.text,
   },
 
   countryRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+    gap: scale(12),
+    paddingHorizontal: scale(16),
+    paddingVertical: scale(13),
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: '#f3f4f6',
   },
@@ -443,12 +450,12 @@ const styles = StyleSheet.create({
 
   countryName: {
     flex: 1,
-    fontSize: 15,
+    fontSize: normalize(15),
     color: Colors.text,
   },
 
   countryDial: {
-    fontSize: 14,
+    fontSize: normalize(14),
     color: '#6b7280',
   },
 });

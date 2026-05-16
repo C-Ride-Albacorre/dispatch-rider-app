@@ -55,7 +55,7 @@ export default function Onboarding() {
 
         {step === '3' && <Documents setStep={setStep} />}
 
-        {step === '4' && <Review setStep={setStep} />}
+        {/* {step === '4' && <Review setStep={setStep} />} */}
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     gap: 24,
+    marginBottom: 40,
   },
   returnBtn: {
     alignSelf: 'flex-start',

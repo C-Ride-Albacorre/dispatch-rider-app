@@ -6,7 +6,7 @@ const STEPS = [
   { label: 'Personal\nInfo' },
   { label: 'Vehicle\nDetails' },
   { label: 'Documents' },
-  { label: 'Review' },
+  // { label: 'Review' },
 ];
 
 type Props = { current: number; total?: number };
@@ -49,7 +49,7 @@ export default function StepIndicator({
                 ]}
               >
                 {isCompleted ? (
-                  <Ionicons name="checkmark" size={16} color={Colors.primary} />
+                  <Ionicons name="checkmark" size={16} color={Colors.success} />
                 ) : (
                   <Text
                     style={[styles.pillNum, isActive && styles.pillNumActive]}
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   percentText: {
     fontSize: 14,
     fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
-    color: Colors.primary,
+    color: Colors.success,
   },
 
   trackBg: {
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   trackFill: {
     height: '100%',
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.success,
     borderRadius: 99,
   },
 
@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
     backgroundColor: `${Colors.primary}18`,
   },
   pillCompleted: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.inputBackground,
+    borderColor: Colors.success,
+    backgroundColor: Colors.successExtraLight,
   },
 
   pillNum: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   },
 
   stepLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontFamily: Fonts.brandRegular,
     color: '#9ca3af',
     textAlign: 'center',
@@ -158,6 +158,6 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.brandMedium,
   },
   stepLabelCompleted: {
-    color: Colors.primary,
+    color: Colors.success,
   },
 });
