@@ -53,22 +53,45 @@ export const loginAction = async (payload: LoginPayload) => {
   try {
     const result = await loginDriver(payload);
 
-    console.log(' Login response:', result);
+    console.log('Login response:', result);
 
-    if (!result.success && result.status === 'UNVERIFIED') {
-      await saveVerificationToken(result.verificationToken);
+    // UNVERIFIED FLOW
+    if (result.data.status === 'UNVERIFIED') {
+      await saveVerificationToken(result.data.verificationToken);
 
-      useAuthStore.getState().setAuth({
-        verificationToken: result.data.verificationToken,
-      });
+      if (result.data.isPhoneVerified && !result.data.isEmailVerified) {
+        await saveVerificationEmail(result.data.identifier);
+
+        useAuthStore.getState().setAuth({
+          verificationToken: result.data.verificationToken,
+          verificationEmail: result.data.identifier,
+          authStatus: 'VERIFYING',
+        });
+      } else {
+        await saveVerificationEmail(result.data.email);
+
+        await saveVerificationPhone(result.data.phoneNumber);
+
+        useAuthStore.getState().setAuth({
+          verificationToken: result.data.verificationToken,
+          verificationEmail: result.data.email,
+          verificationPhone: result.data.phoneNumber,
+          authStatus: 'VERIFYING',
+        });
+      }
 
       return {
         success: false,
         unverified: true,
+
+        isPhoneVerified: result.data.isPhoneVerified,
+        isEmailVerified: result.data.isEmailVerified,
+
+        message: result.data.message || 'Account verification required',
       };
     }
 
-    // 🔥 VERIFIED FLOW
+    // VERIFIED FLOW
     await saveAccessToken(result.data.accessToken);
 
     await saveRefreshToken(result.data.refreshToken);
@@ -87,9 +110,10 @@ export const loginAction = async (payload: LoginPayload) => {
     return {
       success: true,
     };
-  } catch (error) {
+  } catch (error: any) {
     return {
       success: false,
+      message: error?.response?.data?.message || 'Login failed',
     };
   }
 };

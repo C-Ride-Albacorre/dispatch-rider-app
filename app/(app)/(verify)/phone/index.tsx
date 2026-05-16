@@ -5,6 +5,7 @@ import Button from '@/components/ui/buttons/button';
 import OtpInput from '@/components/ui/input/otp-input';
 
 import { Colors, Fonts } from '@/constants/theme';
+import ResendOTP from '@/features/auth/components/resend-otp';
 import { resendOtpAction, verifyPhoneAction } from '@/features/verify/action';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 
@@ -16,7 +17,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { Link, useRouter } from 'expo-router';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 import {
   KeyboardAvoidingView,
@@ -35,9 +36,6 @@ export default function VerifyPhoneScreen() {
 
   const [loading, setLoading] = useState(false);
 
-  const [countdown, setCountdown] = useState(30);
-  const [canResend, setCanResend] = useState(false);
-  const [resending, setResending] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
 
   const router = useRouter();
@@ -72,58 +70,25 @@ export default function VerifyPhoneScreen() {
     setLoading(false);
 
     if (!result.success) {
-      if (
-        result.message?.toLowerCase().includes('expired') ||
-        result.message?.toLowerCase().includes('invalid token')
-      ) {
-        setShowExpiredModal(true);
+      // expired token/code
+      // if (result.expired) {
+      //   setShowExpiredModal(true);
+      //   return;
+      // }
+
+      // invalid otp
+      if (result.invalid) {
+        setErrorMessage(result.message || 'Invalid verification code');
         return;
       }
 
-      setErrorMessage(result.message || 'Invalid verification code');
+      setErrorMessage(result.message || 'Verification failed');
 
       return;
     }
 
     // 🔥 SUCCESS
-    router.push('/(verify)/email');
-  };
-
-  useEffect(() => {
-    if (countdown <= 0) {
-      setCanResend(true);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setCountdown((prev) => prev - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [countdown]);
-
-  const handleResendOtp = async () => {
-    if (!canResend || resending) return;
-
-    if (!verificationPhone || !verificationToken) {
-      setErrorMessage('Verification session expired');
-      return;
-    }
-
-    setResending(true);
-
-    const result = await resendOtpAction(verificationPhone);
-
-    setResending(false);
-
-    if (!result.success) {
-      setErrorMessage(result.message || 'Failed to resend OTP');
-      return;
-    }
-
-    // restart timer
-    setCountdown(30);
-    setCanResend(false);
+    router.push('/(app)/(verify)/email');
   };
 
   return (
@@ -175,24 +140,14 @@ export default function VerifyPhoneScreen() {
           </Button>
 
           <View style={styles.resendContainer}>
-            <TouchableOpacity
-              onPress={handleResendOtp}
-              disabled={!canResend || resending}
-            >
-              <Text   style={[
-    styles.resendText,
-    !canResend && styles.disabledResendText,
-  ]}>
-                {resending
-                  ? 'Resending...'
-                  : canResend
-                    ? 'Resend Code'
-                    : `Resend Code in ${countdown}s`}
-              </Text>
-            </TouchableOpacity>
+            <ResendOTP
+              identifier={verificationPhone}
+              verificationToken={verificationToken}
+              setErrorMessage={setErrorMessage}
+            />
 
             <TouchableOpacity>
-              <Link href="/(auth)/register" asChild>
+              <Link href="/(app)/(auth)/register" asChild>
                 <Text style={styles.resendText}>Change Phone</Text>
               </Link>
             </TouchableOpacity>

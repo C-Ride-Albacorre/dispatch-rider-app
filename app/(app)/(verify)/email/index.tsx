@@ -6,14 +6,14 @@ import Button from '@/components/ui/buttons/button';
 import OtpInput from '@/components/ui/input/otp-input';
 
 import { Colors, Fonts } from '@/constants/theme';
+import ResendOTP from '@/features/auth/components/resend-otp';
 
 import { resendOtpAction, verifyEmailAction } from '@/features/verify/action';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
-import VerificationSuccessModal from '@/features/verify/components/verification-success-modal';
 
 import { useAuthStore } from '@/store/auth-store';
 
-import { maskEmail, maskPhone } from '@/utils/mask';
+import { maskEmail } from '@/utils/mask';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -31,6 +31,13 @@ import {
   View,
 } from 'react-native';
 
+const onBoardingSteps = [
+  'Set up your profile',
+  'Set up your vehicle',
+  'Upload necessary documents',
+  'Review and submit your application',
+];
+
 export default function VerifyEmailScreen() {
   const [code, setCode] = useState('');
 
@@ -43,14 +50,12 @@ export default function VerifyEmailScreen() {
   const [resending, setResending] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [nextSteps, setNextSteps] = useState<string[]>([]);
 
   const router = useRouter();
 
   const verificationEmail = useAuthStore((state) => state.verificationEmail);
 
   const verificationToken = useAuthStore((state) => state.verificationToken);
-
 
   const handleVerify = async () => {
     if (code.length !== 6) {
@@ -77,24 +82,25 @@ export default function VerifyEmailScreen() {
 
     setLoading(false);
 
-
     console.log('Verification result:', result);
 
     if (!result.success) {
-      if (
-        result.message?.toLowerCase().includes('expired') ||
-        result.message?.toLowerCase().includes('invalid token')
-      ) {
-        setShowExpiredModal(true);
+      // expired token/code
+      // if (result.expired) {
+      //   setShowExpiredModal(true);
+      //   return;
+      // }
+
+      // invalid otp
+      if (result.invalid) {
+        setErrorMessage(result.message || 'Invalid verification code');
         return;
       }
 
-      setErrorMessage(result.message || 'Invalid verification code');
+      setErrorMessage(result.message || 'Verification failed');
 
       return;
     }
-
-    setNextSteps(result.data.nextSteps || []);
 
     // 🔥 SUCCESS
     setShowSuccessModal(true);
@@ -113,37 +119,14 @@ export default function VerifyEmailScreen() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  const handleResendOtp = async () => {
-    if (!canResend || resending) return;
-
-    if (!verificationEmail || !verificationToken) {
-      setErrorMessage('Verification session expired');
-      return;
-    }
-
-    setResending(true);
-
-    const result = await resendOtpAction(verificationEmail);
-
-    setResending(false);
-
-    if (!result.success) {
-      setErrorMessage(result.message || 'Failed to resend OTP');
-      return;
-    }
-
-    // restart timer
-    setCountdown(30);
-    setCanResend(false);
-  };
   return (
     <>
       <SuccessModal
         title="Account Verified!"
-        path="/(app)/onboarding"
-        buttonText="Go to Dashboard"
+        path="/(app)/(protected)/onboarding"
+        buttonText="Go to Onboarding"
         showSuccessModal={showSuccessModal}
-        nextSteps={nextSteps}
+        nextSteps={onBoardingSteps}
         setShowSuccessModal={setShowSuccessModal}
       />
 
@@ -195,7 +178,7 @@ export default function VerifyEmailScreen() {
           </Button>
 
           <View style={styles.resendContainer}>
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={handleResendOtp}
               disabled={!canResend || resending}
             >
@@ -211,10 +194,16 @@ export default function VerifyEmailScreen() {
                     ? 'Resend Code'
                     : `Resend Code in ${countdown}s`}
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
+
+            <ResendOTP
+              identifier={verificationEmail}
+              verificationToken={verificationToken}
+              setErrorMessage={setErrorMessage}
+            />
 
             <TouchableOpacity>
-              <Link href="/(auth)/register" asChild>
+              <Link href="/(app)/(auth)/register" asChild>
                 <Text style={styles.resendText}>Change Email</Text>
               </Link>
             </TouchableOpacity>

@@ -31,14 +31,14 @@ export default function Onboarding() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View>
+        {/* <View>
           <TouchableOpacity
             style={styles.returnBtn}
             onPress={() => router.back()}
           >
             <Ionicons name="arrow-back" size={24} />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         <View style={styles.textContainer}>
           <Text style={styles.title}>Join C-Ride as a Fulfillment Partner</Text>

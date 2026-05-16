@@ -1,101 +1,86 @@
+// app/index.tsx
+
 import { scale } from '@/utils/scaling';
 
 import { router } from 'expo-router';
-
-import * as SplashScreen from 'expo-splash-screen';
 
 import { useEffect, useRef } from 'react';
 
 import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 
-import { restoreAuth, useAuthStore } from '@/store/auth-store';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const opacity = useRef(new Animated.Value(0)).current;
-
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
-
   const translateY = useRef(new Animated.Value(20)).current;
-
   useEffect(() => {
-    const start = async () => {
-      // restore auth FIRST
-      await restoreAuth();
-
-      await SplashScreen.hideAsync();
-
-      Animated.sequence([
-        Animated.parallel([
-          Animated.timing(opacity, {
-            toValue: 1,
-            duration: 600,
-            easing: Easing.out(Easing.exp),
-            useNativeDriver: true,
-          }),
-
-          Animated.spring(scaleAnim, {
-            toValue: 1,
-            friction: 5,
-            tension: 80,
-            useNativeDriver: true,
-          }),
-
-          Animated.timing(translateY, {
-            toValue: 0,
-            duration: 600,
-            easing: Easing.out(Easing.exp),
-            useNativeDriver: true,
-          }),
-        ]),
-
-        Animated.delay(900),
-
+    Animated.sequence([
+      Animated.parallel([
         Animated.timing(opacity, {
-          toValue: 0,
-          duration: 500,
-          easing: Easing.in(Easing.ease),
+          toValue: 1,
+          duration: 600,
+          easing: Easing.out(Easing.exp),
           useNativeDriver: true,
         }),
-      ]).start(() => {
-        const { authStatus, verificationToken } = useAuthStore.getState();
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 5,
+          tension: 80,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 600,
+          easing: Easing.out(Easing.exp),
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.delay(900),
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 500,
+        easing: Easing.in(Easing.ease),
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      const { authStatus, verificationToken } = useAuthStore.getState();
 
-        // AUTHENTICATED
-        if (authStatus === 'AUTHENTICATED') {
-          router.replace('/(app)/dashboard');
-          return;
-        }
+      // AUTHENTICATED0
 
-        // VERIFYING
-        if (authStatus === 'VERIFYING' && verificationToken) {
-          router.replace('/(verify)/phone');
-          return;
-        }
+      if (authStatus === 'AUTHENTICATED') {
+        router.replace('/(app)/(protected)/dashboard');
+        return;
+      }
 
-        // DEFAULT
-        router.replace('/(public)');
-      });
-    };
+      // VERIFYING
 
-    start();
+      if (authStatus === 'VERIFYING' && verificationToken) {
+        router.replace('/(app)/(verify)/phone');
+        return;
+      }
+
+      // UNAUTHENTICATED
+
+      router.replace('/(public)');
+    });
   }, []);
-
   return (
     <View className="flex-1 items-center justify-center bg-white dark:bg-[#2C3E50]">
+      {' '}
       <Animated.View
         style={[
           styles.logo,
-          {
-            opacity,
-            transform: [{ scale: scaleAnim }, { translateY }],
-          },
+          { opacity, transform: [{ scale: scaleAnim }, { translateY }] },
         ]}
       >
+        {' '}
         <Image
           source={require('../assets/images/icon.png')}
           style={styles.image}
           resizeMode="contain"
-        />
-      </Animated.View>
+        />{' '}
+      </Animated.View>{' '}
     </View>
   );
 }

@@ -15,12 +15,12 @@ import { Colors } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 type AppRoutes =
-  | '/(auth)/login'
-  | '/(app)/onboarding'
-  | '/(auth)/register'
-  | '/(app)/dashboard'
-  | '/(verify)/email'
-  | '/(verify)/phone';
+  | '/(app)/(auth)/login'
+  | '/(app)/(protected)/onboarding'
+  | '/(app)/(auth)/register'
+  | '/(app)/(protected)/dashboard'
+  | '/(app)/(verify)/email'
+  | '/(app)/(verify)/phone';
 
 export default function SuccessModal({
   title,
@@ -29,6 +29,7 @@ export default function SuccessModal({
   showSuccessModal,
   nextSteps,
   setShowSuccessModal,
+  requireVerification = false,
 }: {
   title: string;
   path?: AppRoutes;
@@ -36,10 +37,9 @@ export default function SuccessModal({
   showSuccessModal: boolean;
   nextSteps?: string[];
   setShowSuccessModal: (value: boolean) => void;
+  requireVerification?: boolean;
 }) {
   const router = useRouter();
-
-  const [showButton, setShowButton] = useState(false);
 
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
 
@@ -47,9 +47,6 @@ export default function SuccessModal({
 
   useEffect(() => {
     if (showSuccessModal) {
-      // reset state
-      setShowButton(false);
-
       // haptic feedback
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -91,16 +88,23 @@ export default function SuccessModal({
         ]}
       >
         {/* SUCCESS ANIMATION */}
-        <LottieView
-          source={require('@/assets/lottie/success.json')}
-          autoPlay
-          loop={false}
-          renderMode="HARDWARE"
-          style={styles.animation}
-          onAnimationFinish={() => {
-            setShowButton(true);
-          }}
-        />
+        {requireVerification ? (
+          <LottieView
+            source={require('@/assets/lottie/alert.json')}
+            autoPlay
+            loop={false}
+            renderMode="HARDWARE"
+            style={styles.animation}
+          />
+        ) : (
+          <LottieView
+            source={require('@/assets/lottie/success.json')}
+            autoPlay
+            loop={false}
+            renderMode="HARDWARE"
+            style={styles.animation}
+          />
+        )}
 
         <Text style={styles.title}>{title}</Text>
 
@@ -121,7 +125,7 @@ export default function SuccessModal({
           </View>
         )}
 
-        {path && showButton && (
+        {path && (
           <Animated.View style={styles.buttonContainer}>
             <Button
               onPress={() => {
@@ -129,6 +133,7 @@ export default function SuccessModal({
 
                 router.push(path);
               }}
+              rightIcon={<Ionicons name="arrow-forward" size={20} color={Colors.text} />}
             >
               {buttonText || 'Continue'}
             </Button>

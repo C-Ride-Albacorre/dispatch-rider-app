@@ -1,15 +1,11 @@
+// app/_layout.tsx
+
 import '../global.css';
-
 import { Slot } from 'expo-router';
-
 import * as SplashScreen from 'expo-splash-screen';
-
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-
 import ReactQueryProvider from './providers/react-query-provider';
-
-import { useEffect } from 'react';
-
+import { useEffect, useState } from 'react';
 import {
   useFonts,
   Poppins_400Regular,
@@ -18,13 +14,23 @@ import {
   Poppins_700Bold,
 } from '@expo-google-fonts/poppins';
 
-import Toast from 'react-native-toast-message';
-
 import { toastConfig } from '@/components/ui/input/custom-toast';
+
+import { restoreAuth, useAuthStore } from '@/store/auth-store';
+
+import { usePathname } from 'expo-router';
+import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
+import Toast from 'react-native-toast-message';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
+  const isHydrated = useAuthStore((state) => state.isHydrated);
+  const verificationToken = useAuthStore((state) => state.verificationToken);
+  const verificationEmail = useAuthStore((state) => state.verificationEmail);
+  const verificationPhone = useAuthStore((state) => state.verificationPhone);
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const pathname = usePathname();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -32,20 +38,42 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
+  // Only restore auth if not on a verification route
   useEffect(() => {
-    if (fontsLoaded) {
+    const isVerificationRoute =
+      pathname.startsWith('/(verify)') ||
+      pathname.startsWith('/(app)/(verify)');
+    if (!isVerificationRoute) {
+      restoreAuth();
+    } else {
+      // On verification route, check for verification data
+      if (!verificationToken || (!verificationEmail && !verificationPhone)) {
+        setShowExpiredModal(true);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
+
+  // Hide native splash ONLY after everything is ready
+  useEffect(() => {
+    if (fontsLoaded && isHydrated) {
       SplashScreen.hideAsync();
     }
-  }, [fontsLoaded]);
+  }, [fontsLoaded, isHydrated]);
 
-  if (!fontsLoaded) return null;
-
+  // Prevent flashing
+  if (!fontsLoaded || !isHydrated) {
+    return null;
+  }
   return (
     <GestureHandlerRootView className="flex-1">
       <ReactQueryProvider>
         <Slot />
+        <ExpiredTokenModal
+          showExpiredModal={showExpiredModal}
+          setShowExpiredModal={setShowExpiredModal}
+        />
       </ReactQueryProvider>
-
       <Toast config={toastConfig} />
     </GestureHandlerRootView>
   );

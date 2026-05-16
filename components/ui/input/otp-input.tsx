@@ -1,7 +1,6 @@
 import { Colors, Fonts } from '@/constants/theme';
 import { useEffect, useRef, useState } from 'react';
 import {
-  Clipboard,
   NativeSyntheticEvent,
   StyleSheet,
   Text,
@@ -11,6 +10,9 @@ import {
   Pressable,
   Animated,
 } from 'react-native';
+
+import * as Clipboard from 'expo-clipboard';
+import ErrorMessage from '../error/error-message';
 
 const OTP_LENGTH = 6;
 
@@ -69,9 +71,29 @@ export default function OtpInput({
   }, [errorMessage]);
 
   const handleChange = (value: string, index: number) => {
-    // Allow only single digits
-    const digit = value.replace(/[^0-9]/g, '').slice(-1);
+    const cleaned = value.replace(/[^0-9]/g, '');
 
+    // 🔥 PASTE DETECTED (user pasted full OTP)
+    if (cleaned.length > 1) {
+      const pasted = cleaned.slice(0, OTP_LENGTH);
+      const next = Array(OTP_LENGTH).fill('');
+
+      for (let i = 0; i < pasted.length; i++) {
+        next[i] = pasted[i];
+      }
+
+      setDigits(next);
+
+      const otp = next.join('');
+      onChange?.(otp);
+      if (otp.length === OTP_LENGTH) onComplete?.(otp);
+
+      inputRefs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+      return;
+    }
+
+    // 🔥 NORMAL INPUT
+    const digit = cleaned.slice(-1);
     const next = [...digits];
     next[index] = digit;
     setDigits(next);
@@ -80,7 +102,7 @@ export default function OtpInput({
     onChange?.(otp);
     if (otp.length === OTP_LENGTH) onComplete?.(otp);
 
-    // Advance focus
+    // move forward
     if (digit && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -110,7 +132,7 @@ export default function OtpInput({
 
   const handlePaste = async (index: number) => {
     try {
-      const text = await Clipboard.getString();
+      const text = (await Clipboard.getStringAsync?.()) ?? '';
       const pasted = text.replace(/[^0-9]/g, '').slice(0, OTP_LENGTH);
       if (!pasted) return;
 
@@ -134,6 +156,8 @@ export default function OtpInput({
 
   return (
     <View style={styles.wrapper}>
+      {hasError && <ErrorMessage message={errorMessage} />}
+
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
       <Animated.View
@@ -147,7 +171,6 @@ export default function OtpInput({
             <Pressable
               key={index}
               onPress={() => inputRefs.current[index]?.focus()}
-              onLongPress={() => handlePaste(index)}
               style={[
                 styles.cell,
                 isFocused && styles.cellFocused,
@@ -159,6 +182,9 @@ export default function OtpInput({
                 ref={(ref) => {
                   inputRefs.current[index] = ref;
                 }}
+                textContentType="oneTimeCode"
+                autoComplete="one-time-code"
+                importantForAutofill="yes"
                 style={styles.cellText}
                 value={digit}
                 onChangeText={(val) => handleChange(val, index)}
@@ -167,8 +193,6 @@ export default function OtpInput({
                 onBlur={() => setFocusedIndex(null)}
                 keyboardType="number-pad"
                 maxLength={1}
-                textContentType="oneTimeCode" // iOS autofill from SMS
-                autoComplete="one-time-code" // Android autofill from SMS
                 selectTextOnFocus
                 caretHidden // hides blinking caret — cleaner UX
                 autoCorrect={false}
@@ -178,8 +202,6 @@ export default function OtpInput({
           );
         })}
       </Animated.View>
-
-      {hasError ? <Text style={styles.error}>{errorMessage}</Text> : null}
     </View>
   );
 }

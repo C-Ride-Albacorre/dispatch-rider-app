@@ -1,6 +1,8 @@
 import Button from '@/components/ui/buttons/button';
 import { Colors, Fonts } from '@/constants/theme';
+import { clearVerificationData } from '@/utils/token-storage';
 import { useRouter } from 'expo-router';
+import LottieView from 'lottie-react-native';
 import { Modal, Text, View } from 'react-native';
 
 export default function ExpiredTokenModal({
@@ -31,11 +33,20 @@ export default function ExpiredTokenModal({
             gap: 20,
           }}
         >
+          <LottieView
+            source={require('@/assets/lottie/alert.json')}
+            autoPlay
+            loop={false}
+            renderMode="HARDWARE"
+            style={{ width: 170, height: 170, alignSelf: 'center' }}
+          />
+
           <Text
             style={{
               fontSize: 20,
               fontFamily: Fonts.brandBold,
               color: Colors.text,
+              textAlign: 'center',
             }}
           >
             Session Expired
@@ -47,6 +58,7 @@ export default function ExpiredTokenModal({
               fontFamily: Fonts.brandRegular,
               color: Colors.textSecondary,
               lineHeight: 22,
+              textAlign: 'center',
             }}
           >
             Your verification session has expired. Please login again to
@@ -57,7 +69,9 @@ export default function ExpiredTokenModal({
             onPress={() => {
               setShowExpiredModal(false);
 
-              router.replace('/(auth)/login');
+              clearVerificationData();
+
+              router.replace('/(app)/(auth)/login');
             }}
           >
             Go to Login

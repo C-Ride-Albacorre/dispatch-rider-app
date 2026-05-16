@@ -52,6 +52,7 @@ export default function RegisterForm() {
     control,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<RegisterPayload>({
     defaultValues: {
@@ -74,13 +75,18 @@ export default function RegisterForm() {
 
       const response = await registerAction(data);
 
+      if (!response.success) {
+        setErrorMessage(response.message || 'Registration failed');
+
+        setValue('password', '');
+        return;
+      }
+
       if (response.success) {
         setNextSteps(response.data.nextSteps);
 
         setShowSuccessModal(true);
-      } else {
-        setErrorMessage(response.message || 'Registration failed');
-      }
+      } 
     } finally {
       setLoading(false);
     }
@@ -90,7 +96,7 @@ export default function RegisterForm() {
     <>
       <SuccessModal
         title="Registration Successful!"
-        path="/(verify)/phone"
+        path="/(app)/(verify)/phone"
         buttonText="Verify Account"
         showSuccessModal={showSuccessModal}
         nextSteps={nextSteps}
@@ -264,7 +270,7 @@ export default function RegisterForm() {
             <View style={styles.action}>
               <Text style={styles.actionText}>Already have an account?</Text>
 
-              <TouchableOpacity onPress={() => router.push('/login')}>
+              <TouchableOpacity onPress={() => router.push('/(app)/(auth)/login')}>
                 <Text style={styles.actionLink}>Login</Text>
               </TouchableOpacity>
             </View>
