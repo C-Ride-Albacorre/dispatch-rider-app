@@ -1,4 +1,5 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { normalize, scale } from '@/utils/scaling';
 
 import { useEffect, useState } from 'react';
 
@@ -37,8 +38,6 @@ interface PhoneInputProps {
   inputInfo?: string;
 
   value?: string;
-
-
 
   onChangePhone?: (fullNumber: string) => void;
 }
@@ -313,6 +312,7 @@ const styles = StyleSheet.create({
   rowError: {
     borderWidth: 1,
     borderColor: '#ef4444',
+    backgroundColor: '#FEF2F2',
   },
 
   dialButton: {
@@ -356,12 +356,23 @@ const styles = StyleSheet.create({
 
   error: {
     color: '#ef4444',
-    fontSize: 12,
+
+    fontSize: normalize(13),
+    fontFamily: Fonts.brandMedium,
+
+    marginTop: scale(2),
+
+    marginLeft: scale(4),
   },
 
   info: {
     color: '#6b7280',
-    fontSize: 12,
+    fontSize: normalize(12),
+    fontFamily: Fonts.brandMedium,
+
+    marginTop: scale(2),
+
+    marginLeft: scale(4),
   },
 
   modal: {

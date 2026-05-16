@@ -12,8 +12,6 @@ import { Colors, Fonts } from '@/constants/theme';
 
 import { registerAction } from '@/features/auth/action';
 
-import { RegisterPayload } from '@/features/auth/types';
-
 import { getPasswordStrength } from '@/utils/password-strength';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -23,6 +21,8 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 
 import { Controller, useForm } from 'react-hook-form';
+
+import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
   KeyboardAvoidingView,
@@ -34,6 +34,7 @@ import {
   View,
 } from 'react-native';
 import SuccessModal from '@/components/layout/success-modal';
+import { RegisterPayload, RegisterSchema } from '../schema';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -55,6 +56,7 @@ export default function RegisterForm() {
     setValue,
     formState: { errors },
   } = useForm<RegisterPayload>({
+    resolver: zodResolver(RegisterSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -86,7 +88,7 @@ export default function RegisterForm() {
         setNextSteps(response.data.nextSteps);
 
         setShowSuccessModal(true);
-      } 
+      }
     } finally {
       setLoading(false);
     }
@@ -112,14 +114,14 @@ export default function RegisterForm() {
           keyboardShouldPersistTaps="handled"
         >
           <View>
-            {router.canGoBack() && (
+            {/* {router.canGoBack() && (
               <TouchableOpacity
                 style={styles.returnBtn}
                 onPress={() => router.back()}
               >
                 <Ionicons name="arrow-back" size={24} />
               </TouchableOpacity>
-            )}
+            )} */}
 
             <AuthPageHeader />
           </View>
@@ -131,9 +133,6 @@ export default function RegisterForm() {
             <Controller
               control={control}
               name="firstName"
-              rules={{
-                required: 'First name is required',
-              }}
               render={({ field: { onChange, value } }) => (
                 <Input
                   label="First Name"
@@ -149,9 +148,6 @@ export default function RegisterForm() {
             <Controller
               control={control}
               name="lastName"
-              rules={{
-                required: 'Last name is required',
-              }}
               render={({ field: { onChange, value } }) => (
                 <Input
                   label="Last Name"
@@ -167,15 +163,6 @@ export default function RegisterForm() {
             <Controller
               control={control}
               name="email"
-              rules={{
-                required: 'Email is required',
-
-                pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-
-                  message: 'Invalid email address',
-                },
-              }}
               render={({ field: { onChange, value } }) => (
                 <Input
                   label="Email"
@@ -187,17 +174,10 @@ export default function RegisterForm() {
               )}
             />
 
-            {errors.email && (
-              <Text style={styles.errorText}>{errors.email.message}</Text>
-            )}
-
             {/* PHONE */}
             <Controller
               control={control}
               name="phoneNumber"
-              rules={{
-                required: 'Phone number is required',
-              }}
               render={({ field: { onChange, value } }) => (
                 <PhoneInput
                   label="Phone Number"
@@ -213,14 +193,6 @@ export default function RegisterForm() {
             <Controller
               control={control}
               name="password"
-              rules={{
-                required: 'Password is required',
-
-                minLength: {
-                  value: 6,
-                  message: 'Password must be at least 6 characters',
-                },
-              }}
               render={({ field: { onChange, value } }) => (
                 <Input
                   label="Password"
@@ -270,7 +242,9 @@ export default function RegisterForm() {
             <View style={styles.action}>
               <Text style={styles.actionText}>Already have an account?</Text>
 
-              <TouchableOpacity onPress={() => router.push('/(app)/(auth)/login')}>
+              <TouchableOpacity
+                onPress={() => router.push('/(app)/(auth)/login')}
+              >
                 <Text style={styles.actionLink}>Login</Text>
               </TouchableOpacity>
             </View>
@@ -289,7 +263,7 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     flexGrow: 1,
-    gap: 24,
+    gap: 32,
   },
 
   returnBtn: {
@@ -307,8 +281,8 @@ const styles = StyleSheet.create({
   },
 
   form: {
-    marginTop: 32,
-    gap: 18,
+    // marginTop: 20,
+    gap: 24,
   },
 
   action: {
