@@ -83,7 +83,7 @@ export const loginAction = async (payload: LoginPayload) => {
       return {
         success: false,
         unverified: true,
-
+        status: result.data.status,
         isPhoneVerified: result.data.isPhoneVerified,
         isEmailVerified: result.data.isEmailVerified,
 
@@ -109,6 +109,10 @@ export const loginAction = async (payload: LoginPayload) => {
 
     return {
       success: true,
+      status: result.data.status,
+      onboardingStatus: result.data.onboardingStatus,
+      onboardingStep: result.data.onboardingStep,
+      message: result.data.message || 'Login successful',
     };
   } catch (error: any) {
     return {

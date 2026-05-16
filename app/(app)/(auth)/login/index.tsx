@@ -20,6 +20,13 @@ import {
   ScrollView,
 } from 'react-native';
 
+const onBoardingSteps = [
+  'Set up your profile',
+  'Set up your vehicle',
+  'Upload necessary documents',
+  'Review and submit your application',
+];
+
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -54,6 +61,15 @@ export default function Login() {
 
       console.log(response);
 
+      // FAILED LOGIN
+      if (!response.success) {
+        setValue('password', '');
+
+        setErrorMessage(response.message || 'Login failed');
+
+        return;
+      }
+
       // UNVERIFIED FLOW
       if (response.unverified) {
         setValue('password', '');
@@ -83,13 +99,14 @@ export default function Login() {
         return;
       }
 
-      // FAILED LOGIN
-      if (!response.success) {
-        setValue('password', '');
+      if (response.status === 'PENDING_ONBOARDING') {
+        if (response.onboardingStatus === 'NOT_STARTED') {
+          setNextSteps(onBoardingSteps);
 
-        setErrorMessage(response.message || 'Login failed');
+          setShowSuccessModal(true);
 
-        return;
+          return;
+        }
       }
 
       // VERIFIED USER
@@ -195,11 +212,20 @@ export default function Login() {
       <SuccessModal
         title="Verification Required"
         path={redirectPath}
-        buttonText="Continue"
+        buttonText="Proceed to Verification"
         showSuccessModal={showSuccessModal}
         nextSteps={nextSteps}
         setShowSuccessModal={setShowSuccessModal}
-        requireVerification 
+        requireVerification
+      />
+
+      <SuccessModal
+        title="Continue Onboarding"
+        path="/(app)/(protected)/onboarding"
+        buttonText="Go to Onboarding"
+        showSuccessModal={showSuccessModal}
+        nextSteps={onBoardingSteps}
+        setShowSuccessModal={setShowSuccessModal}
       />
     </>
   );
