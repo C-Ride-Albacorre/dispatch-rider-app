@@ -5,7 +5,7 @@ import Review from '@/features/onboarding/components/forms/review';
 import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -19,7 +19,18 @@ import {
 
 export default function Onboarding() {
   const router = useRouter();
-  const [step, setStep] = useState('1');
+
+  const params = useLocalSearchParams();
+
+  const step = Number(params.step || 1);
+
+  const resumeStep = Number(params.resumeStep || 0);
+
+  const goToStep = (nextStep: number) => {
+    router.push(
+      `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=${resumeStep}`,
+    );
+  };
 
   return (
     <KeyboardAvoidingView
@@ -31,36 +42,37 @@ export default function Onboarding() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* <View>
-          <TouchableOpacity
-            style={styles.returnBtn}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} />
-          </TouchableOpacity>
-        </View> */}
-
         <View style={styles.textContainer}>
           <Text style={styles.title}>Join C-Ride as a Fulfillment Partner</Text>
+
           <Text style={styles.subtitle}>
             Complete your profile to start delivering with care
           </Text>
         </View>
 
-        <StepIndicator current={parseInt(step, 10)} />
+        <StepIndicator current={step} />
 
-        {step === '1' && <PersonalInfo setStep={setStep} />}
+        {step === 1 && <PersonalInfo goToStep={goToStep} />}
 
-        {step === '2' && <VehicleInfo setStep={setStep} />}
+        {step === 2 && (
+          <VehicleInfo
+            goToStep={goToStep}
+            currentStep={step}
+            resumeStep={resumeStep}
+          />
+        )}
 
-        {step === '3' && <Documents setStep={setStep} />}
-
-        {/* {step === '4' && <Review setStep={setStep} />} */}
+        {step === 3 && (
+          <Documents
+            goToStep={goToStep}
+            currentStep={step}
+            resumeStep={resumeStep}
+          />
+        )}
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
 const styles = StyleSheet.create({
   keyboardSafeArea: {
     flex: 1,

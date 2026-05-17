@@ -16,11 +16,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 type AppRoutes =
   | '/(app)/(auth)/login'
-  | '/(app)/(protected)/onboarding'
   | '/(app)/(auth)/register'
   | '/(app)/(protected)/dashboard'
+  | '/(app)/(protected)/onboarding'
   | '/(app)/(verify)/email'
-  | '/(app)/(verify)/phone';
+  | '/(app)/(verify)/phone'
+  | `/(app)/(protected)/onboarding?step=${number}`
+  | `/(app)/(protected)/onboarding?step=${number}&resumeStep=${number}`;
 
 export default function SuccessModal({
   title,
@@ -133,7 +135,9 @@ export default function SuccessModal({
 
                 router.push(path);
               }}
-              rightIcon={<Ionicons name="arrow-forward" size={20} color={Colors.text} />}
+              rightIcon={
+                <Ionicons name="arrow-forward" size={20} color={Colors.text} />
+              }
             >
               {buttonText || 'Continue'}
             </Button>

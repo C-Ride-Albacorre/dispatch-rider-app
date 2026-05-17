@@ -7,9 +7,13 @@ import * as DocumentPicker from 'expo-document-picker';
 import Button from '@/components/ui/buttons/button';
 
 export default function Documents({
-  setStep,
+  goToStep,
+  currentStep,
+  resumeStep,
 }: {
-  setStep: (step: string) => void;
+  goToStep: (step: number) => void;
+  currentStep: number;
+  resumeStep: number;
 }) {
   const [license, setLicense] = useState<string | null>(null);
   const [insurance, setInsurance] = useState<string | null>(null);
@@ -29,11 +33,11 @@ export default function Documents({
   };
 
   const handleNextStep = () => {
-    setStep('4');
+    goToStep(4);
   };
 
-  function handlePreviousStep(){
-    setStep('3')
+  function handlePreviousStep() {
+    goToStep(2);
   }
 
   return (
@@ -71,7 +75,13 @@ export default function Documents({
         />
 
         <View style={styles.buttonContainer}>
-          <Button onPress={handlePreviousStep} variant="outline">Previous</Button>
+          <Button
+            disabled={currentStep - 1 <= resumeStep}
+            onPress={handlePreviousStep}
+            variant="outline"
+          >
+            Previous
+          </Button>
           <Button onPress={handleNextStep}>Continue</Button>
         </View>
       </View>

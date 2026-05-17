@@ -14,15 +14,15 @@ import { useOnboardingStore } from '../../store';
 import { useEffect } from 'react';
 
 export default function PersonalInfo({
-  setStep,
+  goToStep,
 }: {
-  setStep: (step: string) => void;
+  goToStep: (step: number) => void;
 }) {
   const { step1Data, isSubmitting, error, setError, setSubmitting } =
     useOnboardingStore();
 
   const handleNextStep = () => {
-    setStep('2');
+    goToStep(2);
   };
 
   const {

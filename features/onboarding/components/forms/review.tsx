@@ -9,9 +9,9 @@ import Button from '@/components/ui/buttons/button';
 import { Link } from 'expo-router';
 
 export default function Review({
-  setStep,
+ goToStep,
 }: {
-  setStep: (step: string) => void;
+  goToStep: (step: number) => void;
 }) {
   const [license, setLicense] = useState<string | null>(null);
   const [insurance, setInsurance] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export default function Review({
   };
 
   const handlePreviousStep = () => {
-    setStep('3');
+    goToStep(3);
   };
   return (
     <View style={styles.container}>

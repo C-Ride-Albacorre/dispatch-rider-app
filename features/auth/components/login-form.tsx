@@ -28,17 +28,37 @@ const onBoardingSteps = [
   'Review and submit your application',
 ];
 
+type ModalType = 'verification' | 'onboarding' | null;
+
+type AppRoutes =
+  | '/(app)/(auth)/login'
+  | '/(app)/(auth)/register'
+  | '/(app)/(protected)/dashboard'
+  | '/(app)/(protected)/onboarding'
+  | '/(app)/(verify)/email'
+  | '/(app)/(verify)/phone'
+  | `/(app)/(protected)/onboarding?step=${number}`
+  | `/(app)/(protected)/onboarding?step=${number}&resumeStep=${number}`;
+
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const [redirectPath, setRedirectPath] = useState<
-    '/(app)/(verify)/phone' | '/(app)/(verify)/email'
-  >('/(app)/(verify)/phone');
+  const [showModal, setShowModal] = useState(false);
+
+  const [modalType, setModalType] = useState<ModalType>(null);
+
+  const [modalTitle, setModalTitle] = useState('');
+
+  const [buttonText, setButtonText] = useState('');
+
+  const [redirectPath, setRedirectPath] = useState<AppRoutes>(
+    '/(app)/(verify)/phone',
+  );
 
   const [nextSteps, setNextSteps] = useState<string[]>([]);
+
   const router = useRouter();
 
   const {
@@ -62,7 +82,6 @@ export default function LoginForm() {
 
       console.log(response);
 
-      // FAILED LOGIN
       if (!response.success) {
         setValue('password', '');
 
@@ -71,11 +90,23 @@ export default function LoginForm() {
         return;
       }
 
-      // UNVERIFIED FLOW
+      /**
+       * =========================
+       * UNVERIFIED FLOW
+       * =========================
+       */
       if (response.unverified) {
         setValue('password', '');
 
-        // PHONE FIRST
+        setModalType('verification');
+
+        setModalTitle('Verification Required');
+
+        setButtonText('Proceed to Verification');
+
+        /**
+         * BOTH NOT VERIFIED
+         */
         if (!response.isPhoneVerified && !response.isEmailVerified) {
           setRedirectPath('/(app)/(verify)/phone');
 
@@ -83,10 +114,11 @@ export default function LoginForm() {
             'Verify your phone number first',
             'Then verify your email address',
           ]);
-        }
+        } else if (response.isPhoneVerified && !response.isEmailVerified) {
 
-        // EMAIL NEXT
-        else if (response.isPhoneVerified && !response.isEmailVerified) {
+        /**
+         * ONLY EMAIL LEFT
+         */
           setRedirectPath('/(app)/(verify)/email');
 
           setNextSteps([
@@ -95,23 +127,75 @@ export default function LoginForm() {
           ]);
         }
 
-        setShowSuccessModal(true);
+        setShowModal(true);
 
         return;
       }
 
-      if (response.status === 'PENDING_ONBOARDING') {
+      /**
+       * =========================
+       * ONBOARDING FLOW
+       * =========================
+       */
+      if (
+        response.onboardingStatus === 'NOT_STARTED' ||
+        response.onboardingStatus === 'IN_PROGRESS'
+      ) {
+        setModalType('onboarding');
+
+        setModalTitle('Complete Onboarding');
+
+        setButtonText('Continue Onboarding');
+
+        /**
+         * USER HAS NOT STARTED ANY STEP
+         */
         if (response.onboardingStatus === 'NOT_STARTED') {
+          const nextStep = 1;
+
+          setRedirectPath(
+            `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=0`,
+          );
+
           setNextSteps(onBoardingSteps);
+        } else {
 
-          setShowSuccessModal(true);
+        /**
+         * USER HAS COMPLETED A STEP ALREADY
+         *
+         * onboardingStep = completed step
+         *
+         * Example:
+         * onboardingStep = 1
+         * means user completed step 1
+         * so next screen should be step 2
+         */
+          const completedStep = Number(response.onboardingStep || 0);
 
-          return;
+          const nextStep = completedStep + 1;
+
+          setRedirectPath(
+            `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=${completedStep}`,
+          );
+
+          setNextSteps(onBoardingSteps.slice(completedStep));
         }
+
+        setShowModal(true);
+
+        return;
       }
 
-      // VERIFIED USER
+      /**
+       * =========================
+       * FULLY VERIFIED USER
+       * =========================
+       */
       router.replace('/(app)/(protected)/dashboard');
+    } catch (error) {
+      console.log(error);
+
+      setErrorMessage('Something went wrong');
     } finally {
       setLoading(false);
     }
@@ -125,13 +209,6 @@ export default function LoginForm() {
       >
         <ScrollView contentContainerStyle={styles.container}>
           <View>
-            {/* <TouchableOpacity
-            style={styles.returnBtn}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} />
-          </TouchableOpacity> */}
-
             <AuthPageHeader />
           </View>
 
@@ -206,22 +283,15 @@ export default function LoginForm() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
       <SuccessModal
-        title="Verification Required"
+        title={modalTitle}
         path={redirectPath}
-        buttonText="Proceed to Verification"
-        showSuccessModal={showSuccessModal}
+        buttonText={buttonText}
+        showSuccessModal={showModal}
         nextSteps={nextSteps}
-        setShowSuccessModal={setShowSuccessModal}
-        requireVerification
-      />
-      <SuccessModal
-        title="Start Onboarding"
-        path="/(app)/(protected)/onboarding"
-        buttonText="Go to Onboarding"
-        showSuccessModal={showSuccessModal}
-        nextSteps={onBoardingSteps}
-        setShowSuccessModal={setShowSuccessModal}
+        setShowSuccessModal={setShowModal}
+        requireVerification={modalType === 'verification'}
       />
     </>
   );

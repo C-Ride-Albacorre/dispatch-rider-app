@@ -5,17 +5,21 @@ import { Colors, Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-export default function PersonalInfo({
-  setStep,
+export default function VehicleInfo({
+  goToStep,
+  currentStep,
+  resumeStep,
 }: {
-  setStep: (step: string) => void;
+  goToStep: (step: number) => void;
+  currentStep: number;
+  resumeStep: number;
 }) {
   const handleNextStep = () => {
-    setStep('3');
+    goToStep(3);
   };
 
   function handlePreviousStep() {
-    setStep('2');
+    goToStep(2);
   }
   return (
     <View style={styles.container}>
@@ -84,7 +88,11 @@ export default function PersonalInfo({
         />
 
         <View style={styles.buttonContainer}>
-          <Button onPress={handlePreviousStep} variant="outline">
+          <Button
+            disabled={currentStep - 1 <= resumeStep}
+            onPress={handlePreviousStep}
+            variant="outline"
+          >
             Previous
           </Button>
           <Button onPress={handleNextStep}>Continue</Button>
