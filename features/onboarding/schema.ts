@@ -20,9 +20,7 @@ export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
 // ─── Step 2 – Vehicle Information ────────────────────────────────────────────
 
-export const vehicleTypes = ['CAR', 'TRUCK', 'MOTORCYCLE', 'VAN'] as const;
-export type VehicleType = (typeof vehicleTypes)[number];
-
+export const vehicleTypes = ['CAR', 'EV'] as const;
 export const vehicleInfoSchema = z.object({
   vehicleType: z.enum(vehicleTypes, {
     message: 'Please select a vehicle type',
@@ -33,9 +31,12 @@ export const vehicleInfoSchema = z.object({
   vehicleModel: z.string().min(1, 'Vehicle model is required').trim(),
 
   year: z
-    .int()
-    .min(1990, 'Year must be 1990 or later')
-    .max(new Date().getFullYear() + 1, 'Year cannot be in the future'),
+    .string()
+    .min(1, 'Please select a year')
+    .refine(
+      (val) => Number(val) <= new Date().getFullYear() + 1,
+      'Year cannot be in the future',
+    ),
 
   licensePlate: z.string().min(5, 'Enter a valid license plate').trim(),
 });
@@ -44,6 +45,24 @@ export type VehicleInfoFormValues = z.infer<typeof vehicleInfoSchema>;
 
 // ─── Combined type (useful for Zustand store) ─────────────────────────────────
 
+export type DriverDocumentType =
+  | 'DRIVER_LICENSE'
+  | 'VEHICLE_INSURANCE'
+  | 'VEHICLE_REGISTRATION';
+
+export type UploadDocument = {
+  uri: string;
+  name: string;
+  mimeType: string;
+  documentType: DriverDocumentType;
+  description: string;
+};
+
+export type Step3Payload = {
+  documents: UploadDocument[];
+};
+
 export type OnboardingStepData =
   | { step: 1; data: PersonalInfoFormValues }
-  | { step: 2; data: VehicleInfoFormValues };
+  | { step: 2; data: VehicleInfoFormValues }
+  | { step: 3; data: Step3Payload };

@@ -5,6 +5,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, View } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import Button from '@/components/ui/buttons/button';
+import { useForm } from 'react-hook-form';
+import { DriverDocumentType } from '../../schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useOnboardingStore } from '../../store';
+import { submitDocumentsAction } from '../../action';
+import ErrorMessage from '@/components/ui/error/error-message';
+import SuccessModal from '@/components/layout/success-modal';
 
 export default function Documents({
   goToStep,
@@ -15,77 +22,162 @@ export default function Documents({
   currentStep: number;
   resumeStep: number;
 }) {
-  const [license, setLicense] = useState<string | null>(null);
-  const [insurance, setInsurance] = useState<string | null>(null);
-  const [registration, setRegistration] = useState<string | null>(null);
-
   // Generic picker function
-  const pickDocument = async (setFile: (name: string) => void) => {
-    const result = await DocumentPicker.getDocumentAsync({
-      type: '*/*',
-      copyToCacheDirectory: true,
-    });
+  // const pickDocument = async (setFile: (name: string) => void) => {
+  //   const result = await DocumentPicker.getDocumentAsync({
+  //     type: '*/*',
+  //     copyToCacheDirectory: true,
+  //   });
 
-    if (result.canceled === false) {
-      const file = result.assets[0];
-      setFile(file.name);
-    }
-  };
+  //   if (result.canceled === false) {
+  //     const file = result.assets[0];
+  //     setFile(file.name);
+  //   }
+  // };
 
-  const handleNextStep = () => {
-    goToStep(4);
-  };
+  // const handleNextStep = () => {
+  //   goToStep(4);
+  // };
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   function handlePreviousStep() {
     goToStep(2);
   }
 
+  const {
+    step3Data,
+    saveDocument,
+    isSubmitting,
+    setSubmitting,
+    setError,
+    error,
+  } = useOnboardingStore();
+
+  const pickDocument = async (
+    documentType: DriverDocumentType,
+    description: string,
+  ) => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: '*/*',
+      copyToCacheDirectory: true,
+    });
+
+    if (result.canceled) return;
+
+    const file = result.assets[0];
+
+    saveDocument(documentType, {
+      uri: file.uri,
+      name: file.name,
+      mimeType: file.mimeType ?? 'application/octet-stream',
+
+      documentType,
+
+      description,
+    });
+  };
+
+  const handleSubmitDocuments = async () => {
+    try {
+      const documents = Object.values(step3Data);
+
+      if (documents.length < 3) {
+        setError('Please upload all required documents');
+
+        return;
+      }
+
+      setSubmitting(true);
+
+      setError(null);
+
+      const result = await submitDocumentsAction({
+        documents,
+      });
+
+      if (!result.success) return;
+
+      setShowSuccessModal(true);
+    } catch (error) {
+      setError('Failed to upload documents');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.textContainer}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="document-outline" size={24} color={Colors.primary} />
+    <>
+      <View style={styles.container}>
+        <View style={styles.textContainer}>
+          <View style={styles.iconContainer}>
+            <Ionicons
+              name="document-outline"
+              size={24}
+              color={Colors.primary}
+            />
+          </View>
+
+          <View style={styles.mainTextContainer}>
+            <Text style={styles.mainText}>Upload Documents</Text>
+            <Text style={styles.subText}>
+              Required documents for verification
+            </Text>
+          </View>
         </View>
 
-        <View style={styles.mainTextContainer}>
-          <Text style={styles.mainText}>Upload Documents</Text>
-          <Text style={styles.subText}>
-            Required documents for verification
-          </Text>
+        {error && <ErrorMessage message={error} />}
+
+        <View style={styles.form}>
+          <UploadField
+            label="Driver's License"
+            onPress={() => pickDocument('DRIVER_LICENSE', 'Driver license')}
+            fileName={step3Data.DRIVER_LICENSE?.name}
+          />
+
+          <UploadField
+            label="Vehicle Insurance"
+            onPress={() =>
+              pickDocument('VEHICLE_INSURANCE', 'Vehicle insurance')
+            }
+            fileName={step3Data.VEHICLE_INSURANCE?.name}
+          />
+
+          <UploadField
+            label="Vehicle Registration"
+            onPress={() =>
+              pickDocument('VEHICLE_REGISTRATION', 'Vehicle registration')
+            }
+            fileName={step3Data.VEHICLE_REGISTRATION?.name}
+          />
+
+          <View style={styles.buttonContainer}>
+            <Button
+              disabled={currentStep - 1 <= resumeStep}
+              onPress={handlePreviousStep}
+              variant="outline"
+            >
+              Previous
+            </Button>
+            <Button
+              loading={isSubmitting}
+              disabled={isSubmitting}
+              onPress={handleSubmitDocuments}
+            >
+              Continue
+            </Button>
+          </View>
         </View>
       </View>
 
-      <View style={styles.form}>
-        <UploadField
-          label="Driver's License"
-          onPress={() => pickDocument(setLicense)}
-          fileName={license || undefined}
-        />
-
-        <UploadField
-          label="Vehicle Insurance"
-          onPress={() => pickDocument(setInsurance)}
-          fileName={insurance || undefined}
-        />
-
-        <UploadField
-          label="Vehicle Registration"
-          onPress={() => pickDocument(setRegistration)}
-          fileName={registration || undefined}
-        />
-
-        <View style={styles.buttonContainer}>
-          <Button
-            disabled={currentStep - 1 <= resumeStep}
-            onPress={handlePreviousStep}
-            variant="outline"
-          >
-            Previous
-          </Button>
-          <Button onPress={handleNextStep}>Continue</Button>
-        </View>
-      </View>
-    </View>
+      <SuccessModal
+        title="Onboarding Completed"
+        path="/(app)/(protected)/dashboard"
+        buttonText="Proceed to Dashboard"
+        showSuccessModal={showSuccessModal}
+        setShowSuccessModal={setShowSuccessModal}
+      />
+    </>
   );
 }
 

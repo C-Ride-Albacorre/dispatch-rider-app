@@ -1,6 +1,15 @@
 import Toast from 'react-native-toast-message';
-import { PersonalInfoFormValues, VehicleInfoFormValues } from './schema';
-import { onboarding } from './service';
+import { PersonalInfoFormValues, Step3Payload, VehicleInfoFormValues } from './schema';
+import { onboarding, submitDriverDocuments } from './service';
+
+export type VehicleInfoPayload = {
+  vehicleType: 'CAR' | 'EV';
+  vehicleMake: string;
+  vehicleModel: string;
+  year: number;
+  licensePlate: string;
+  notes?: string;
+};
 
 export async function personalInfoAction(payload: PersonalInfoFormValues) {
   try {
@@ -48,8 +57,9 @@ export async function personalInfoAction(payload: PersonalInfoFormValues) {
     };
   }
 }
-export async function vehicleInfoAction(payload: VehicleInfoFormValues) {
+export async function vehicleInfoAction(payload: VehicleInfoPayload) {
   try {
+    console.log(' Calling onboarding service with payload:', payload);
     const result = await onboarding(payload, 2);
 
     const responseData = result?.data;
@@ -89,6 +99,49 @@ export async function vehicleInfoAction(payload: VehicleInfoFormValues) {
     return {
       success: false,
       message: 'An unexpected error occurred',
+    };
+  }
+}
+
+export async function submitDocumentsAction(payload: Step3Payload) {
+  try {
+    const result = await submitDriverDocuments(payload);
+
+    const responseData = result?.data;
+
+    if (!responseData?.success) {
+      Toast.show({
+        type: 'error',
+        text1: 'Upload Failed',
+        text2: responseData?.message ?? 'Failed to upload documents',
+      });
+
+      return {
+        success: false,
+        message: responseData?.message ?? 'Failed to upload documents',
+      };
+    }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: responseData?.message ?? 'Documents uploaded successfully',
+    });
+
+    return {
+      success: true,
+      data: responseData,
+    };
+  } catch (error) {
+    Toast.show({
+      type: 'error',
+      text1: 'Error',
+      text2: 'An unexpected error occurred while uploading documents',
+    });
+
+    return {
+      success: false,
+      message: 'An unexpected error occurred while uploading documents',
     };
   }
 }

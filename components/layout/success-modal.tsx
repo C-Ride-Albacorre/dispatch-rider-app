@@ -13,6 +13,7 @@ import AppModal from '@/components/layout/app-modal';
 import Button from '@/components/ui/buttons/button';
 import { Colors } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { normalize, scale } from '@/utils/scaling';
 
 type AppRoutes =
   | '/(app)/(auth)/login'
@@ -22,10 +23,12 @@ type AppRoutes =
   | '/(app)/(verify)/email'
   | '/(app)/(verify)/phone'
   | `/(app)/(protected)/onboarding?step=${number}`
-  | `/(app)/(protected)/onboarding?step=${number}&resumeStep=${number}`;
+  | `/(app)/(protected)/onboarding?step=${number}&resumeStep=${number}`
+  | `/(app)/(protected)/dashboard`;
 
 export default function SuccessModal({
   title,
+  description,
   path,
   buttonText,
   showSuccessModal,
@@ -34,6 +37,7 @@ export default function SuccessModal({
   requireVerification = false,
 }: {
   title: string;
+  description?: string;
   path?: AppRoutes;
   buttonText?: string;
   showSuccessModal: boolean;
@@ -110,6 +114,8 @@ export default function SuccessModal({
 
         <Text style={styles.title}>{title}</Text>
 
+        {description && <Text style={styles.description}>{description}</Text>}
+
         {nextSteps && nextSteps.length > 0 && (
           <View style={styles.stepsContainer}>
             {nextSteps?.map((step, index) => (
@@ -154,36 +160,43 @@ const styles = StyleSheet.create({
   },
 
   animation: {
-    width: 170,
-    height: 170,
+    width: scale(170),
+    height: scale(170),
     alignSelf: 'center',
   },
 
   title: {
-    fontSize: 24,
+    fontSize: normalize(24),
     fontWeight: '600',
     textAlign: 'center',
-    marginBottom: 18,
+    marginBottom: scale(18),
     color: '#111827',
   },
 
+  description: {
+    fontSize: normalize(16),
+    textAlign: 'center',
+    marginBottom: scale(24),
+    color: '#6B7280',
+  },
+
   stepsContainer: {
-    marginBottom: 28,
-    gap: 20,
+    marginBottom: scale(28),
+    gap: scale(20),
     backgroundColor: Colors.primaryLight,
-    padding: 16,
+    padding: scale(16),
     borderRadius: 12,
   },
 
   stepContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: scale(8),
   },
 
   stepText: {
-    fontSize: 15,
-    lineHeight: 24,
+    fontSize: normalize(15),
+    lineHeight: scale(24),
     color: Colors.text,
   },
 

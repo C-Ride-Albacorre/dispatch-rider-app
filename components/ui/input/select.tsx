@@ -22,7 +22,7 @@ type SelectProps = {
   label?: string;
   required?: boolean;
   error?: string;
-    disabled?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   value?: string;
   options: Option[];
@@ -59,7 +59,11 @@ export default function Select({
       <TouchableOpacity
         activeOpacity={0.8}
         onPress={() => !disabled && setOpen(true)}
-        style={[styles.inputContainer, hasError && styles.errorContainer, disabled && styles.disabledContainer]}
+        style={[
+          styles.inputContainer,
+          hasError && styles.errorContainer,
+          disabled && styles.disabledContainer,
+        ]}
       >
         <Text style={[styles.text, !selectedLabel && styles.placeholder]}>
           {selectedLabel || placeholder}

@@ -64,6 +64,8 @@ export default function PersonalInfo({
 
       const result = await personalInfoAction(payload);
 
+      if (!result.success) return;
+
       console.log('Result from action:', result);
 
       handleNextStep();
