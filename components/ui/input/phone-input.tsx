@@ -55,6 +55,8 @@ export default function PhoneInput({
   inputInfo,
 
   value = '',
+
+  ...props
 }: PhoneInputProps) {
   const [countries, setCountries] = useState<Country[]>([]);
 
@@ -208,6 +210,7 @@ export default function PhoneInput({
           keyboardType="phone-pad"
           autoComplete="tel"
           autoCorrect={false}
+          {...props}
         />
       </View>
 
@@ -315,8 +318,6 @@ const styles = StyleSheet.create({
     borderColor: '#ef4444',
     backgroundColor: '#FEF2F2',
   },
-
- 
 
   dialButton: {
     flexDirection: 'row',

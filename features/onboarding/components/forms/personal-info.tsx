@@ -11,13 +11,15 @@ import { PersonalInfoFormValues, personalInfoSchema } from '../../schema';
 import { personalInfoAction } from '../../action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useOnboardingStore } from '../../store';
+import { useEffect } from 'react';
 
 export default function PersonalInfo({
   setStep,
 }: {
   setStep: (step: string) => void;
 }) {
-  const { step1Data, isSubmitting, error, setError } = useOnboardingStore();
+  const { step1Data, isSubmitting, error, setError, setSubmitting } =
+    useOnboardingStore();
 
   const handleNextStep = () => {
     setStep('2');
@@ -27,6 +29,8 @@ export default function PersonalInfo({
     control,
     watch,
     handleSubmit,
+    setValue,
+
     formState: { errors, isValid },
   } = useForm<PersonalInfoFormValues>({
     resolver: zodResolver(personalInfoSchema),
@@ -40,22 +44,33 @@ export default function PersonalInfo({
       city: step1Data.city ?? '',
     },
 
-    mode: 'onChange',
+    mode: 'onTouched',
   });
 
   const selectedState = watch('state');
+
+  useEffect(() => {
+    setValue('city', '');
+  }, [selectedState]);
 
   const cityOptions = selectedState
     ? (nigeriaCitiesByState[selectedState] ?? [])
     : [];
 
-  const onSubmit = (payload: PersonalInfoFormValues) => {
+  const onSubmit = async (payload: PersonalInfoFormValues) => {
     try {
-      const result = personalInfoAction(payload);
+      setSubmitting(true);
+      setError(null);
+
+      const result = await personalInfoAction(payload);
 
       console.log('Result from action:', result);
-    } catch (error) {
-      console.error('Error submitting personal info:', error);
+
+      handleNextStep();
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -83,6 +98,7 @@ export default function PersonalInfo({
               placeholder="Enter your full name"
               value={value}
               onChangeText={onChange}
+              error={errors.fullName?.message}
             />
           )}
         />
@@ -96,6 +112,7 @@ export default function PersonalInfo({
               placeholder="Enter your phone number"
               value={value}
               onChangePhone={onChange}
+              errorMessage={errors.phoneNumber?.message}
             />
           )}
         />
@@ -109,6 +126,21 @@ export default function PersonalInfo({
               placeholder="Enter your email address"
               value={value}
               onChangeText={onChange}
+              error={errors.email?.message}
+            />
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="address"
+          render={({ field: { value, onChange } }) => (
+            <Input
+              label="Address"
+              placeholder="Enter your address here"
+              value={value}
+              onChangeText={onChange}
+              error={errors.address?.message}
             />
           )}
         />
@@ -123,6 +155,7 @@ export default function PersonalInfo({
               value={value}
               onChange={onChange}
               options={nigeriaStates}
+              error={errors.state?.message}
             />
           )}
         />
@@ -140,6 +173,7 @@ export default function PersonalInfo({
               onChange={onChange}
               options={cityOptions}
               disabled={!selectedState || cityOptions.length === 0}
+              error={errors.city?.message}
             />
           )}
         />
@@ -148,7 +182,11 @@ export default function PersonalInfo({
           <Button variant="outline" disabled>
             Previous
           </Button>
-          <Button onPress={handleSubmit(onSubmit)} disabled>
+          <Button
+            disabled={!isValid || isSubmitting}
+            loading={isSubmitting}
+            onPress={handleSubmit(onSubmit)}
+          >
             Continue
           </Button>
         </View>

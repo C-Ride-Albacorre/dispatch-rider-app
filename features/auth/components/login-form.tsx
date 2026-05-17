@@ -216,7 +216,7 @@ export default function LoginForm() {
         requireVerification
       />
       <SuccessModal
-        title="Continue Onboarding"
+        title="Start Onboarding"
         path="/(app)/(protected)/onboarding"
         buttonText="Go to Onboarding"
         showSuccessModal={showSuccessModal}

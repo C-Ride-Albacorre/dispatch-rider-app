@@ -8,28 +8,32 @@ export async function personalInfoAction(payload: PersonalInfoFormValues) {
 
     console.log('Result from action:', result);
 
-    if (!result.success) {
+    const responseData = result?.data;
+
+    console.log('Response data from action:', responseData);
+
+    if (!responseData?.success) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: result.message || 'Failed to save personal information',
+        text2: responseData?.message ?? 'Failed to save personal information',
       });
 
       return {
         success: false,
-        message: result.message || 'Failed to save personal information',
+        message: responseData?.message ?? 'Failed to save personal information',
       };
     }
 
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: result.message || 'Personal information saved successfully',
+      text2: responseData?.message ?? 'Personal information saved successfully',
     });
 
     return {
       success: true,
-      data: result.data,
+      data: responseData,
     };
   } catch (error) {
     Toast.show({
@@ -44,35 +48,36 @@ export async function personalInfoAction(payload: PersonalInfoFormValues) {
     };
   }
 }
-
 export async function vehicleInfoAction(payload: VehicleInfoFormValues) {
   try {
     const result = await onboarding(payload, 2);
 
-    console.log('Result from action:', result);
+    const responseData = result?.data;
 
-    if (!result.success) {
+    console.log('Result from action:', responseData);
+
+    if (!responseData?.success) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: result.message || 'Failed to save vehicle information',
+        text2: responseData?.message || 'Failed to save vehicle information',
       });
 
       return {
         success: false,
-        message: result.message || 'Failed to save vehicle information',
+        message: responseData?.message || 'Failed to save vehicle information',
       };
     }
 
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: result.message || 'Vehicle information saved successfully',
+      text2: responseData?.message || 'Vehicle information saved successfully',
     });
 
     return {
       success: true,
-      data: result.data,
+      data: responseData,
     };
   } catch (error) {
     Toast.show({

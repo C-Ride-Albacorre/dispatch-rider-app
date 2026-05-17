@@ -10,9 +10,18 @@ type StepPayloadMap = {
 };
 
 export interface OnboardingStepResponse {
-  success: boolean;
-  message: string;
-  data?: Record<string, unknown>;
+  status: string;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+
+  data: {
+    success: boolean;
+    message: string;
+    onboardingStatus: string;
+    onboardingStep: number;
+    status: string;
+  };
 }
 
 export async function onboarding<S extends keyof StepPayloadMap>(
