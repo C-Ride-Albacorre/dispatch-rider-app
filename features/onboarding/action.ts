@@ -1,5 +1,9 @@
 import Toast from 'react-native-toast-message';
-import { PersonalInfoFormValues, Step3Payload, VehicleInfoFormValues } from './schema';
+import {
+  PersonalInfoFormValues,
+  Step3Payload,
+  VehicleInfoFormValues,
+} from './schema';
 import { onboarding, submitDriverDocuments } from './service';
 
 export type VehicleInfoPayload = {
@@ -104,44 +108,54 @@ export async function vehicleInfoAction(payload: VehicleInfoPayload) {
 }
 
 export async function submitDocumentsAction(payload: Step3Payload) {
+  console.log('Submitting documents with payload:', payload);
+
   try {
-    const result = await submitDriverDocuments(payload);
+    const response = await submitDriverDocuments(payload);
 
-    const responseData = result?.data;
+    console.log('Raw API response:', response);
 
-    if (!responseData?.success) {
+    const data = response?.data;
+
+    if (!data?.success) {
       Toast.show({
         type: 'error',
         text1: 'Upload Failed',
-        text2: responseData?.message ?? 'Failed to upload documents',
+        text2: data?.message ?? 'Failed to upload documents',
       });
 
       return {
         success: false,
-        message: responseData?.message ?? 'Failed to upload documents',
+        message: data?.message ?? 'Failed to upload documents',
       };
     }
 
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: responseData?.message ?? 'Documents uploaded successfully',
+      text2: data?.message ?? 'Documents uploaded successfully',
     });
 
     return {
       success: true,
-      data: responseData,
+      data,
     };
-  } catch (error) {
+  } catch (error: any) {
+    console.log('UPLOAD ERROR:', error?.response?.data || error);
+
     Toast.show({
       type: 'error',
       text1: 'Error',
-      text2: 'An unexpected error occurred while uploading documents',
+      text2:
+        error?.response?.data?.message ||
+        'An unexpected error occurred while uploading documents',
     });
 
     return {
       success: false,
-      message: 'An unexpected error occurred while uploading documents',
+      message:
+        error?.response?.data?.message ||
+        'An unexpected error occurred while uploading documents',
     };
   }
 }

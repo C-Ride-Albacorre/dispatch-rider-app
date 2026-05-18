@@ -82,14 +82,6 @@ export default function LoginForm() {
 
       console.log(response);
 
-      if (!response.success) {
-        setValue('password', '');
-
-        setErrorMessage(response.message || 'Login failed');
-
-        return;
-      }
-
       /**
        * =========================
        * UNVERIFIED FLOW
@@ -115,10 +107,9 @@ export default function LoginForm() {
             'Then verify your email address',
           ]);
         } else if (response.isPhoneVerified && !response.isEmailVerified) {
-
-        /**
-         * ONLY EMAIL LEFT
-         */
+          /**
+           * ONLY EMAIL LEFT
+           */
           setRedirectPath('/(app)/(verify)/email');
 
           setNextSteps([
@@ -159,17 +150,16 @@ export default function LoginForm() {
 
           setNextSteps(onBoardingSteps);
         } else {
-
-        /**
-         * USER HAS COMPLETED A STEP ALREADY
-         *
-         * onboardingStep = completed step
-         *
-         * Example:
-         * onboardingStep = 1
-         * means user completed step 1
-         * so next screen should be step 2
-         */
+          /**
+           * USER HAS COMPLETED A STEP ALREADY
+           *
+           * onboardingStep = completed step
+           *
+           * Example:
+           * onboardingStep = 1
+           * means user completed step 1
+           * so next screen should be step 2
+           */
           const completedStep = Number(response.onboardingStep || 0);
 
           const nextStep = completedStep + 1;
@@ -187,11 +177,37 @@ export default function LoginForm() {
       }
 
       /**
+       *  =========================
+       *  VERIFICATION REQUIRED (EDGE CASE)
+       *  =========================
+       */
+
+      if (!response.success) {
+        setValue('password', '');
+
+        setErrorMessage(response.message || 'Login failed');
+
+        return;
+      }
+
+      /**
        * =========================
        * FULLY VERIFIED USER
        * =========================
        */
-      router.replace('/(app)/(protected)/dashboard');
+      if (response.status === 'UNDER_REVIEW') {
+        setShowModal(true);
+        setModalType('verification');
+        setModalTitle('Account Under Review');
+        setButtonText('Go to Dashboard');
+        setRedirectPath('/(app)/(protected)/dashboard');
+        setNextSteps([
+          'Your account is currently under review',
+          'We will notify you once the verification is complete',
+        ]);
+      } else {
+        router.replace('/(app)/(protected)/dashboard');
+      }
     } catch (error) {
       console.log(error);
 

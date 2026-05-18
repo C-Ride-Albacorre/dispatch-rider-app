@@ -27,7 +27,7 @@ export default function UploadField({
         <Ionicons
           name={isUploaded ? 'checkmark-circle' : 'cloud-upload-outline'}
           size={20}
-          color={isUploaded ? Colors.primary : Colors.textSecondary}
+          color={isUploaded ? Colors.success : Colors.textSecondary}
         />
 
         <Text
@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
   },
 
   uploadedBox: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    borderColor: Colors.success,
+    backgroundColor: Colors.successExtraLight,
   },
 
   uploadText: {
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
 
   uploadedText: {
-    color: Colors.primary,
+    color: Colors.success,
     fontFamily: Fonts.brandMedium,
   },
 });

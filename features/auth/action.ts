@@ -55,7 +55,12 @@ export const loginAction = async (payload: LoginPayload) => {
 
     console.log('Login response:', result);
 
-    // UNVERIFIED FLOW
+    /**
+     * =========================
+     * UNVERIFIED FLOW
+     * =========================
+     */
+
     if (result.data.status === 'UNVERIFIED') {
       await saveVerificationToken(result.data.verificationToken);
 
@@ -81,7 +86,7 @@ export const loginAction = async (payload: LoginPayload) => {
       }
 
       return {
-        success: false,
+        success: true,
         unverified: true,
         status: result.data.status,
         isPhoneVerified: result.data.isPhoneVerified,
@@ -91,29 +96,51 @@ export const loginAction = async (payload: LoginPayload) => {
       };
     }
 
-    // VERIFIED FLOW
-    await saveAccessToken(result.data.accessToken);
+    /**
+     * =========================
+     * LOGIN FAILED
+     * =========================
+     */
+    if (result.data.status === 'error') {
+      Toast.show({
+        type: 'error',
+        text1: 'Login Failed',
+        text2: result.data.message,
+      });
 
-    await saveRefreshToken(result.data.refreshToken);
+      return {
+        success: false,
+        message: result.data.message || 'Login failed',
+      };
+    } else {
+      /**
+       * =========================
+       * VERIFIED FLOW
+       * =========================
+       */
+      await saveAccessToken(result.data.accessToken);
 
-    useAuthStore.getState().setAuth({
-      accessToken: result.data.accessToken,
-      refreshToken: result.data.refreshToken,
-      authStatus: 'AUTHENTICATED',
-    });
+      await saveRefreshToken(result.data.refreshToken);
 
-    Toast.show({
-      type: 'success',
-      text1: 'Login Successful',
-    });
+      useAuthStore.getState().setAuth({
+        accessToken: result.data.accessToken,
+        refreshToken: result.data.refreshToken,
+        authStatus: 'AUTHENTICATED',
+      });
 
-    return {
-      success: true,
-      status: result.data.status,
-      onboardingStatus: result.data.onboardingStatus,
-      onboardingStep: result.data.onboardingStep,
-      message: result.data.message || 'Login successful',
-    };
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successful',
+      });
+
+      return {
+        success: true,
+        status: result.data.status,
+        onboardingStatus: result.data.onboardingStatus,
+        onboardingStep: result.data.onboardingStep,
+        message: result.data.message || 'Login successful',
+      };
+    }
   } catch (error: any) {
     return {
       success: false,

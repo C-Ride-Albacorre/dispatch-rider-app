@@ -1,5 +1,9 @@
 import { api } from '@/libs/api';
-import { PersonalInfoFormValues, Step3Payload, VehicleInfoFormValues } from './schema';
+import {
+  PersonalInfoFormValues,
+  Step3Payload,
+  VehicleInfoFormValues,
+} from './schema';
 import { VehicleInfoPayload } from './action';
 
 export type Step1Payload = PersonalInfoFormValues;
@@ -47,17 +51,28 @@ export async function submitDriverDocuments(payload: Step3Payload) {
 
   formData.append('documentsMetadata', JSON.stringify(metadata));
 
-  payload.documents.forEach((doc) => {
-    formData.append('documents', {
-      uri: doc.uri,
-      name: doc.name,
+  for (const doc of payload.documents) {
+    console.log('Processing document:', doc);
+
+    const blobResponse = await fetch(doc.uri);
+
+    const blob = await blobResponse.blob();
+
+    const file = new File([blob], doc.name, {
       type: doc.mimeType,
-    } as any);
-  });
+    });
+
+    formData.append('documents', file);
+  }
+
+  for (const pair of formData.entries()) {
+    console.log('FORM DATA ENTRY:', pair);
+  }
 
   const response = await api.post('/driver/onboarding/submit', formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
+      Accept: 'application/json',
+      'Content-Type': undefined,
     },
   });
 

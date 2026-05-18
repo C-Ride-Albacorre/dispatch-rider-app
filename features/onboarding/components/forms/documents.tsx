@@ -22,23 +22,6 @@ export default function Documents({
   currentStep: number;
   resumeStep: number;
 }) {
-  // Generic picker function
-  // const pickDocument = async (setFile: (name: string) => void) => {
-  //   const result = await DocumentPicker.getDocumentAsync({
-  //     type: '*/*',
-  //     copyToCacheDirectory: true,
-  //   });
-
-  //   if (result.canceled === false) {
-  //     const file = result.assets[0];
-  //     setFile(file.name);
-  //   }
-  // };
-
-  // const handleNextStep = () => {
-  //   goToStep(4);
-  // };
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   function handlePreviousStep() {
@@ -54,6 +37,8 @@ export default function Documents({
     error,
   } = useOnboardingStore();
 
+  // inside Documents component
+
   const pickDocument = async (
     documentType: DriverDocumentType,
     description: string,
@@ -61,22 +46,27 @@ export default function Documents({
     const result = await DocumentPicker.getDocumentAsync({
       type: '*/*',
       copyToCacheDirectory: true,
+      multiple: false,
     });
 
     if (result.canceled) return;
 
     const file = result.assets[0];
 
+    console.log('Picked file:', file);
+
     saveDocument(documentType, {
       uri: file.uri,
       name: file.name,
-      mimeType: file.mimeType ?? 'application/octet-stream',
+      mimeType: file.mimeType || 'application/octet-stream',
 
       documentType,
 
       description,
     });
   };
+
+  // handleSubmitDocuments
 
   const handleSubmitDocuments = async () => {
     try {
@@ -87,6 +77,20 @@ export default function Documents({
 
         return;
       }
+
+      // Extra validation
+      for (const doc of documents) {
+        if (!doc.uri || !doc.name) {
+          setError('One or more uploaded files are invalid');
+
+          return;
+        }
+      }
+
+      console.log(
+        'Final documents payload:',
+        JSON.stringify(documents, null, 2),
+      );
 
       setSubmitting(true);
 
@@ -100,6 +104,8 @@ export default function Documents({
 
       setShowSuccessModal(true);
     } catch (error) {
+      console.log('SUBMIT ERROR:', error);
+
       setError('Failed to upload documents');
     } finally {
       setSubmitting(false);
@@ -173,6 +179,7 @@ export default function Documents({
       <SuccessModal
         title="Onboarding Completed"
         path="/(app)/(protected)/dashboard"
+        description="You have successfully completed the onboarding process. Your account is now being reviewed. We will notify you once the verification is complete."
         buttonText="Proceed to Dashboard"
         showSuccessModal={showSuccessModal}
         setShowSuccessModal={setShowSuccessModal}

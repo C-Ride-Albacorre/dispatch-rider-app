@@ -30,17 +30,14 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 const AUTH_EXCLUDED_ENDPOINTS = [
   '/auth/user/verify/email',
   '/auth/user/verify/phone',
-  '/auth/login',
-  '/auth/register',
+  '/auth/driver/login',
+  '/auth/driver/register',
   '/auth/refresh',
   '/auth/logout',
 ];
 
 export const api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
 });
 
 /**
