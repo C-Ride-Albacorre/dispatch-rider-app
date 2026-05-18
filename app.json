@@ -9,15 +9,19 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.albacorre.criderider",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.albacorre.criderider",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/adaptive-icons/foreground.png",
-        "backgroundImage": "./assets/adaptive-icons/background.png",
-        "monochromeImage": "./assets/adaptive-icons/monochrome.png"
+        // "foregroundImage": "./assets/adaptive-icons/foreground.png",
+        // "backgroundImage": "./assets/adaptive-icons/background.png",
+        // "monochromeImage": "./assets/adaptive-icons/monochrome.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
@@ -45,6 +49,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "7f046efe-b08e-4d70-a3e7-0fe324e8f2ff"
+      }
     }
   }
 }
