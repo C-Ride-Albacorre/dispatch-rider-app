@@ -9,8 +9,9 @@ import {
 } from '@/utils/token-storage';
 
 import { useAuthStore } from '@/store/auth-store';
-import { loginDriver, registerDriver } from './service';
+import { forgotPassword, loginDriver, registerDriver } from './service';
 import { LoginPayload, RegisterPayload } from './types';
+import { ForgetPasswordPayload } from './schema';
 
 export const registerAction = async (payload: RegisterPayload) => {
   try {
@@ -145,6 +146,38 @@ export const loginAction = async (payload: LoginPayload) => {
     return {
       success: false,
       message: error?.response?.data?.message || 'Login failed',
+    };
+  }
+};
+
+export const forgetPasswordAction = async (payload: ForgetPasswordPayload) => {
+  try {
+    const result = await forgotPassword(payload);
+
+    console.log('Forgot password response:', result);
+
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: result.data.message,
+    });
+
+    return {
+      success: true,
+      identifier: result.data.identifier,
+      method: result.data.method,
+      message: result.data.message,
+    };
+  } catch (error: any) {
+    Toast.show({
+      type: 'error',
+      text1: 'Request Failed',
+      text2: error?.response?.data?.message || 'Something went wrong',
+    });
+
+    return {
+      success: false,
+      message: error?.response?.data?.message || 'Forgot password failed',
     };
   }
 };

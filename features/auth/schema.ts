@@ -21,3 +21,20 @@ export const LoginSchema = z.object({
 });
 
 export type LoginPayload = z.infer<typeof LoginSchema>;
+
+export const forgetPasswordSchema = z
+  .object({
+    email: z.string().email('Invalid email address').optional(),
+    phoneNumber: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      return !!data.email || !!data.phoneNumber;
+    },
+    {
+      message: 'Email or phone number is required',
+      path: ['email'],
+    },
+  );
+
+export type ForgetPasswordPayload = z.infer<typeof forgetPasswordSchema>;

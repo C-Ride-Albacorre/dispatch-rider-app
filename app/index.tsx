@@ -1,4 +1,4 @@
-// app/index.tsx
+
 
 import { scale } from '@/utils/scaling';
 
@@ -66,7 +66,7 @@ export default function Home() {
     });
   }, []);
   return (
-    <View className="flex-1 items-center justify-center bg-white dark:bg-[#2C3E50]">
+    <View className="flex-1 items-center justify-center bg-white">
       {' '}
       <Animated.View
         style={[

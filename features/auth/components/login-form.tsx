@@ -223,7 +223,11 @@ export default function LoginForm() {
         style={styles.keyboardSafeArea}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
           <View>
             <AuthPageHeader />
           </View>
