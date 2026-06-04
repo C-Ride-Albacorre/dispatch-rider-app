@@ -52,7 +52,7 @@ export default function AvailableDelivery() {
         <View style={styles.deliveryDetailItem}>
           <View style={styles.deliveryDetailLabel}>
             <Ionicons name="bicycle-outline" size={16} color={Colors.primary} />
-            <Text>Distance</Text>
+            <Text style={styles.deliveryDetailLabelText}>Distance</Text>
           </View>
 
           <Text style={styles.deliveryDetailValue}>5.2 km</Text>

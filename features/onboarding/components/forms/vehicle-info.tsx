@@ -41,7 +41,7 @@ export default function VehicleInfo({
     resolver: zodResolver(vehicleInfoSchema),
 
     defaultValues: {
-      vehicleType: step2Data.vehicleType ?? undefined,
+      vehicleType: step2Data.vehicleType ?? 'CAR',
       vehicleMake: step2Data.vehicleMake ?? '',
       vehicleModel: step2Data.vehicleModel ?? '',
       year: step2Data.year ?? '',

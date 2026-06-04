@@ -69,6 +69,22 @@ export const getVerificationPhone = async () => {
   return await getItem('verificationPhone');
 };
 
+export const saveOnboardingStatus = async (status: string) => {
+  await setItem('onboardingStatus', status);
+};
+
+export const getOnboardingStatus = async () => {
+  return await getItem('onboardingStatus');
+};
+
+export const saveOnboardingStep = async (step: number) => {
+  await setItem('onboardingStep', String(step));
+};
+
+export const getOnboardingStep = async () => {
+  return await getItem('onboardingStep');
+};
+
 export const clearVerificationData = async () => {
   await deleteItem('verificationToken');
   await deleteItem('verificationEmail');
@@ -78,6 +94,10 @@ export const clearVerificationData = async () => {
 export const clearTokens = async () => {
   await deleteItem('accessToken');
   await deleteItem('refreshToken');
+
+  await deleteItem('onboardingStatus');
+  await deleteItem('onboardingStep');
+
   await deleteItem('verificationToken');
   await deleteItem('verificationEmail');
   await deleteItem('verificationPhone');

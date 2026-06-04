@@ -31,6 +31,11 @@ export default function DashboardLayout() {
           paddingLeft: insets.left,
           paddingRight: insets.right,
         },
+        gestureEnabled: true,
+
+        fullScreenGestureEnabled: true,
+
+        animation: 'slide_from_right',
       }}
     >
       <Stack.Screen name="index" />

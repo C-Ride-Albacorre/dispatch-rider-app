@@ -1,5 +1,3 @@
-
-
 import { scale } from '@/utils/scaling';
 
 import { router } from 'expo-router';
@@ -44,43 +42,67 @@ export default function Home() {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      const { authStatus, verificationToken } = useAuthStore.getState();
-
-      // AUTHENTICATED0
+      const {
+        authStatus,
+        verificationToken,
+        onboardingStatus,
+        onboardingStep,
+      } = useAuthStore.getState();
 
       if (authStatus === 'AUTHENTICATED') {
+        if (onboardingStatus !== 'COMPLETED') {
+          const completedStep = Number(onboardingStep ?? 0);
+          router.replace(
+            `/(app)/(protected)/onboarding?step=${completedStep + 1}&resumeStep=${completedStep}`,
+          );
+          return;
+        }
+
         router.replace('/(app)/(protected)/dashboard');
         return;
       }
 
-      // VERIFYING
+      if (authStatus === 'VERIFYING') {
+        const { isEmailVerified, isPhoneVerified } = useAuthStore.getState();
 
-      if (authStatus === 'VERIFYING' && verificationToken) {
-        router.replace('/(app)/(verify)/phone');
-        return;
+        // Case 1: only email done → go phone
+        if (isEmailVerified && !isPhoneVerified && verificationToken) {
+          router.replace('/(app)/(verify)/phone');
+          return;
+        }
+
+        // Case 2: only phone done → go email
+        if (isPhoneVerified && !isEmailVerified && verificationToken) {
+          router.replace('/(app)/(verify)/email');
+          return;
+        }
+
+        // Case 3: nothing done → start flow
+        if (verificationToken) {
+          router.replace('/(app)/(verify)/email');
+          return;
+        }
       }
-
-      // UNAUTHENTICATED
 
       router.replace('/(public)');
     });
   }, []);
   return (
-    <View className="flex-1 items-center justify-center bg-white">
-      {' '}
+    <View
+      style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center' }}
+    >
       <Animated.View
         style={[
           styles.logo,
           { opacity, transform: [{ scale: scaleAnim }, { translateY }] },
         ]}
       >
-        {' '}
         <Image
           source={require('../assets/images/icon.png')}
           style={styles.image}
           resizeMode="contain"
-        />{' '}
-      </Animated.View>{' '}
+        />
+      </Animated.View>
     </View>
   );
 }

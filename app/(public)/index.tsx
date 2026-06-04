@@ -39,8 +39,8 @@ export default function Index() {
       </View>
 
       <View style={styles.contentContainer}>
-        <View className="items-center w-full gap-8">
-          <View className="items-center">
+        <View style={{ width: '100%' }}>
+          <View style={{ alignItems: 'center' }}>
             <Image
               source={require('../../assets/images/icon.png')}
               style={styles.logo}
@@ -48,7 +48,9 @@ export default function Index() {
             />
 
             <Animated.Text entering={FadeInDown} style={styles.tagline}>
-              Beyond Rides, We Deliver Experiences
+             <Text>
+               Beyond Rides, We Deliver Experiences
+             </Text>
             </Animated.Text>
           </View>
 
@@ -56,40 +58,44 @@ export default function Index() {
           <View style={styles.buttonContainer}>
             <Animated.View entering={FadeInDown.delay(100)}>
               <Link href={'/register'} asChild>
-                <Button variant="outline">Become a Rider</Button>
+                <Button size="lg" variant="outline">
+                  Become a Rider
+                </Button>
               </Link>
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(200)}>
               <Link href={'/login'} asChild>
-                <Button variant="primary">Login</Button>
+                <Button size="lg" variant="primary">
+                  Login
+                </Button>
               </Link>
             </Animated.View>
-          </View>
 
-          {/* Privacy */}
-          <Animated.Text
-            entering={FadeInDown.delay(400)}
-            style={styles.privacy}
-          >
-            <Text>
-              By continuing, you agree to our{' '}
-              <Text
-                onPress={() => openWebBrowser('https://example.com/terms')}
-                style={styles.link}
-              >
-                Terms of Service
-              </Text>{' '}
-              and{' '}
-              <Text
-                onPress={() => openWebBrowser('https://example.com/privacy')}
-                style={styles.link}
-              >
-                Privacy Policy
+            {/* Privacy */}
+            <Animated.Text
+              entering={FadeInDown.delay(400)}
+              style={styles.privacy}
+            >
+              <Text>
+                By continuing, you agree to our{' '}
+                <Text
+                  onPress={() => openWebBrowser('https://example.com/terms')}
+                  style={styles.link}
+                >
+                  Terms of Service
+                </Text>{' '}
+                and{' '}
+                <Text
+                  onPress={() => openWebBrowser('https://example.com/privacy')}
+                  style={styles.link}
+                >
+                  Privacy Policy
+                </Text>
+                .
               </Text>
-              .
-            </Text>
-          </Animated.Text>
+            </Animated.Text>
+          </View>
         </View>
       </View>
     </View>

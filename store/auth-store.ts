@@ -5,6 +5,8 @@ import { BASE_URL } from '../config/base-api';
 import {
   clearTokens,
   getAccessToken,
+  getOnboardingStatus,
+  getOnboardingStep,
   getRefreshToken,
   getVerificationEmail,
   getVerificationPhone,
@@ -15,21 +17,22 @@ export type AuthStatus = 'UNAUTHENTICATED' | 'VERIFYING' | 'AUTHENTICATED';
 
 type AuthState = {
   accessToken: string | null;
-
   refreshToken: string | null;
 
   verificationToken: string | null;
-
   verificationEmail: string | null;
-
   verificationPhone: string | null;
 
-  authStatus: AuthStatus;
+  isEmailVerified: boolean;
+  isPhoneVerified: boolean;
 
+  onboardingStatus: string | null;
+  onboardingStep: number | null;
+
+  authStatus: 'UNAUTHENTICATED' | 'VERIFYING' | 'AUTHENTICATED';
   isHydrated: boolean;
 
   setAuth: (data: Partial<AuthState>) => void;
-
   logout: () => Promise<void>;
 };
 
@@ -43,6 +46,14 @@ export const useAuthStore = create<AuthState>((set) => ({
   verificationEmail: null,
 
   verificationPhone: null,
+
+  onboardingStatus: null,
+
+  onboardingStep: null,
+
+  isEmailVerified: false,
+  
+  isPhoneVerified: false,
 
   authStatus: 'UNAUTHENTICATED',
 
@@ -77,17 +88,16 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     set({
       accessToken: null,
-
       refreshToken: null,
 
       verificationToken: null,
-
       verificationEmail: null,
-
       verificationPhone: null,
 
-      authStatus: 'UNAUTHENTICATED',
+      onboardingStatus: null,
+      onboardingStep: null,
 
+      authStatus: 'UNAUTHENTICATED',
       isHydrated: true,
     });
   },
@@ -105,14 +115,22 @@ export const restoreAuth = async () => {
 
     const verificationPhone = await getVerificationPhone();
 
+    const onboardingStatus = await getOnboardingStatus();
+
+    const onboardingStep = await getOnboardingStep();
+
     // 🔥 AUTHENTICATED USER
-    if (accessToken && refreshToken) {
+    if (accessToken || refreshToken) {
       useAuthStore.getState().setAuth({
         accessToken,
 
         refreshToken,
 
         authStatus: 'AUTHENTICATED',
+
+        onboardingStatus,
+
+        onboardingStep: onboardingStep ? Number(onboardingStep) : null,
 
         isHydrated: true,
       });
@@ -128,6 +146,11 @@ export const restoreAuth = async () => {
         verificationEmail,
 
         verificationPhone,
+
+        isEmailVerified: false,
+        
+        isPhoneVerified: false,
+
 
         authStatus: 'VERIFYING',
 
@@ -150,17 +173,16 @@ export const restoreAuth = async () => {
 
     useAuthStore.getState().setAuth({
       accessToken: null,
-
       refreshToken: null,
 
       verificationToken: null,
-
       verificationEmail: null,
-
       verificationPhone: null,
 
-      authStatus: 'UNAUTHENTICATED',
+      onboardingStatus: null,
+      onboardingStep: null,
 
+      authStatus: 'UNAUTHENTICATED',
       isHydrated: true,
     });
   }

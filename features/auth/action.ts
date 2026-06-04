@@ -2,6 +2,8 @@ import Toast from 'react-native-toast-message';
 
 import {
   saveAccessToken,
+  saveOnboardingStatus,
+  saveOnboardingStep,
   saveRefreshToken,
   saveVerificationEmail,
   saveVerificationPhone,
@@ -9,9 +11,10 @@ import {
 } from '@/utils/token-storage';
 
 import { useAuthStore } from '@/store/auth-store';
+import { ForgetPasswordPayload } from './schema';
 import { forgotPassword, loginDriver, registerDriver } from './service';
 import { LoginPayload, RegisterPayload } from './types';
-import { ForgetPasswordPayload } from './schema';
+import { BASE_URL } from '@/config/base-api';
 
 export const registerAction = async (payload: RegisterPayload) => {
   try {
@@ -51,6 +54,25 @@ export const registerAction = async (payload: RegisterPayload) => {
 };
 
 export const loginAction = async (payload: LoginPayload) => {
+
+  try {
+  const res = await fetch('https://google.com');
+
+  console.log('Internet works:', res.status);
+} catch (e) {
+  console.log('Internet failed:', e);
+}
+
+
+try {
+  const res = await fetch(`${BASE_URL}/health`);
+  console.log('Backend works:', res.status);
+} catch (e) {
+  console.log('Backend failed:', e);
+}
+
+
+
   try {
     const result = await loginDriver(payload);
 
@@ -71,6 +93,9 @@ export const loginAction = async (payload: LoginPayload) => {
         useAuthStore.getState().setAuth({
           verificationToken: result.data.verificationToken,
           verificationEmail: result.data.identifier,
+
+          isEmailVerified: result.data.isEmailVerified,
+          isPhoneVerified: result.data.isPhoneVerified,
           authStatus: 'VERIFYING',
         });
       } else {
@@ -82,6 +107,10 @@ export const loginAction = async (payload: LoginPayload) => {
           verificationToken: result.data.verificationToken,
           verificationEmail: result.data.email,
           verificationPhone: result.data.phoneNumber,
+
+          isEmailVerified: result.data.isEmailVerified,
+          isPhoneVerified: result.data.isPhoneVerified,
+
           authStatus: 'VERIFYING',
         });
       }
@@ -123,9 +152,18 @@ export const loginAction = async (payload: LoginPayload) => {
 
       await saveRefreshToken(result.data.refreshToken);
 
+      await saveOnboardingStatus(result.data.onboardingStatus);
+
+      await saveOnboardingStep(result.data.onboardingStep);
+
       useAuthStore.getState().setAuth({
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
+
+        onboardingStatus: result.data.onboardingStatus,
+
+        onboardingStep: result.data.onboardingStep,
+
         authStatus: 'AUTHENTICATED',
       });
 
@@ -143,6 +181,13 @@ export const loginAction = async (payload: LoginPayload) => {
       };
     }
   } catch (error: any) {
+    console.log('FULL ERROR');
+    console.log(JSON.stringify(error, null, 2));
+
+    console.log('response', error?.response);
+    console.log('data', error?.response?.data);
+    console.log('message', error?.message);
+    console.log('code', error?.code);
     return {
       success: false,
       message: error?.response?.data?.message || 'Login failed',

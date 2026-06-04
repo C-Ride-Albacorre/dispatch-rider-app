@@ -12,7 +12,7 @@ import {
 } from '@/features/auth/schema';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -164,12 +164,13 @@ export default function ForgetPassword() {
             </TouchableOpacity>
           </View>
 
-          {errors.email?.message ||
-            (errors.phoneNumber?.message && (
-              <ErrorMessage
-                message={errors.email?.message || errors.phoneNumber?.message}
-              />
-            ))}
+          {(errors.email?.message || errors.phoneNumber?.message) && (
+            <ErrorMessage
+              message={
+                errors.email?.message || errors.phoneNumber?.message || ''
+              }
+            />
+          )}
 
           {activeTab === 'email' && (
             <Controller

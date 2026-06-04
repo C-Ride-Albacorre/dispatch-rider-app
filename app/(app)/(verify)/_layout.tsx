@@ -1,27 +1,33 @@
 import { Stack } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
 export default function VerifyLayout() {
+  const insets = useSafeAreaInsets();
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }} edges={['top']}>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: 'white',
-          },
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: 'white',
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
+        },
 
-          gestureEnabled: true,
+        gestureEnabled: true,
 
-          fullScreenGestureEnabled: true,
+        fullScreenGestureEnabled: true,
 
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="phone/index" />
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="phone/index" />
 
-        <Stack.Screen name="email/index" />
-      </Stack>
-    </SafeAreaView>
+      <Stack.Screen name="email/index" />
+    </Stack>
   );
 }

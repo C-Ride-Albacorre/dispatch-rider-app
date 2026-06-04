@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "cridedispatchriderapp",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.albacorre.criderider",
@@ -18,12 +17,8 @@
     "android": {
       "package": "com.albacorre.criderider",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        // "foregroundImage": "./assets/adaptive-icons/foreground.png",
-        // "backgroundImage": "./assets/adaptive-icons/background.png",
-        // "monochromeImage": "./assets/adaptive-icons/monochrome.png"
+        "backgroundColor": "#E6F4FE"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
@@ -44,7 +39,11 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font",
+      "expo-image",
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true,
