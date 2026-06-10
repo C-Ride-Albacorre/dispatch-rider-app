@@ -14,7 +14,6 @@ import { useAuthStore } from '@/store/auth-store';
 import { ForgetPasswordPayload } from './schema';
 import { forgotPassword, loginDriver, registerDriver } from './service';
 import { LoginPayload, RegisterPayload } from './types';
-import { BASE_URL } from '@/config/base-api';
 
 export const registerAction = async (payload: RegisterPayload) => {
   try {
@@ -54,25 +53,6 @@ export const registerAction = async (payload: RegisterPayload) => {
 };
 
 export const loginAction = async (payload: LoginPayload) => {
-
-  try {
-  const res = await fetch('https://google.com');
-
-  console.log('Internet works:', res.status);
-} catch (e) {
-  console.log('Internet failed:', e);
-}
-
-
-try {
-  const res = await fetch(`${BASE_URL}/health`);
-  console.log('Backend works:', res.status);
-} catch (e) {
-  console.log('Backend failed:', e);
-}
-
-
-
   try {
     const result = await loginDriver(payload);
 

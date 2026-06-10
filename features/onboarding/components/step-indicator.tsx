@@ -1,6 +1,8 @@
 import { Colors, Fonts } from '@/constants/theme';
 import { StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
 
 const STEPS = [
   { label: 'Personal\nInfo' },
@@ -16,6 +18,10 @@ export default function StepIndicator({
   total = STEPS.length,
 }: Props) {
   const progress = ((current - 1) / (total - 1)) * 100;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   return (
     <View style={styles.wrapper}>
@@ -76,8 +82,9 @@ export default function StepIndicator({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { gap: 12, marginBottom: 24 },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    wrapper: { gap: scale(12), marginBottom: scale(24) },
 
   progressRow: {
     flexDirection: 'row',
@@ -85,44 +92,44 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stepCount: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontFamily: Fonts.brandMedium,
     color: Colors.text,
   },
   percentText: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
     color: Colors.success,
   },
 
   trackBg: {
-    height: 6,
+    height: scale(6),
     backgroundColor: Colors.border,
-    borderRadius: 99,
+    borderRadius: scale(99),
     overflow: 'hidden',
   },
   trackFill: {
     height: '100%',
     backgroundColor: Colors.success,
-    borderRadius: 99,
+    borderRadius: scale(99),
   },
 
   stepsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: scale(4),
   },
   stepItem: {
     alignItems: 'center',
-    gap: 6,
+    gap: scale(6),
     flex: 1,
   },
 
   pill: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    borderWidth: 1.5,
+    width: scale(44),
+    height: scale(44),
+    borderRadius: scale(12),
+    borderWidth: scale(1.5),
     borderColor: Colors.border,
     backgroundColor: Colors.inputBackground,
     alignItems: 'center',
@@ -138,7 +145,7 @@ const styles = StyleSheet.create({
   },
 
   pillNum: {
-    fontSize: 15,
+    fontSize: normalize(15),
     fontFamily: Fonts.brandMedium,
     color: '#9ca3af',
   },
@@ -148,7 +155,7 @@ const styles = StyleSheet.create({
   },
 
   stepLabel: {
-    fontSize: 12,
+    fontSize: normalize(12),
     fontFamily: Fonts.brandRegular,
     color: '#9ca3af',
     textAlign: 'center',

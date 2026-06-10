@@ -13,6 +13,8 @@ import {
 
 import * as Clipboard from 'expo-clipboard';
 import ErrorMessage from '../error/error-message';
+import { normalize, scale } from '@/utils/scaling';
+import { useTheme } from '@/hooks/use-theme';
 
 const OTP_LENGTH = 6;
 
@@ -37,6 +39,10 @@ export default function OtpInput({
     Array(OTP_LENGTH).fill(null),
   );
   const shakeAnim = useRef(new Animated.Value(0)).current;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   // Shake row when errorMessage appears
   useEffect(() => {
@@ -208,66 +214,108 @@ export default function OtpInput({
 
 const CELL_SIZE = 52;
 
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: 12,
-    alignItems: 'center',
-    width: '100%',
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    wrapper: {
+      gap: 12,
+      alignItems: 'center',
+      width: '100%',
+    },
 
-  label: {
-    fontSize: 16,
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-    alignSelf: 'flex-start',
-  },
+    field: {
+      width: '100%',
+      gap: scale(6),
+    },
 
-  row: {
-    flexDirection: 'row',
-    gap: 10,
-    justifyContent: 'center',
-  },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(2),
+    },
 
-  cell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: 12,
-    backgroundColor: Colors.inputBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // borderWidth: 1.5,
-    // borderColor: Colors.border,
-  },
+    label: {
+      fontSize: normalize(16),
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+    },
 
-  cellFocused: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.inputBackground,
-  },
+    required: {
+      color: Colors.error,
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandBold,
+    },
 
-  cellFilled: {
-    // borderColor: Colors.border,
-  },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: scale(8),
+    },
 
-  cellError: {
-    borderColor: '#ef4444',
-  },
+    cell: {
+      width: CELL_SIZE,
+      height: CELL_SIZE,
 
-  cellText: {
-    fontSize: 22,
-    fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
-    color: Colors.text,
-    textAlign: 'center',
-    width: '100%',
-    height: '100%',
-    // Vertically center on Android (padding trick)
-    paddingTop: 0,
-    paddingBottom: 0,
-    includeFontPadding: false,
-  },
+      borderRadius: scale(12),
 
-  error: {
-    fontSize: 12,
-    color: '#ef4444',
-    alignSelf: 'flex-start',
-  },
-});
+      backgroundColor: Colors.inputBackground,
+
+      justifyContent: 'center',
+      alignItems: 'center',
+
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
+
+    cellFocused: {
+      borderColor: Colors.primary,
+    },
+
+    cellError: {
+      borderColor: Colors.error,
+
+      backgroundColor: '#FEF2F2',
+    },
+
+    cellFilled: {
+      borderColor: Colors.border,
+    },
+
+      cellText: {
+        fontSize: 22,
+        fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
+        color: Colors.text,
+        textAlign: 'center',
+        width: '100%',
+        height: '100%',
+        // Vertically center on Android (padding trick)
+        paddingTop: 0,
+        paddingBottom: 0,
+        includeFontPadding: false,
+      },
+
+    input: {
+      width: '100%',
+      height: '100%',
+
+      textAlign: 'center',
+
+      color: Colors.text,
+
+      fontSize: normalize(22),
+
+      fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
+
+      includeFontPadding: false,
+      paddingVertical: 0,
+    },
+
+    errorText: {
+      fontSize: normalize(13),
+
+      color: Colors.error,
+
+      fontFamily: Fonts.brandMedium,
+
+      marginLeft: scale(4),
+    },
+  });

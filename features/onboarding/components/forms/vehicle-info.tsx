@@ -2,7 +2,7 @@ import Button from '@/components/ui/buttons/button';
 import Input from '@/components/ui/input/input';
 import Select from '@/components/ui/input/select';
 import { Colors, Fonts } from '@/constants/theme';
-import { normalize } from '@/utils/scaling';
+import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
@@ -10,6 +10,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { vehicleInfoAction } from '../../action';
 import { VehicleInfoFormValues, vehicleInfoSchema } from '../../schema';
 import { useOnboardingStore } from '../../store';
+import { useTheme } from '@/hooks/use-theme';
 
 
 
@@ -32,6 +33,10 @@ export default function VehicleInfo({
   function handlePreviousStep() {
     goToStep(1);
   }
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const {
     control,
@@ -240,20 +245,21 @@ export default function VehicleInfo({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 20,
-    gap: 32,
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: scale(12),
+    padding: scale(20),
+    gap: scale(32),
   },
 
   textContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: scale(16),
   },
 
   errorText: {
@@ -263,9 +269,9 @@ const styles = StyleSheet.create({
   },
 
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(12),
     backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -276,65 +282,65 @@ const styles = StyleSheet.create({
   },
 
   mainText: {
-    fontSize: 20,
+    fontSize: normalize(20),
     fontFamily: Fonts.brandBold,
     color: Colors.text,
   },
 
   subText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: Colors.textSecondary,
     fontFamily: Fonts.brandRegular,
   },
 
   form: {
-    gap: 24,
+    gap: scale(32),
   },
 
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: scale(16),
   },
 
   vehicleTypeContainer: {
-    gap: 12,
+    gap: scale(12),
   },
 
   vehicleTypeLabel: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontFamily: Fonts.brandMedium,
     color: Colors.text,
   },
 
   vehicleTypeOptions: {
-    gap: 16,
+    gap: scale(16),
   },
 
   largeVehicles: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 12,
-    padding: 12,
+    gap: scale(12),
+    padding: scale(12),
     borderWidth: 1,
     borderColor: Colors.border,
-    borderRadius: 8,
+    borderRadius: scale(8),
     flex: 1,
   },
 
   largeTextContainer: {
-    gap: 4,
+    gap: scale(4),
   },
 
   largeMainText: {
-    fontSize: 24,
+    fontSize: normalize(24),
     fontFamily: Fonts.brandSemiBold,
     color: Colors.text,
     textAlign: 'center',
   },
 
   largeSubText: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
 
@@ -342,17 +348,17 @@ const styles = StyleSheet.create({
   },
 
   evContainer: {
-    gap: 12,
-    padding: 12,
+    gap: scale(12),
+    padding: scale(12),
     borderWidth: 1,
     borderColor: Colors.successLight,
-    borderRadius: 8,
+    borderRadius: scale(8),
     flex: 1,
     backgroundColor: Colors.successExtraLight,
   },
 
   evMainText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontFamily: Fonts.brandSemiBold,
     color: Colors.text,
     textAlign: 'center',
@@ -362,30 +368,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: scale(8),
   },
 
   evIconContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: scale(2),
     backgroundColor: Colors.success,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 24,
+    paddingHorizontal: scale(6),
+    paddingVertical: scale(3),
+    borderRadius: scale(24),
   },
 
   evSubText: {
-    fontSize: 10,
+    fontSize: normalize(10),
     fontFamily: Fonts.brandMedium,
     color: Colors.background,
   },
 
   evDescription: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: normalize(20),
   },
 
   selectedVehicleType: {

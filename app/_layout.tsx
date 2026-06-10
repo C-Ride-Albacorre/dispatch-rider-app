@@ -1,23 +1,24 @@
-import '../global.css';
-import { Slot } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import ReactQueryProvider from './providers/react-query-provider';
-import { useEffect, useState } from 'react';
 import {
-  useFonts,
   Poppins_400Regular,
   Poppins_500Medium,
   Poppins_600SemiBold,
   Poppins_700Bold,
+  useFonts,
 } from '@expo-google-fonts/poppins';
+import { Slot } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import '../global.css';
+import ReactQueryProvider from './providers/react-query-provider';
 
 import { toastConfig } from '@/components/ui/input/custom-toast';
 
 import { restoreAuth, useAuthStore } from '@/store/auth-store';
 
-import { usePathname } from 'expo-router';
+import AuthGate from '@/features/auth/components/auth-gate';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
+import { usePathname } from 'expo-router';
 import Toast from 'react-native-toast-message';
 
 SplashScreen.preventAutoHideAsync();
@@ -66,7 +67,9 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReactQueryProvider>
-        <Slot />
+        <AuthGate>
+          <Slot />
+        </AuthGate>
         <ExpiredTokenModal
           showExpiredModal={showExpiredModal}
           setShowExpiredModal={setShowExpiredModal}

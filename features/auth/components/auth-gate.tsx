@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { router, usePathname } from 'expo-router';
 import { useAuthStore } from '@/store/auth-store';
+import { router, useSegments } from 'expo-router';
+import { useEffect } from 'react';
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const segments = useSegments();
 
   const authStatus = useAuthStore((s) => s.authStatus);
   const verificationToken = useAuthStore((s) => s.verificationToken);
@@ -11,15 +11,15 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!authStatus) return;
 
-    const isPublic = pathname.startsWith('/(public)');
-    const isAuth = pathname.startsWith('/(app)/(auth)'); // ✅ ADD THIS
-    const isVerify = pathname.startsWith('/(app)/(verify)');
-    const isProtected = pathname.startsWith('/(app)/(protected)');
+    const isPublic = segments.includes('(public)' as never);
+    const isAuth = segments.includes('(auth)' as never);
+    const isVerify = segments.includes('(verify)' as never);
+    const isProtected = segments.includes('(protected)' as never);
 
     // 🔐 AUTHENTICATED
     if (authStatus === 'AUTHENTICATED') {
       if (!isProtected) {
-        router.replace('/(app)/(protected)/dashboard');
+        router.replace('/(app)/(protected)/(tabs)/home');
       }
       return;
     }
@@ -44,7 +44,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         router.replace('/(public)');
       }
     }
-  }, [authStatus, pathname, verificationToken]);
+  }, [authStatus, segments, verificationToken]);
 
   return <>{children}</>;
 }

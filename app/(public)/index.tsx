@@ -1,5 +1,6 @@
 import Button from '@/components/ui/buttons/button';
 import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { scale } from '@/utils/scaling';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -17,6 +18,10 @@ export default function Index() {
     }
   };
 
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
+
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
@@ -27,14 +32,9 @@ export default function Index() {
         />
         {/* GRADIENT */}
         <LinearGradient
-          colors={['transparent', '#fff']}
-          style={{
-            position: 'absolute',
-            height: 200,
-            left: 0,
-            bottom: -1,
-            right: 0,
-          }}
+          colors={['transparent', `${Colors.background}CC`, Colors.background]}
+          locations={[0, 0.6, 1]}
+          style={styles.gradient}
         />
       </View>
 
@@ -48,9 +48,7 @@ export default function Index() {
             />
 
             <Animated.Text entering={FadeInDown} style={styles.tagline}>
-             <Text>
-               Beyond Rides, We Deliver Experiences
-             </Text>
+              <Text>Beyond Rides, We Deliver Experiences</Text>
             </Animated.Text>
           </View>
 
@@ -102,64 +100,74 @@ export default function Index() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  bgImage: {
-    width: '100%',
-    height: '100%',
-    transform: [{ scale: 1.01 }],
-  },
+    bgImage: {
+      width: '100%',
+      height: '100%',
+      transform: [{ scale: 1.01 }],
+    },
 
-  imageContainer: {
-    flex: 0.8,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
+    imageContainer: {
+      flex: 0.8,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      position: 'relative',
+      overflow: 'hidden',
+    },
 
-  logo: {
-    width: scale(64),
-    height: scale(64),
-    marginBottom: scale(20),
-  },
+    gradient: {
+      position: 'absolute',
+      height: 200,
+      left: 0,
+      bottom: -1,
+      right: 0,
+    },
 
-  contentContainer: {
-    flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 20,
-  },
+    logo: {
+      width: scale(64),
+      height: scale(64),
+      marginBottom: scale(20),
+    },
 
-  tagline: {
-    fontSize: 32,
-    fontFamily: Fonts.brandBold,
-    textAlign: 'center',
-    marginBottom: 50,
-    lineHeight: 36,
-    color: Colors.text,
-  },
+    contentContainer: {
+      flex: 1,
+      alignItems: 'center',
+      paddingHorizontal: 30,
+      paddingVertical: 20,
+    },
 
-  buttonContainer: {
-    width: '100%',
-    gap: 16,
-  },
+    tagline: {
+      fontSize: 32,
+      fontFamily: Fonts.brandBold,
+      textAlign: 'center',
+      marginBottom: 50,
+      lineHeight: 36,
+      color: Colors.text,
+    },
 
-  privacy: {
-    fontFamily: Fonts.brandRegular,
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
-    lineHeight: 18,
-  },
+    buttonContainer: {
+      width: '100%',
+      gap: 16,
+    },
 
-  link: {
-    color: '#4285F4',
-    textDecorationLine: 'underline',
-    fontFamily: Fonts.brandSemiBold,
-  },
-});
+    privacy: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      color: Colors.textSecondary,
+      textAlign: 'center',
+      lineHeight: 18,
+    },
+
+    link: {
+      color: Colors.primary,
+      textDecorationLine: 'underline',
+      fontFamily: Fonts.brandMedium,
+    },
+  });

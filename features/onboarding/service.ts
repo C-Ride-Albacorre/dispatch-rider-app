@@ -1,10 +1,6 @@
 import { api } from '@/libs/api';
-import {
-  PersonalInfoFormValues,
-  Step3Payload,
-  VehicleInfoFormValues,
-} from './schema';
 import { VehicleInfoPayload } from './action';
+import { PersonalInfoFormValues, Step3Payload } from './schema';
 
 export type Step1Payload = PersonalInfoFormValues;
 export type Step2Payload = VehicleInfoPayload;
@@ -55,6 +51,12 @@ export async function submitDriverDocuments(payload: Step3Payload) {
     console.log('Processing document:', doc);
 
     const blobResponse = await fetch(doc.uri);
+
+    if (!blobResponse.ok) {
+      throw new Error(
+        `Failed to load document "${doc.name}": ${blobResponse.status} ${blobResponse.statusText}`,
+      );
+    }
 
     const blob = await blobResponse.blob();
 

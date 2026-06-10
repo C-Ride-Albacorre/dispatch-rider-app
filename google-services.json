@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "423331579875",
+    "project_id": "c-ride-9a899",
+    "storage_bucket": "c-ride-9a899.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:423331579875:android:4435e60439a86de6e102d6",
+        "android_client_info": {
+          "package_name": "com.cride.dispatch_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmgU9q-P-wyMgSW5hb-w-7lBBPqzWSW-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

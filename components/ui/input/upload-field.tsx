@@ -1,4 +1,6 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -14,6 +16,10 @@ export default function UploadField({
   fileName,
 }: UploadFieldProps) {
   const isUploaded = !!fileName;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   return (
     <View style={styles.container}>
@@ -42,13 +48,14 @@ export default function UploadField({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    gap: 8,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      gap: scale(8),
+    },
 
   label: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontFamily: Fonts.brandMedium,
     color: Colors.text,
   },
@@ -57,11 +64,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     borderStyle: 'dashed',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: scale(12),
+    padding: scale(16),
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: scale(8),
     backgroundColor: Colors.inputBackground,
   },
 
@@ -71,7 +78,7 @@ const styles = StyleSheet.create({
   },
 
   uploadText: {
-    fontSize: 14,
+    fontSize: normalize(14),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
   },

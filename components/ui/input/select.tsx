@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTheme } from '@/hooks/use-theme';
 
 type Option = {
   label: string;
@@ -44,6 +45,10 @@ export default function Select({
   const selectedLabel = options.find((opt) => opt.value === value)?.label;
 
   const hasError = !!error;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   return (
     <View style={styles.field}>
@@ -121,11 +126,12 @@ export default function Select({
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    width: '100%',
-    gap: scale(6),
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    field: {
+      width: '100%',
+      gap: scale(6),
+    },
 
   labelContainer: {
     flexDirection: 'row',

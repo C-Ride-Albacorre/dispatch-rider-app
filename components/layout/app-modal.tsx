@@ -9,7 +9,8 @@ import {
   Platform,
 } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { scale } from '@/utils/scaling';
 
 type AppModalProps = {
   visible: boolean;
@@ -24,6 +25,10 @@ export default function AppModal({
   children,
   closeOnBackdropPress = true,
 }: AppModalProps) {
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
+
   return (
     <Modal
       visible={visible}
@@ -56,36 +61,37 @@ export default function AppModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  backdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-  },
-
-  modalContainer: {
-    width: '90%',
-    maxWidth: 420,
-  },
-
-  modalContent: {
-    backgroundColor: Colors.background,
-    borderRadius: 24,
-    padding: 24,
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 10,
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    overlay: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
     },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
 
-    elevation: 10,
-  },
-});
+    backdrop: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: 'rgba(0,0,0,0.55)',
+    },
+
+    modalContainer: {
+      width: '90%',
+      maxWidth: scale(420),
+    },
+
+    modalContent: {
+      backgroundColor: Colors.background,
+      borderRadius: scale(24),
+      padding: scale(24),
+
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 10,
+      },
+      shadowOpacity: 0.15,
+      shadowRadius: scale(20),
+
+      elevation: scale(10),
+    },
+  });

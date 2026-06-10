@@ -4,6 +4,8 @@ import PersonalInfo from '@/features/onboarding/components/forms/personal-info';
 import Review from '@/features/onboarding/components/forms/review';
 import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
+import { useTheme } from '@/hooks/use-theme';
+import { scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -19,6 +21,10 @@ import {
 
 export default function Onboarding() {
   const router = useRouter();
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const params = useLocalSearchParams();
 
@@ -73,42 +79,44 @@ export default function Onboarding() {
     </KeyboardAvoidingView>
   );
 }
-const styles = StyleSheet.create({
-  keyboardSafeArea: {
-    flex: 1,
-  },
-  container: {
-    flexGrow: 1,
-    padding: 20,
-    gap: 24,
-    marginBottom: 40,
-  },
-  returnBtn: {
-    alignSelf: 'flex-start',
-    padding: 8,
-    borderRadius: 40,
-    backgroundColor: Colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    keyboardSafeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
+    container: {
+      flexGrow: 1,
+      padding: scale(20),
+      gap: scale(24),
+      marginBottom: scale(40),
+    },
+    returnBtn: {
+      alignSelf: 'flex-start',
+      padding: scale(8),
+      borderRadius: scale(40),
+      backgroundColor: Colors.light,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  textContainer: {
-    gap: 8,
-    alignItems: 'center',
-    marginVertical: 20,
-  },
+    textContainer: {
+      gap: scale(8),
+      alignItems: 'center',
+      marginVertical: scale(20),
+    },
 
-  title: {
-    fontSize: 26,
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-    textAlign: 'center',
-  },
+    title: {
+      fontSize: scale(26),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+      textAlign: 'center',
+    },
 
-  subtitle: {
-    fontSize: 16,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
-});
+    subtitle: {
+      fontSize: scale(16),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.textSecondary,
+      textAlign: 'center',
+    },
+  });

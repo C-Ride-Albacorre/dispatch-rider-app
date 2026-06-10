@@ -1,5 +1,7 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { Fonts } from '@/constants/theme';
 import { normalize, scale } from '@/utils/scaling';
+
 import {
   ActivityIndicator,
   StyleSheet,
@@ -14,9 +16,11 @@ type ButtonProps = {
   children: React.ReactNode;
   variant?:
     | 'primary'
-    |'text'
+    | 'text'
     | 'outline'
     | 'ghost'
+    | 'white'
+    | 'whiteOutline'
     | 'google'
     | 'green'
     | 'red'
@@ -36,7 +40,7 @@ export default function Button({
   children,
   variant = 'primary',
   size = 'md',
-  rounded = 'lg',
+  rounded = 'md',
   disabled,
   loading,
   onPress,
@@ -45,6 +49,98 @@ export default function Button({
   leftIcon,
   rightIcon,
 }: ButtonProps) {
+  const { Colors, isDark } = useTheme();
+
+  const variantStyles = {
+    primary: {
+      backgroundColor: Colors.primary,
+    },
+
+    text: {
+      backgroundColor: 'transparent',
+    },
+
+    outline: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: 'transparent',
+    },
+
+    ghost: {
+      backgroundColor: 'transparent',
+    },
+
+    white: {
+      backgroundColor: Colors.white,
+    },
+
+    whiteOutline: {
+      borderWidth: 1,
+      borderColor: Colors.white,
+      backgroundColor: 'transparent',
+    },
+
+    google: {
+      backgroundColor: Colors.googleBlue,
+    },
+
+    green: {
+      backgroundColor: Colors.success,
+    },
+
+    red: {
+      backgroundColor: Colors.error,
+    },
+
+    redOutline: {
+      borderWidth: 1,
+      borderColor: Colors.error,
+      backgroundColor: isDark ? Colors.errorLight : Colors.error + '1A',
+    },
+  };
+
+  const textVariantStyles = {
+    primary: {
+      color: isDark ? '#1A1A1A' : Colors.text,
+    },
+
+    text: {
+      color: Colors.primary,
+    },
+
+    outline: {
+      color: Colors.text,
+    },
+
+    ghost: {
+      color: Colors.primary,
+    },
+
+    white: {
+      color: Colors.black,
+    },
+
+    whiteOutline: {
+      color: Colors.white,
+    },
+
+    google: {
+      color: Colors.white,
+    },
+
+    green: {
+      color: Colors.white,
+    },
+
+    red: {
+      color: Colors.white,
+    },
+
+    redOutline: {
+      color: Colors.error,
+    },
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -56,11 +152,11 @@ export default function Button({
         style,
       ]}
       onPress={onPress}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       disabled={disabled || loading}
     >
       {loading ? (
-        <ActivityIndicator color="#fff" />
+        <ActivityIndicator color={Colors.white} />
       ) : (
         <View style={styles.content}>
           {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
@@ -106,89 +202,32 @@ const styles = StyleSheet.create({
   },
 });
 
-/* VARIANTS */
-const variantStyles = StyleSheet.create({
-  primary: {
-    backgroundColor: Colors.primary,
-  },
-  text: {
-    backgroundColor: 'transparent',
-  },
-  outline: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: 'transparent',
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
-  google: {
-    backgroundColor: Colors.googleBlue,
-  },
-  green: {
-    backgroundColor: Colors.success,
-  },
-  red: {
-    backgroundColor: Colors.error,
-  },
-  redOutline: {
-    borderWidth: 1,
-    borderColor: Colors.error,
-    backgroundColor: Colors.error + '1A', // 10% opacity
-  },
-});
-
-const textVariantStyles = StyleSheet.create({
-  primary: {
-    color: Colors.text,
-  },
-  text: {
-    color: Colors.primary,
-  },
-  outline: {
-    color: Colors.text,
-  },
-  ghost: {
-    color: Colors.primary,
-  },
-  google: {
-    color: Colors.text,
-  },
-  green: {
-    color: Colors.text,
-  },
-  red: {
-    color: Colors.text,
-  },
-  redOutline: {
-    color: Colors.error,
-  },
-});
-
-/* SIZES */
 const sizeStyles = StyleSheet.create({
   sm: {
     paddingVertical: scale(10),
     paddingHorizontal: scale(14),
   },
+
   md: {
     paddingVertical: scale(14),
     paddingHorizontal: scale(16),
   },
+
   lg: {
     paddingVertical: scale(18),
     paddingHorizontal: scale(20),
   },
 });
 
-/* ROUNDED */
 const roundedStyles = StyleSheet.create({
   md: {
     borderRadius: scale(8),
   },
+
   lg: {
     borderRadius: scale(12),
   },
+
   full: {
     borderRadius: 999,
   },

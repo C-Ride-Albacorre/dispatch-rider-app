@@ -1,3 +1,4 @@
+import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
 import {
   SafeAreaView,
@@ -6,6 +7,7 @@ import {
 
 export default function OnboardingLayout() {
   const insets = useSafeAreaInsets();
+
   return (
     <Stack
       screenOptions={{

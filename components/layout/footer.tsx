@@ -39,7 +39,8 @@ export default function Footer() {
 const styles = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
+    paddingTop: 24,
+    paddingBottom: 44,
     backgroundColor: Colors.text,
     gap: 24,
     marginTop: 32,

@@ -1,4 +1,5 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 
 import { normalize, scale } from '@/utils/scaling';
 
@@ -38,6 +39,10 @@ export default function Input({
   ...props
 }: InputProps) {
   const hasError = !!error;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   return (
     <View style={styles.field}>
@@ -87,11 +92,12 @@ export default function Input({
   );
 }
 
-const styles = StyleSheet.create({
-  field: {
-    width: '100%',
-    gap: scale(6),
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    field: {
+      width: '100%',
+      gap: scale(6),
+    },
 
   labelContainer: {
     flexDirection: 'row',

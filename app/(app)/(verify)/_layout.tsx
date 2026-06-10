@@ -1,8 +1,5 @@
 import { Stack } from 'expo-router';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VerifyLayout() {
   const insets = useSafeAreaInsets();

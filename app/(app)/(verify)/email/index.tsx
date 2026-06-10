@@ -2,6 +2,7 @@ import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
 
 import Button from '@/components/ui/buttons/button';
+import IconButton from '@/components/ui/buttons/icon-button';
 
 import OtpInput from '@/components/ui/input/otp-input';
 
@@ -10,10 +11,12 @@ import ResendOTP from '@/features/auth/components/resend-otp';
 
 import { resendOtpAction, verifyEmailAction } from '@/features/verify/action';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
+import { useTheme } from '@/hooks/use-theme';
 
 import { useAuthStore } from '@/store/auth-store';
 
 import { maskEmail } from '@/utils/mask';
+import { normalize, scale } from '@/utils/scaling';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -50,6 +53,10 @@ export default function VerifyEmailScreen() {
   const [resending, setResending] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const router = useRouter();
 
@@ -141,12 +148,12 @@ export default function VerifyEmailScreen() {
       >
         <ScrollView contentContainerStyle={styles.container}>
           <View>
-            <TouchableOpacity
-              style={styles.returnBtn}
+            <IconButton
+              variant="outlineSecondary"
               onPress={() => router.back()}
             >
-              <Ionicons name="arrow-back" size={24} />
-            </TouchableOpacity>
+              <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
+            </IconButton>
 
             <AuthPageHeader />
           </View>
@@ -214,61 +221,58 @@ export default function VerifyEmailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardSafeArea: {
-    flex: 1,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    keyboardSafeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  container: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 12,
-    flexGrow: 1,
-    gap: 24,
-  },
+    container: {
+      paddingHorizontal: scale(20),
+      paddingBottom: scale(20),
+      paddingTop: scale(12),
+      flexGrow: 1,
+      gap: scale(24),
+    },
 
-  returnBtn: {
-    alignSelf: 'flex-start',
-    padding: 8,
-    borderRadius: 40,
-    backgroundColor: Colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    returnIcon: {
+      color: Colors.textSecondary,
+    },
 
-  textContainer: {
-    gap: 8,
-    alignItems: 'center',
-    marginVertical: 20,
-  },
+    textContainer: {
+      gap: 8,
+      alignItems: 'center',
+      marginVertical: scale(20),
+    },
 
-  title: {
-    fontSize: 26,
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
+    title: {
+      fontSize: normalize(26),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
 
-  subtitle: {
-    fontSize: 16,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
+    subtitle: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.textSecondary,
+      textAlign: 'center',
+    },
 
-  resendContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 20,
-    gap: 16,
-  },
+    resendContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: scale(20),
+      gap: scale(16),
+    },
 
-  resendText: {
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.primary,
-  },
+    resendText: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandMedium,
+      color: Colors.primary,
+    },
 
-  disabledResendText: {
-    color: Colors.textSecondary,
-  },
-});
+    disabledResendText: {
+      color: Colors.textSecondary,
+    },
+  });

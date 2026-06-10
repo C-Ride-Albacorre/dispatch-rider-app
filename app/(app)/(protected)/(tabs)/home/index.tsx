@@ -1,65 +1,56 @@
 import Footer from '@/components/layout/footer';
-import Button from '@/components/ui/buttons/button';
-import { Colors, Fonts } from '@/constants/theme';
-import AvailableDelivery from '@/features/dashboard/components/available-delivery';
-import CompletedDeliveries from '@/features/dashboard/components/completed-deliveries';
-import DeliveryDetails from '@/features/dashboard/components/delivery-details';
-import Earnings from '@/features/dashboard/components/earnings';
-import DashboardHeader from '@/features/dashboard/components/header';
-import Performance from '@/features/dashboard/components/performance';
-import StatCard from '@/features/dashboard/components/stat-card';
-import { useState } from 'react';
 import {
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+  HEADER_HEIGHT,
+  useScrollHeader,
+} from '@/components/layout/scroll-header-context';
+import { Fonts } from '@/constants/theme';
+import AvailableDelivery from '@/features/home/components/available-delivery';
+import CompletedDeliveries from '@/features/home/components/completed-deliveries';
+import Earnings from '@/features/home/components/earnings';
+import HomeHeader from '@/features/home/components/header';
+import NoDelivery from '@/features/home/components/no-delivery';
+import Performance from '@/features/home/components/performance';
+import StatFrame from '@/features/home/components/stat-frame';
+import { useDashboardStats } from '@/features/home/use-fetch';
+import { useTheme } from '@/hooks/use-theme';
+import { scale } from '@/utils/scaling';
+import { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 
 export default function Dashboard() {
+  const { data, isLoading } = useDashboardStats();
+
+  const stats = data?.stats;
+
+  const driverInfo = data?.personalInfo;
+
+  const driverStatus = stats?.status ?? 'OFFLINE';
+
   const [activeTab, setActiveTab] = useState<
     'available' | 'completed' | 'performance' | 'earnings'
   >('available');
 
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
+
+  const scrollHandler = useScrollHeader();
+
   return (
-    <ScrollView>
+    <Animated.ScrollView
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
+      contentContainerStyle={{ paddingTop: HEADER_HEIGHT }}
+    >
       <View style={styles.container}>
-        <DashboardHeader />
+        <HomeHeader driverStatus={driverStatus} driverInfo={driverInfo} />
 
-        <View style={styles.statsGrid}>
-          <StatCard
-            title="Today’s Earnings"
-            value="NGN 42,500"
-            icon="cash-outline"
-          />
+        <StatFrame stats={stats} isLoading={isLoading} />
 
-          <StatCard
-            title="Deliveries"
-            value="12"
-            icon="bicycle-outline"
-            iconBg={Colors.success}
-            changeText="3 deliveries today"
-          />
+        <NoDelivery />
 
-          <StatCard
-            title="Care Rating"
-            value="4.8"
-            icon="star-outline"
-            iconBg={Colors.text}
-          />
-
-          <StatCard
-            title="Online Time"
-            value="12h"
-            icon="time-outline"
-            iconBg={Colors.success}
-            changeText="3 hours today"
-          />
-        </View>
-
-        <DeliveryDetails />
+        {/* <DeliveryDetails /> */}
 
         <View style={styles.tabContent}>
           <View style={styles.tabContainer}>
@@ -140,55 +131,53 @@ export default function Dashboard() {
       </View>
 
       <Footer />
-    </ScrollView>
+    </Animated.ScrollView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: '#fff', gap: 24 },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      padding: scale(20),
+      backgroundColor: Colors.background,
+      gap: scale(24),
+    },
 
-  // GRID LAYOUT
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
+    tabContent: {
+      gap: scale(24),
+    },
 
-  tabContent: {
-    gap: 24,
-  },
+    tabContainer: {
+      flexDirection: 'row',
+      borderRadius: scale(14),
+      backgroundColor: Colors.inputBackground,
+      padding: scale(4),
+      marginVertical: scale(20),
+      gap: scale(4),
+    },
 
-  tabContainer: {
-    flexDirection: 'row',
-    borderRadius: 14,
-    backgroundColor: Colors.inputBackground,
-    padding: 4,
-    marginVertical: 20,
-    gap: 4,
-  },
+    tab: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: scale(8),
+      borderRadius: scale(10),
+      gap: scale(6),
+    },
 
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    borderRadius: 10,
-    gap: 6,
-  },
+    activeTab: {
+      backgroundColor: '#fff',
+      color: Colors.text,
+    },
+    tabText: {
+      fontSize: 14,
+      fontFamily: Fonts.brandMedium,
+      color: Colors.textSecondary,
+    },
 
-  activeTab: {
-    backgroundColor: '#fff',
-    color: Colors.text,
-  },
-  tabText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.textSecondary,
-  },
-
-  activeTabText: {
-    color: Colors.text,
-  },
-});
+    activeTabText: {
+      color: Colors.text,
+    },
+  });

@@ -89,7 +89,7 @@ export default function ForgetPassword() {
           description={`We have sent a code to your ${
             successData?.method === 'email' ? 'email' : 'phone'
           } (${successData?.identifier}). Please use it to reset your password.`}
-          buttonText="Back to Login"
+          buttonText={`Verify ${successData?.method === 'email' ? 'Email' : 'Phone'}  `}
           path="/(app)/(auth)/login"
           showSuccessModal={successModalVisible}
           setShowSuccessModal={setSuccessModalVisible}

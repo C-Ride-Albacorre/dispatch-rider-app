@@ -6,12 +6,18 @@ import { useEffect, useRef } from 'react';
 
 import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 
+import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
 
 export default function Home() {
   const opacity = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
   const translateY = useRef(new Animated.Value(20)).current;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
+
   useEffect(() => {
     Animated.sequence([
       Animated.parallel([
@@ -58,7 +64,7 @@ export default function Home() {
           return;
         }
 
-        router.replace('/(app)/(protected)/dashboard');
+        router.replace('/(app)/(protected)/(tabs)/home');
         return;
       }
 
@@ -88,9 +94,7 @@ export default function Home() {
     });
   }, []);
   return (
-    <View
-      style={{ flex: 1, backgroundColor: '#fff', justifyContent: 'center' }}
-    >
+    <View style={styles.container}>
       <Animated.View
         style={[
           styles.logo,
@@ -107,14 +111,21 @@ export default function Home() {
   );
 }
 
-const styles = StyleSheet.create({
-  logo: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.background,
+      justifyContent: 'center',
+    },
 
-  image: {
-    width: scale(128),
-    height: scale(128),
-  },
-});
+    logo: {
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    image: {
+      width: scale(128),
+      height: scale(128),
+    },
+  });

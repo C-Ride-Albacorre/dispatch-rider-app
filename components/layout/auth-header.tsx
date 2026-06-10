@@ -10,7 +10,6 @@ export default function AuthPageHeader() {
         style={styles.icon}
         resizeMode="contain"
       />
-
       <Text style={styles.title}>Begin your journey with care</Text>
     </View>
   );

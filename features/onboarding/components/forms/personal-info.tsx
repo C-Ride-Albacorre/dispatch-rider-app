@@ -12,6 +12,8 @@ import { personalInfoAction } from '../../action';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useOnboardingStore } from '../../store';
 import { useEffect } from 'react';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize,  scale } from '@/utils/scaling';
 
 export default function PersonalInfo({
   goToStep,
@@ -56,6 +58,11 @@ export default function PersonalInfo({
   const cityOptions = selectedState
     ? (nigeriaCitiesByState[selectedState] ?? [])
     : [];
+
+
+    const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const onSubmit = async (payload: PersonalInfoFormValues) => {
     try {
@@ -197,26 +204,27 @@ export default function PersonalInfo({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 20,
-    gap: 32,
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      borderWidth: scale(1),
+      borderColor: Colors.border,
+      borderRadius: scale(12),
+    padding: scale(20),
+    gap: scale(32),
   },
 
   textContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 16,
+    gap: scale(16),
   },
 
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
+    width: scale(48),
+    height: scale(48),
+    borderRadius: scale(12),
     backgroundColor: Colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
@@ -227,24 +235,24 @@ const styles = StyleSheet.create({
   },
 
   mainText: {
-    fontSize: 20,
+    fontSize: normalize(20),
     fontFamily: Fonts.brandBold,
     color: Colors.text,
   },
 
   subText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     color: Colors.textSecondary,
     fontFamily: Fonts.brandRegular,
   },
 
   form: {
-    gap: 24,
+    gap: scale(24),
   },
 
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: scale(16),
   },
 });

@@ -8,7 +8,7 @@ import Input from '@/components/ui/input/input';
 
 import PhoneInput from '@/components/ui/input/phone-input';
 
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 
 import { registerAction } from '@/features/auth/action';
 
@@ -35,6 +35,8 @@ import {
 } from 'react-native';
 import SuccessModal from '@/components/layout/success-modal';
 import { RegisterPayload, RegisterSchema } from '../schema';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -48,6 +50,10 @@ export default function RegisterForm() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const [nextSteps, setNextSteps] = useState<string[]>([]);
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const {
     control,
@@ -114,16 +120,7 @@ export default function RegisterForm() {
           keyboardShouldPersistTaps="handled"
         >
           <View>
-            {/* {router.canGoBack() && (
-              <TouchableOpacity
-                style={styles.returnBtn}
-                onPress={() => router.back()}
-              >
-                <Ionicons name="arrow-back" size={24} />
-              </TouchableOpacity>
-            )} */}
-
-            <AuthPageHeader />
+           <AuthPageHeader />
           </View>
 
           {errorMessage && <ErrorMessage message={errorMessage} />}
@@ -255,63 +252,45 @@ export default function RegisterForm() {
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardSafeArea: {
-    flex: 1,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    keyboardSafeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  container: {
-    padding: 20,
-    flexGrow: 1,
-    gap: 32,
-  },
+    container: {
+      padding: scale(20),
+      flexGrow: 1,
+      gap: scale(32),
+    },
 
-  returnBtn: {
-    alignSelf: 'flex-start',
+    form: {
+      // marginTop: 20,
+      gap: scale(24),
+    },
 
-    padding: 8,
+    action: {
+      flexDirection: 'row',
 
-    borderRadius: 40,
+      justifyContent: 'center',
 
-    backgroundColor: Colors.light,
+      gap: scale(4),
+    },
 
-    alignItems: 'center',
+    actionText: {
+      color: Colors.text,
 
-    justifyContent: 'center',
-  },
+      fontFamily: Fonts.brandMedium,
 
-  form: {
-    // marginTop: 20,
-    gap: 24,
-  },
+      fontSize: normalize(16),
+    },
 
-  action: {
-    flexDirection: 'row',
+    actionLink: {
+      color: Colors.primary,
 
-    justifyContent: 'center',
+      fontFamily: Fonts.brandSemiBold,
 
-    gap: 4,
-  },
-
-  actionText: {
-    color: Colors.text,
-
-    fontFamily: Fonts.brandMedium,
-
-    fontSize: 16,
-  },
-
-  actionLink: {
-    color: Colors.primary,
-
-    fontFamily: Fonts.brandSemiBold,
-
-    fontSize: 16,
-  },
-
-  errorText: {
-    color: '#dc2626',
-    fontSize: 13,
-    marginTop: -10,
-  },
-});
+      fontSize: normalize(16),
+    },
+  });

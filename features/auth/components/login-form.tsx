@@ -3,23 +3,25 @@ import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
 import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import { loginAction } from '@/features/auth/action';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from 'react-native';
 import { LoginPayload, LoginSchema } from '../schema';
-import { zodResolver } from '@hookform/resolvers/zod';
 
 const onBoardingSteps = [
   'Set up your profile',
@@ -33,7 +35,7 @@ type ModalType = 'verification' | 'onboarding' | null;
 type AppRoutes =
   | '/(app)/(auth)/login'
   | '/(app)/(auth)/register'
-  | '/(app)/(protected)/dashboard'
+  | '/(app)/(protected)/(tabs)/home'
   | '/(app)/(protected)/onboarding'
   | '/(app)/(verify)/email'
   | '/(app)/(verify)/phone'
@@ -60,6 +62,10 @@ export default function LoginForm() {
   const [nextSteps, setNextSteps] = useState<string[]>([]);
 
   const router = useRouter();
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const {
     control,
@@ -200,13 +206,13 @@ export default function LoginForm() {
         setModalType('verification');
         setModalTitle('Account Under Review');
         setButtonText('Go to Dashboard');
-        setRedirectPath('/(app)/(protected)/dashboard');
+        setRedirectPath('/(app)/(protected)/(tabs)/home');
         setNextSteps([
           'Your account is currently under review',
           'We will notify you once the verification is complete',
         ]);
       } else {
-        router.replace('/(app)/(protected)/dashboard');
+        router.replace('/(app)/(protected)/(tabs)/home');
       }
     } catch (error) {
       console.log(error);
@@ -317,57 +323,50 @@ export default function LoginForm() {
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardSafeArea: {
-    flex: 1,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    keyboardSafeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  container: {
-    padding: 20,
-    flexGrow: 1,
-    gap: 32,
-  },
+    container: {
+      padding: scale(20),
+      flexGrow: 1,
+      gap: scale(32),
+    },
 
-  form: {
-    // marginTop: 32,
-    gap: 24,
-  },
+    form: {
+      // marginTop: 32,
+      gap: scale(24),
+    },
 
-  returnBtn: {
-    alignSelf: 'flex-start',
-    padding: 8,
-    borderRadius: 40,
-    backgroundColor: Colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+    forgotPasswordContainer: {
+      flex: 1,
+      alignItems: 'flex-end',
+    },
 
-  forgotPasswordContainer: {
-    flex: 1,
-    alignItems: 'flex-end',
-  },
+    forgotPasswordText: {
+      color: Colors.primary,
+      fontFamily: Fonts.brandMedium,
+      fontSize: normalize(16),
+    },
 
-  forgotPasswordText: {
-    color: Colors.primary,
-    fontFamily: Fonts.brandMedium,
-    fontSize: 16,
-  },
+    action: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      gap: scale(4),
+    },
 
-  action: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 4,
-  },
+    actionText: {
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+      fontSize: normalize(16),
+    },
 
-  actionText: {
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-    fontSize: 16,
-  },
-
-  actionLink: {
-    color: Colors.primary,
-    fontFamily: Fonts.brandSemiBold,
-    fontSize: 16,
-  },
-});
+    actionLink: {
+      color: Colors.primary,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: normalize(16),
+    },
+  });

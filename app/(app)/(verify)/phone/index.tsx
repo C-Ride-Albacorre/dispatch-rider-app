@@ -1,6 +1,7 @@
 import AuthPageHeader from '@/components/layout/auth-header';
 
 import Button from '@/components/ui/buttons/button';
+import IconButton from '@/components/ui/buttons/icon-button';
 
 import OtpInput from '@/components/ui/input/otp-input';
 
@@ -8,14 +9,16 @@ import { Colors, Fonts } from '@/constants/theme';
 import ResendOTP from '@/features/auth/components/resend-otp';
 import { resendOtpAction, verifyPhoneAction } from '@/features/verify/action';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
+import { useTheme } from '@/hooks/use-theme';
 
 import { useAuthStore } from '@/store/auth-store';
 
 import { maskPhone } from '@/utils/mask';
+import { normalize, scale } from '@/utils/scaling';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { Link, useRouter } from 'expo-router';
+import { Icon, Link, useRouter } from 'expo-router';
 
 import { useState } from 'react';
 
@@ -43,6 +46,10 @@ export default function VerifyPhoneScreen() {
   const verificationPhone = useAuthStore((state) => state.verificationPhone);
 
   const verificationToken = useAuthStore((state) => state.verificationToken);
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const handleVerify = async () => {
     if (code.length !== 6) {
@@ -103,12 +110,12 @@ export default function VerifyPhoneScreen() {
       >
         <ScrollView contentContainerStyle={styles.container}>
           <View>
-            <TouchableOpacity
-              style={styles.returnBtn}
-              onPress={() => router.back()}
+            <IconButton
+            variant='outlineSecondary'
+
             >
-              <Ionicons name="arrow-back" size={24} />
-            </TouchableOpacity>
+              <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
+            </IconButton>
 
             <AuthPageHeader />
           </View>
@@ -158,42 +165,41 @@ export default function VerifyPhoneScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  keyboardSafeArea: {
-    flex: 1,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    keyboardSafeArea: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
   container: {
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    paddingTop: 12,
+    paddingHorizontal: scale(20),
+    paddingBottom: scale(20),
+    paddingTop: scale(12),
     flexGrow: 1,
-    gap: 24,
+    gap: scale(24),
   },
 
-  returnBtn: {
-    alignSelf: 'flex-start',
-    padding: 8,
-    borderRadius: 40,
-    backgroundColor: Colors.light,
-    alignItems: 'center',
-    justifyContent: 'center',
+
+
+  returnIcon: {
+    color: Colors.textSecondary,
   },
 
   textContainer: {
     gap: 8,
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: scale(20),
   },
 
   title: {
-    fontSize: 26,
+    fontSize: normalize(26),
     fontFamily: Fonts.brandBold,
     color: Colors.text,
   },
 
   subtitle: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
     textAlign: 'center',
@@ -202,12 +208,12 @@ const styles = StyleSheet.create({
   resendContainer: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
-    gap: 16,
+    marginTop: scale(20),
+    gap: scale(16),
   },
 
   resendText: {
-    fontSize: 16,
+    fontSize: normalize(16),
     fontFamily: Fonts.brandMedium,
     color: Colors.primary,
   },

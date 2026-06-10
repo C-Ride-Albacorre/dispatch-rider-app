@@ -1,17 +1,17 @@
-import { useState } from 'react';
-import UploadField from '@/components/ui/input/upload-field';
-import { Colors, Fonts } from '@/constants/theme';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
-import Button from '@/components/ui/buttons/button';
-import { useForm } from 'react-hook-form';
-import { DriverDocumentType } from '../../schema';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useOnboardingStore } from '../../store';
-import { submitDocumentsAction } from '../../action';
-import ErrorMessage from '@/components/ui/error/error-message';
 import SuccessModal from '@/components/layout/success-modal';
+import Button from '@/components/ui/buttons/button';
+import ErrorMessage from '@/components/ui/error/error-message';
+import UploadField from '@/components/ui/input/upload-field';
+import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import * as DocumentPicker from 'expo-document-picker';
+import { useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { submitDocumentsAction } from '../../action';
+import { DriverDocumentType } from '../../schema';
+import { useOnboardingStore } from '../../store';
 
 export default function Documents({
   goToStep,
@@ -27,6 +27,10 @@ export default function Documents({
   function handlePreviousStep() {
     goToStep(2);
   }
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   const {
     step3Data,
@@ -178,7 +182,7 @@ export default function Documents({
 
       <SuccessModal
         title="Onboarding Completed"
-        path="/(app)/(protected)/dashboard"
+        path="/(app)/(protected)/(tabs)/home"
         description="You have successfully completed the onboarding process. Your account is now being reviewed. We will notify you once the verification is complete."
         buttonText="Proceed to Dashboard"
         showSuccessModal={showSuccessModal}
@@ -188,54 +192,55 @@ export default function Documents({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 20,
-    gap: 32,
-  },
-  textContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: scale(12),
+      padding: scale(20),
+      gap: scale(32),
+    },
+    textContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(16),
+    },
 
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    iconContainer: {
+      width: scale(48),
+      height: scale(48),
+      borderRadius: scale(12),
+      backgroundColor: Colors.primaryLight,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  mainTextContainer: {
-    flex: 1,
-  },
+    mainTextContainer: {
+      flex: 1,
+    },
 
-  mainText: {
-    fontSize: 20,
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
+    mainText: {
+      fontSize: normalize(20),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
 
-  subText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    fontFamily: Fonts.brandRegular,
-  },
+    subText: {
+      fontSize: normalize(16),
+      color: Colors.textSecondary,
+      fontFamily: Fonts.brandRegular,
+    },
 
-  form: {
-    marginTop: 24,
-    gap: 20,
-  },
+    form: {
+      marginTop: scale(24),
+      gap: scale(20),
+    },
 
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-});
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: scale(16),
+    },
+  });

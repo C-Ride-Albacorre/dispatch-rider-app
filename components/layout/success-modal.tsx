@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
@@ -11,20 +11,20 @@ import { useRouter } from 'expo-router';
 import AppModal from '@/components/layout/app-modal';
 
 import Button from '@/components/ui/buttons/button';
-import { Colors } from '@/constants/theme';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 type AppRoutes =
   | '/(app)/(auth)/login'
   | '/(app)/(auth)/register'
-  | '/(app)/(protected)/dashboard'
+  | '/(app)/(protected)/(tabs)/home'
   | '/(app)/(protected)/onboarding'
   | '/(app)/(verify)/email'
   | '/(app)/(verify)/phone'
   | `/(app)/(protected)/onboarding?step=${number}`
   | `/(app)/(protected)/onboarding?step=${number}&resumeStep=${number}`
-  | `/(app)/(protected)/dashboard`;
+  | `/(app)/(protected)/(tabs)/home`;
 
 export default function SuccessModal({
   title,
@@ -50,6 +50,10 @@ export default function SuccessModal({
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
 
   const opacityAnim = useRef(new Animated.Value(0)).current;
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   useEffect(() => {
     if (showSuccessModal) {
@@ -154,53 +158,54 @@ export default function SuccessModal({
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    width: '100%',
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    content: {
+      width: '100%',
+    },
 
-  animation: {
-    width: scale(170),
-    height: scale(170),
-    alignSelf: 'center',
-  },
+    animation: {
+      width: scale(170),
+      height: scale(170),
+      alignSelf: 'center',
+    },
 
-  title: {
-    fontSize: normalize(24),
-    fontWeight: '600',
-    textAlign: 'center',
-    marginBottom: scale(18),
-    color: '#111827',
-  },
+    title: {
+      fontSize: normalize(24),
+      fontWeight: '600',
+      textAlign: 'center',
+      marginBottom: scale(18),
+      color: Colors.text,
+    },
 
-  description: {
-    fontSize: normalize(16),
-    textAlign: 'center',
-    marginBottom: scale(24),
-    color: '#6B7280',
-  },
+    description: {
+      fontSize: normalize(16),
+      textAlign: 'center',
+      marginBottom: scale(24),
+      color: Colors.textSecondary,
+    },
 
-  stepsContainer: {
-    marginBottom: scale(28),
-    gap: scale(20),
-    backgroundColor: Colors.primaryLight,
-    padding: scale(16),
-    borderRadius: 12,
-  },
+    stepsContainer: {
+      marginBottom: scale(28),
+      gap: scale(20),
+      backgroundColor: Colors.primaryLight,
+      padding: scale(16),
+      borderRadius: 12,
+    },
 
-  stepContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(8),
-  },
+    stepContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(8),
+    },
 
-  stepText: {
-    fontSize: normalize(15),
-    lineHeight: scale(24),
-    color: Colors.text,
-  },
+    stepText: {
+      fontSize: normalize(15),
+      lineHeight: scale(24),
+      color: Colors.text,
+    },
 
-  buttonContainer: {
-    marginTop: 4,
-  },
-});
+    buttonContainer: {
+      marginTop: scale(4),
+    },
+  });

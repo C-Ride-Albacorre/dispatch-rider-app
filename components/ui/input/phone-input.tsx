@@ -1,4 +1,5 @@
 import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
@@ -67,6 +68,10 @@ export default function PhoneInput({
   const [search, setSearch] = useState('');
 
   const [loading, setLoading] = useState(true);
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
 
   // 🔥 LOCAL NUMBER
   const [localNumber, setLocalNumber] = useState('');
@@ -293,11 +298,12 @@ export default function PhoneInput({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: scale(6),
-    width: '100%',
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    wrapper: {
+      gap: scale(6),
+      width: '100%',
+    },
 
   label: {
     fontSize: normalize(16),

@@ -2,13 +2,16 @@ import axios, { AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
 
 import Toast from 'react-native-toast-message';
 
+import { router } from 'expo-router';
+
 import { BASE_URL } from '@/config/base-api';
 
 import {
+  clearTokens,
   getAccessToken,
   getRefreshToken,
   saveAccessToken,
-  clearTokens,
+  saveRefreshToken,
 } from '@/utils/token-storage';
 
 import { useAuthStore } from '@/store/auth-store';
@@ -121,18 +124,24 @@ api.interceptors.response.use(
           refreshToken,
         });
 
-        const { accessToken } = response.data;
+        /**
+         * API response shape: { data: { accessToken, refreshToken } }
+         */
+        const { accessToken, refreshToken: newRefreshToken } =
+          response.data.data;
 
         /**
-         * Save new access token
+         * Save both rotated tokens
          */
         await saveAccessToken(accessToken);
+        await saveRefreshToken(newRefreshToken);
 
         /**
-         * Update Zustand store
+         * Update Zustand store with both tokens
          */
         useAuthStore.getState().setAuth({
           accessToken,
+          refreshToken: newRefreshToken,
         });
 
         /**
@@ -148,15 +157,9 @@ api.interceptors.response.use(
         console.error('Refresh token failed:', refreshError);
 
         /**
-         * Session fully expired
+         * Session fully expired — clear everything
          */
         await clearTokens();
-
-        /**
-         * IMPORTANT:
-         * logout() already clears state/tokens
-         * and resets auth state
-         */
         await useAuthStore.getState().logout();
 
         Toast.show({
@@ -164,6 +167,12 @@ api.interceptors.response.use(
           text1: 'Session Expired',
           text2: 'Please login again',
         });
+
+        /**
+         * Redirect to login regardless of which
+         * component is currently mounted
+         */
+        router.replace('/(app)/(auth)/login');
 
         return Promise.reject(refreshError);
       }

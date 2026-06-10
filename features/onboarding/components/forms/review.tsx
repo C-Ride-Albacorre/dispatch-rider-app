@@ -1,15 +1,17 @@
 import UploadField from '@/components/ui/input/upload-field';
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
-import * as DocumentPicker from 'expo-document-picker';
 import Button from '@/components/ui/buttons/button';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
+import * as DocumentPicker from 'expo-document-picker';
 import { Link } from 'expo-router';
 
 export default function Review({
- goToStep,
+  goToStep,
 }: {
   goToStep: (step: number) => void;
 }) {
@@ -33,6 +35,11 @@ export default function Review({
   const handlePreviousStep = () => {
     goToStep(3);
   };
+
+  const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
+
   return (
     <View style={styles.container}>
       <View style={styles.textContainer}>
@@ -162,7 +169,7 @@ export default function Review({
             Previous
           </Button>
 
-          <Link href={'/dashboard'} asChild>
+          <Link href={'/home'} asChild>
             <Button>Continue</Button>
           </Link>
         </View>
@@ -171,83 +178,84 @@ export default function Review({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 12,
-    padding: 20,
-    gap: 32,
-  },
-  textContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: scale(12),
+      padding: scale(20),
+      gap: scale(32),
+    },
+    textContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(16),
+    },
 
-  iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    iconContainer: {
+      width: scale(48),
+      height: scale(48),
+      borderRadius: scale(12),
+      backgroundColor: Colors.primaryLight,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  mainTextContainer: {
-    flex: 1,
-  },
+    mainTextContainer: {
+      flex: 1,
+    },
 
-  mainText: {
-    fontSize: 20,
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
+    mainText: {
+      fontSize: normalize(20),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
 
-  subText: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-    fontFamily: Fonts.brandRegular,
-  },
+    subText: {
+      fontSize: normalize(16),
+      color: Colors.textSecondary,
+      fontFamily: Fonts.brandRegular,
+    },
 
-  largeMainText: {
-    fontSize: 18,
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
+    largeMainText: {
+      fontSize: normalize(18),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
 
-  form: {
-    gap: 32,
-  },
+    form: {
+      gap: scale(32),
+    },
 
-  reviewItemsContainer: {
-    marginTop: 16,
-    gap: 8,
-  },
+    reviewItemsContainer: {
+      marginTop: scale(16),
+      gap: scale(8),
+    },
 
-  reviewItems: {
-    paddingVertical: 12,
-  },
+    reviewItems: {
+      paddingVertical: scale(12),
+    },
 
-  itemTitle: {
-    fontSize: 16,
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
-  itemSubText: {
-    fontSize: 16,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    itemTitle: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
+    itemSubText: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.textSecondary,
+    },
 
-  document: {
-    marginTop: 8,
-  },
+    document: {
+      marginTop: scale(8),
+    },
 
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 16,
-  },
-});
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: scale(16),
+    },
+  });
