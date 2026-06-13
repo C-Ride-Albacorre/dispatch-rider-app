@@ -1,4 +1,5 @@
 import { Colors, Fonts } from '@/constants/theme';
+import AppFrame from '@/features/dashboard/components/app-frame';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -45,12 +46,7 @@ export default function StatFrame({
   }, [isLoading]);
 
   return (
-    <LinearGradient
-      colors={isDark ? ['#111827', '#1F2937'] : ['#111111', '#3A3A3A']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
-      style={styles.statsFrame}
-    >
+    <AppFrame>
       <View style={styles.earningsRow}>
         <Text
           style={[
@@ -165,82 +161,52 @@ export default function StatFrame({
           </View>
         </View>
       </View>
-
-      <View style={styles.bubbleTop}></View>
-
-      <View style={styles.bubbleBottom}></View>
-    </LinearGradient>
+    </AppFrame>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    statsFrame: {
-      borderRadius: scale(14),
-      padding: scale(20),
-      overflow: 'hidden',
-      position: 'relative',
-  },
-  earningsRow: {
-    flexDirection: 'column',
-    gap: scale(12),
-  },
+    earningsRow: {
+      flexDirection: 'column',
+      gap: scale(12),
+    },
 
-  earningsText: {
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandMedium,
-  },
+    earningsText: {
+      fontSize: normalize(12),
+      fontFamily: Fonts.brandMedium,
+    },
 
-  earningsAmount: {
-    fontSize: normalize(24),
-    fontFamily: Fonts.brandSemiBold,
-  },
+    earningsAmount: {
+      fontSize: normalize(24),
+      fontFamily: Fonts.brandSemiBold,
+    },
 
-  statsRow: {
-    flexDirection: 'row',
-    gap: scale(20),
-    marginTop: scale(16),
-  },
+    statsRow: {
+      flexDirection: 'row',
+      gap: scale(20),
+      marginTop: scale(16),
+    },
 
-  statItem: {
-    flexDirection: 'column',
-    gap: scale(4),
-  },
+    statItem: {
+      flexDirection: 'column',
+      gap: scale(4),
+    },
 
-  statValue: {
-    fontSize: normalize(14),
-    fontFamily: Fonts.brandRegular,
-  },
+    statValue: {
+      fontSize: normalize(14),
+      fontFamily: Fonts.brandRegular,
+    },
 
-  skeletonValue: {
-    height: scale(28),
-    width: scale(60),
-    backgroundColor: Colors.light,
-    borderRadius: scale(6),
-  },
+    skeletonValue: {
+      height: scale(28),
+      width: scale(60),
+      backgroundColor: Colors.light,
+      borderRadius: scale(6),
+    },
 
-  statLabel: {
-    fontSize: normalize(10),
-    fontFamily: Fonts.brandMedium,
-  },
-
-  bubbleTop: {
-    position: 'absolute',
-    width: scale(120),
-    height: scale(120),
-    borderRadius: scale(999),
-    backgroundColor: Colors.primaryLight,
-    top: scale(-40),
-    right: scale(-30),
-  },
-
-  bubbleBottom: {
-    position: 'absolute',
-    width: scale(80),
-    height: scale(80),
-    borderRadius: scale(999),
-    backgroundColor: Colors.successExtraLight,
-    bottom: scale(-30),
-    right: scale(20),
-  },
-});
+    statLabel: {
+      fontSize: normalize(10),
+      fontFamily: Fonts.brandMedium,
+    },
+  });

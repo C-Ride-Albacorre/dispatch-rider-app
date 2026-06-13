@@ -71,10 +71,10 @@ export default function HomeHeader({
           Good {new Date().getHours() < 12 ? 'Morning' : 'Afternoon'}
         </Text>
 
-        <View style={styles.driverName}>
+        <Text style={styles.driverName}>
           <Text style={styles.title}>{driverName}</Text>{' '}
           <Text style={styles.emoji}>👋</Text>
-        </View>
+        </Text>
       </View>
 
       <View style={styles.statusContainer}>

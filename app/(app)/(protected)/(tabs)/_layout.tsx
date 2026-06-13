@@ -15,7 +15,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
-  const { Colors } = useTheme();
+  const { Colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
   // Shared values owned by the layout, consumed by child screens via context
@@ -28,7 +28,7 @@ export default function TabsLayout() {
 
   return (
     <ScrollHeaderContext.Provider value={{ headerTranslateY, lastScrollY }}>
-      <View style={styles.root}>
+      <View style={[styles.root , { backgroundColor: Colors.backgroundTertiary }]}>
         {/* ── Shared animated header ─────────────────────────────────────── */}
         <Animated.View
           style={[
@@ -50,9 +50,9 @@ export default function TabsLayout() {
             },
 
             tabBarActiveTintColor: Colors.primary,
-            tabBarInactiveTintColor: Colors.textSecondary,
+            tabBarInactiveTintColor: Colors.textMuted,
             tabBarStyle: {
-              backgroundColor: Colors.background,
+              backgroundColor: isDark ? Colors.background : '#1A1A1A',
               borderTopColor: Colors.border,
             },
           }}

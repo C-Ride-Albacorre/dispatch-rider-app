@@ -4,12 +4,9 @@ import {
   useScrollHeader,
 } from '@/components/layout/scroll-header-context';
 import { Fonts } from '@/constants/theme';
-import AvailableDelivery from '@/features/home/components/available-delivery';
-import CompletedDeliveries from '@/features/home/components/completed-deliveries';
-import Earnings from '@/features/home/components/earnings';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
-import Performance from '@/features/home/components/performance';
+import RecentDeliveries from '@/features/home/components/recent-deliveries';
 import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
@@ -27,9 +24,7 @@ export default function Dashboard() {
 
   const driverStatus = stats?.status ?? 'OFFLINE';
 
-  const [activeTab, setActiveTab] = useState<
-    'available' | 'completed' | 'performance' | 'earnings'
-  >('available');
+  
 
   const { Colors } = useTheme();
 
@@ -50,9 +45,11 @@ export default function Dashboard() {
 
         <NoDelivery />
 
+        {/* <ActiveDelivery /> */}
+
         {/* <DeliveryDetails /> */}
 
-        <View style={styles.tabContent}>
+        {/* <View style={styles.tabContent}>
           <View style={styles.tabContainer}>
             <TouchableOpacity
               style={[
@@ -127,10 +124,12 @@ export default function Dashboard() {
           {activeTab === 'performance' && <Performance />}
 
           {activeTab === 'earnings' && <Earnings />}
-        </View>
+        </View> */}
+
+        <RecentDeliveries />
       </View>
 
-      <Footer />
+      {/* <Footer /> */}
     </Animated.ScrollView>
   );
 }
@@ -139,9 +138,9 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: scale(20),
+      paddingHorizontal: scale(20),
       backgroundColor: Colors.background,
-      gap: scale(24),
+      gap: scale(16),
     },
 
     tabContent: {

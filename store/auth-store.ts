@@ -12,6 +12,8 @@ import {
   getVerificationPhone,
   getVerificationToken,
 } from '@/utils/token-storage';
+import { unregisterDeviceToken } from '@/services/notifications/unregisterDeviceToken';
+import { cleanupNotifications } from '@/services/notifications/initializeNotifications';
 
 export type AuthStatus = 'UNAUTHENTICATED' | 'VERIFYING' | 'AUTHENTICATED';
 
@@ -52,7 +54,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   onboardingStep: null,
 
   isEmailVerified: false,
-  
+
   isPhoneVerified: false,
 
   authStatus: 'UNAUTHENTICATED',
@@ -67,6 +69,14 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   logout: async () => {
     const { refreshToken } = useAuthStore.getState();
+
+    cleanupNotifications();
+
+    try {
+      await unregisterDeviceToken();
+    } catch (error) {
+      console.log('Failed to unregister device token:', error);
+    }
 
     try {
       await fetch(`${BASE_URL}/auth/logout`, {
@@ -148,9 +158,8 @@ export const restoreAuth = async () => {
         verificationPhone,
 
         isEmailVerified: false,
-        
-        isPhoneVerified: false,
 
+        isPhoneVerified: false,
 
         authStatus: 'VERIFYING',
 

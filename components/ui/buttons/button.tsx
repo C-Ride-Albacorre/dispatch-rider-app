@@ -24,7 +24,9 @@ type ButtonProps = {
     | 'google'
     | 'green'
     | 'red'
-    | 'redOutline';
+    | 'redOutline'
+    | 'inverted';
+    
   size?: 'sm' | 'md' | 'lg';
   rounded?: 'md' | 'lg' | 'full';
   disabled?: boolean;
@@ -97,6 +99,10 @@ export default function Button({
       borderColor: Colors.error,
       backgroundColor: isDark ? Colors.errorLight : Colors.error + '1A',
     },
+
+    inverted: {
+      backgroundColor: Colors.text,
+    },
   };
 
   const textVariantStyles = {
@@ -138,6 +144,10 @@ export default function Button({
 
     redOutline: {
       color: Colors.error,
+    },
+
+    inverted: {
+      color: Colors.background,
     },
   };
 

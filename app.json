@@ -47,7 +47,12 @@
       "expo-status-bar",
       "expo-web-browser",
       "@react-native-firebase/app",
-      "@react-native-firebase/messaging"
+      [
+        "@react-native-firebase/messaging",
+        {
+          "ios_auto_register_for_remote_messages": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

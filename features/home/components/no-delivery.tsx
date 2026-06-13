@@ -1,9 +1,17 @@
 import Button from "@/components/ui/buttons/button";
 import { Colors, Fonts } from "@/constants/theme";
+import { useTheme } from "@/hooks/use-theme";
+import { normalize, scale } from "@/utils/scaling";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function NoDelivery() {
+
+  const { Colors, isDark } = useTheme();
+
+  const styles = createStyles(Colors);
+
+
   return (
     <View style={styles.noDeliveryContainer}>
       <Ionicons name="bicycle-outline" size={32} color={Colors.textSecondary} />
@@ -17,8 +25,9 @@ export default function NoDelivery() {
 
       <Button
         variant="green"
+        size="md"
         leftIcon={
-          <Ionicons name="search-outline" size={16} color={Colors.text} />
+          <Ionicons name="navigate-outline" size={16} color={isDark ? Colors.text : Colors.background  } />
         }
       >
         Search for Deliveries
@@ -28,24 +37,26 @@ export default function NoDelivery() {
 }
 
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
     noDeliveryContainer: {
-    padding: 24,
-    backgroundColor: Colors.inputBackground,
-    borderRadius: 12,
+    paddingVertical: scale(24),
+    paddingHorizontal: scale(16),
+       backgroundColor: Colors.inputBackground,
+
+    borderRadius: scale(12),
     alignItems: 'center',
-    gap: 14,
-    marginTop: 20,
+    gap: scale(14),
   },
   title: {
-    fontSize: 20,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.textSecondary,
+    fontSize: normalize(16),
+    fontFamily: Fonts.brandMedium,
+    color: Colors.text,
   },
   message: {
-    fontSize: 14,
+    fontSize: normalize(12),
     color: Colors.textSecondary,
     fontFamily: Fonts.brandRegular,
     textAlign: 'center',
   },
+
 })

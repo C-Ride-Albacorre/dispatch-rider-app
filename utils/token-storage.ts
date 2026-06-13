@@ -91,6 +91,21 @@ export const clearVerificationData = async () => {
   await deleteItem('verificationPhone');
 };
 
+export const saveNotificationPermissionDecision = async (
+  decision: 'allowed' | 'denied',
+) => {
+  await setItem('notification_permission_decision', decision);
+};
+
+export const getNotificationPermissionDecision = async (): Promise<
+  'allowed' | 'denied' | null
+> => {
+  return (await getItem('notification_permission_decision')) as
+    | 'allowed'
+    | 'denied'
+    | null;
+};
+
 export const clearTokens = async () => {
   await deleteItem('accessToken');
   await deleteItem('refreshToken');
@@ -101,4 +116,6 @@ export const clearTokens = async () => {
   await deleteItem('verificationToken');
   await deleteItem('verificationEmail');
   await deleteItem('verificationPhone');
+
+  await deleteItem('notification_permission_decision');
 };

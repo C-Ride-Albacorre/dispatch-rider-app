@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:423331579875:android:db3d6ef010bb65d0e102d6",
+        "android_client_info": {
+          "package_name": "com.albacorre.criderider"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmgU9q-P-wyMgSW5hb-w-7lBBPqzWSW-k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:423331579875:android:4435e60439a86de6e102d6",
         "android_client_info": {
           "package_name": "com.cride.dispatch_app"
