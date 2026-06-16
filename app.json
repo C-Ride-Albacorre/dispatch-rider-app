@@ -12,12 +12,14 @@
       "bundleIdentifier": "com.albacorre.criderider",
       "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Your location is required to find nearby delivery jobs."
       }
     },
     "android": {
       "package": "com.albacorre.criderider",
       "googleServicesFile": "./google-services.json",
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE"
       },

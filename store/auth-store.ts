@@ -14,6 +14,7 @@ import {
 } from '@/utils/token-storage';
 import { unregisterDeviceToken } from '@/services/notifications/unregisterDeviceToken';
 import { cleanupNotifications } from '@/services/notifications/initializeNotifications';
+import { devtools } from 'zustand/middleware';
 
 export type AuthStatus = 'UNAUTHENTICATED' | 'VERIFYING' | 'AUTHENTICATED';
 
@@ -38,80 +39,87 @@ type AuthState = {
   logout: () => Promise<void>;
 };
 
-export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: null,
-
-  refreshToken: null,
-
-  verificationToken: null,
-
-  verificationEmail: null,
-
-  verificationPhone: null,
-
-  onboardingStatus: null,
-
-  onboardingStep: null,
-
-  isEmailVerified: false,
-
-  isPhoneVerified: false,
-
-  authStatus: 'UNAUTHENTICATED',
-
-  isHydrated: false,
-
-  setAuth: (data) =>
-    set((state) => ({
-      ...state,
-      ...data,
-    })),
-
-  logout: async () => {
-    const { refreshToken } = useAuthStore.getState();
-
-    cleanupNotifications();
-
-    try {
-      await unregisterDeviceToken();
-    } catch (error) {
-      console.log('Failed to unregister device token:', error);
-    }
-
-    try {
-      await fetch(`${BASE_URL}/auth/logout`, {
-        method: 'POST',
-
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify({
-          refreshToken,
-        }),
-      });
-    } catch (e) {
-      console.error('Logout failed:', e);
-    }
-
-    await clearTokens();
-
-    set({
+export const useAuthStore = create<AuthState>()(
+  devtools(
+    (set) => ({
       accessToken: null,
+
       refreshToken: null,
 
       verificationToken: null,
+
       verificationEmail: null,
+
       verificationPhone: null,
 
       onboardingStatus: null,
+
       onboardingStep: null,
 
+      isEmailVerified: false,
+
+      isPhoneVerified: false,
+
       authStatus: 'UNAUTHENTICATED',
-      isHydrated: true,
-    });
-  },
-}));
+
+      isHydrated: false,
+
+      setAuth: (data) =>
+        set((state) => ({
+          ...state,
+          ...data,
+        })),
+
+      logout: async () => {
+        const { refreshToken } = useAuthStore.getState();
+
+        cleanupNotifications();
+
+        try {
+          await unregisterDeviceToken();
+        } catch (error) {
+          console.log('Failed to unregister device token:', error);
+        }
+
+        try {
+          await fetch(`${BASE_URL}/auth/logout`, {
+            method: 'POST',
+
+            headers: {
+              'Content-Type': 'application/json',
+            },
+
+            body: JSON.stringify({
+              refreshToken,
+            }),
+          });
+        } catch (e) {
+          console.error('Logout failed:', e);
+        }
+
+        await clearTokens();
+
+        set({
+          accessToken: null,
+          refreshToken: null,
+
+          verificationToken: null,
+          verificationEmail: null,
+          verificationPhone: null,
+
+          onboardingStatus: null,
+          onboardingStep: null,
+
+          authStatus: 'UNAUTHENTICATED',
+          isHydrated: true,
+        });
+      },
+    }),
+    {
+      name: 'Auth Store',
+    },
+  ),
+);
 
 export const restoreAuth = async () => {
   try {

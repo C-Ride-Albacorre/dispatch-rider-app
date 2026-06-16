@@ -5,6 +5,7 @@ import {
 import { Fonts } from '@/constants/theme';
 import AppHeader from '@/features/dashboard/components/app-header';
 import { useTheme } from '@/hooks/use-theme';
+import { normalize } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
@@ -28,12 +29,25 @@ export default function TabsLayout() {
 
   return (
     <ScrollHeaderContext.Provider value={{ headerTranslateY, lastScrollY }}>
-      <View style={[styles.root , { backgroundColor: Colors.backgroundTertiary }]}>
+      <View
+        style={[
+          styles.root,
+          {
+            backgroundColor: Colors.backgroundTertiary,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          },
+        ]}
+      >
         {/* ── Shared animated header ─────────────────────────────────────── */}
         <Animated.View
           style={[
             styles.header,
-            { backgroundColor: Colors.background },
+            {
+              backgroundColor: Colors.background,
+              height: HEADER_HEIGHT + insets.top,
+              paddingTop: insets.top,
+            },
             headerAnimatedStyle,
           ]}
         >
@@ -46,7 +60,11 @@ export default function TabsLayout() {
             tabBarHideOnKeyboard: true,
             tabBarLabelStyle: {
               fontFamily: Fonts.brandMedium,
-              fontSize: 12,
+              fontSize: normalize(12),
+            },
+            tabBarIconStyle: {
+              marginTop: 4,
+              
             },
 
             tabBarActiveTintColor: Colors.primary,
@@ -61,6 +79,7 @@ export default function TabsLayout() {
             name="home"
             options={{
               headerShown: false,
+                  title: 'Home',
 
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons
@@ -146,7 +165,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    height: HEADER_HEIGHT,
+    // height: HEADER_HEIGHT,
     zIndex: 10,
   },
 });

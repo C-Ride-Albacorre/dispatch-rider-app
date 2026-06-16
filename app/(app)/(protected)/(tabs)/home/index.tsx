@@ -11,11 +11,14 @@ import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { scale } from '@/utils/scaling';
-import { useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Dashboard() {
+
+  const insets = useSafeAreaInsets()
+
   const { data, isLoading } = useDashboardStats();
 
   const stats = data?.stats;
@@ -36,7 +39,7 @@ export default function Dashboard() {
     <Animated.ScrollView
       onScroll={scrollHandler}
       scrollEventThrottle={16}
-      contentContainerStyle={{ paddingTop: HEADER_HEIGHT }}
+       contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
     >
       <View style={styles.container}>
         <HomeHeader driverStatus={driverStatus} driverInfo={driverInfo} />
@@ -141,6 +144,7 @@ const createStyles = (Colors: any) =>
       paddingHorizontal: scale(20),
       backgroundColor: Colors.background,
       gap: scale(16),
+      paddingVertical: scale(24),
     },
 
     tabContent: {

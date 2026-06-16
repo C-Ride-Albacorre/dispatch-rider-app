@@ -1,11 +1,12 @@
+
 import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function HomeLayout() {
+export default function ProfileLayout() {
   const insets = useSafeAreaInsets();
 
-  const { Colors } = useTheme();
+  const {Colors} = useTheme()
   return (
     <Stack
       screenOptions={{
@@ -23,13 +24,4 @@ export default function HomeLayout() {
       <Stack.Screen name="index" />
     </Stack>
   );
-}
-
-{
-  /* <FlashList
-  contentContainerStyle={{
-    paddingTop: HEADER_HEIGHT + insets.top,
-    paddingBottom: insets.bottom + 16,
-  }}
-/> */
 }

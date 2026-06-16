@@ -21,8 +21,13 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import ConfirmLogout from '@/features/profile/components/confirm-logout';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
+  const insets = useSafeAreaInsets();
+
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
   const resetHeader = useHeaderReset();
 
   useFocusEffect(
@@ -37,9 +42,6 @@ export default function ProfileScreen() {
 
   const styles = createStyles(Colors);
 
-
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-
   const { data, isLoading } = useDashboardStats();
 
   const stats = data?.stats;
@@ -51,7 +53,7 @@ export default function ProfileScreen() {
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT }}
+        contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
       >
         <View style={styles.container}>
           <ProfileFrame
@@ -89,8 +91,9 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      padding: scale(20),
+      paddingHorizontal: scale(20),
+      paddingVertical: scale(24),
       backgroundColor: Colors.background,
-      gap: scale(24),
+      gap: scale(16),
     },
   });
