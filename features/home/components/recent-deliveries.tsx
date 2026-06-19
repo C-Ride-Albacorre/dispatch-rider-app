@@ -4,34 +4,35 @@ import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { Color } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
+import NoRecentDelivery from './no-recent-delivery';
 
-const RECENT_DELIVERIES = [
-  {
-    id: '1',
-    customerName: 'Ibrahim Musa',
-    rating: 4,
-    timeAgo: '18 mins ago',
-    amount: 'NGN 4,200',
-    tip: 'NGN 500',
-  },
+const RECENT_DELIVERIES: any[] = [
+  // {
+  //   id: '1',
+  //   customerName: 'Ibrahim Musa',
+  //   rating: 4,
+  //   timeAgo: '18 mins ago',
+  //   amount: 'NGN 4,200',
+  //   tip: 'NGN 500',
+  // },
 
-  {
-    id: '2',
-    customerName: 'Aisha Bello',
-    rating: 5,
-    timeAgo: '30 mins ago',
-    amount: 'NGN 3,800',
-    tip: 'NGN 300',
-  },
+  // {
+  //   id: '2',
+  //   customerName: 'Aisha Bello',
+  //   rating: 5,
+  //   timeAgo: '30 mins ago',
+  //   amount: 'NGN 3,800',
+  //   tip: 'NGN 300',
+  // },
 
-  {
-    id: '3',
-    customerName: 'John Doe',
-    rating: 3,
-    timeAgo: '45 mins ago',
-    amount: 'NGN 2,500',
-    tip: 'NGN 200',
-  },
+  // {
+  //   id: '3',
+  //   customerName: 'John Doe',
+  //   rating: 3,
+  //   timeAgo: '45 mins ago',
+  //   amount: 'NGN 2,500',
+  //   tip: 'NGN 200',
+  // },
 ];
 
 export default function RecentDeliveries() {
@@ -42,7 +43,7 @@ export default function RecentDeliveries() {
     <View style={styles.container}>
       <Text style={styles.title}>Recent Deliveries</Text>
 
-      {RECENT_DELIVERIES.map((delivery) => (
+   { RECENT_DELIVERIES.length > 0 ?   RECENT_DELIVERIES.map((delivery) => (
         <View key={delivery.id} style={styles.deliveriesListItem}>
           <View style={styles.deliveryItemIcon}>
             <Ionicons
@@ -81,7 +82,7 @@ export default function RecentDeliveries() {
             <Text style={styles.tip}>+{delivery.tip} tip</Text>
           </View>
         </View>
-      ))}
+      )) :      <NoRecentDelivery />}
     </View>
   );
 }

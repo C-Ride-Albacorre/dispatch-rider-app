@@ -6,6 +6,7 @@ import {
 import { Fonts } from '@/constants/theme';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
+import NoRecentDelivery from '@/features/home/components/no-recent-delivery';
 import RecentDeliveries from '@/features/home/components/recent-deliveries';
 import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
@@ -16,8 +17,7 @@ import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Dashboard() {
-
-  const insets = useSafeAreaInsets()
+  const insets = useSafeAreaInsets();
 
   const { data, isLoading } = useDashboardStats();
 
@@ -26,8 +26,6 @@ export default function Dashboard() {
   const driverInfo = data?.personalInfo;
 
   const driverStatus = stats?.status ?? 'OFFLINE';
-
-  
 
   const { Colors } = useTheme();
 
@@ -39,7 +37,7 @@ export default function Dashboard() {
     <Animated.ScrollView
       onScroll={scrollHandler}
       scrollEventThrottle={16}
-       contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
+      contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
     >
       <View style={styles.container}>
         <HomeHeader driverStatus={driverStatus} driverInfo={driverInfo} />
@@ -48,88 +46,9 @@ export default function Dashboard() {
 
         <NoDelivery />
 
-        {/* <ActiveDelivery /> */}
-
-        {/* <DeliveryDetails /> */}
-
-        {/* <View style={styles.tabContent}>
-          <View style={styles.tabContainer}>
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                activeTab === 'available' && styles.activeTab,
-              ]}
-              onPress={() => setActiveTab('available')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'available' && styles.activeTabText,
-                ]}
-              >
-                Available
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                activeTab === 'completed' && styles.activeTab,
-              ]}
-              onPress={() => setActiveTab('completed')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'completed' && styles.activeTabText,
-                ]}
-              >
-                Completed
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[
-                styles.tab,
-                activeTab === 'performance' && styles.activeTab,
-              ]}
-              onPress={() => setActiveTab('performance')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'performance' && styles.activeTabText,
-                ]}
-              >
-                Performance
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'earnings' && styles.activeTab]}
-              onPress={() => setActiveTab('earnings')}
-            >
-              <Text
-                style={[
-                  styles.tabText,
-                  activeTab === 'earnings' && styles.activeTabText,
-                ]}
-              >
-                Earnings
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {activeTab === 'available' && <AvailableDelivery />}
-
-          {activeTab === 'completed' && <CompletedDeliveries />}
-
-          {activeTab === 'performance' && <Performance />}
-
-          {activeTab === 'earnings' && <Earnings />}
-        </View> */}
-
         <RecentDeliveries />
+
+   
       </View>
 
       {/* <Footer /> */}
