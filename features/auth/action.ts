@@ -2,6 +2,7 @@ import Toast from 'react-native-toast-message';
 
 import {
   saveAccessToken,
+  saveDriverId,
   saveOnboardingStatus,
   saveOnboardingStep,
   saveRefreshToken,
@@ -136,6 +137,8 @@ export const loginAction = async (payload: LoginPayload) => {
 
       await saveOnboardingStep(result.data.onboardingStep);
 
+      await saveDriverId(result.data.user.id);
+
       useAuthStore.getState().setAuth({
         accessToken: result.data.accessToken,
         refreshToken: result.data.refreshToken,
@@ -143,6 +146,8 @@ export const loginAction = async (payload: LoginPayload) => {
         onboardingStatus: result.data.onboardingStatus,
 
         onboardingStep: result.data.onboardingStep,
+
+        driverId: result.data.user.id,
 
         authStatus: 'AUTHENTICATED',
       });
@@ -157,6 +162,7 @@ export const loginAction = async (payload: LoginPayload) => {
         status: result.data.status,
         onboardingStatus: result.data.onboardingStatus,
         onboardingStep: result.data.onboardingStep,
+        driverId: result.data.user.id,
         message: result.data.message || 'Login successful',
       };
     }

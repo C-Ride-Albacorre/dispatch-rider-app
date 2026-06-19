@@ -5,6 +5,7 @@ import { BASE_URL } from '../config/base-api';
 import {
   clearTokens,
   getAccessToken,
+  getDriverId,
   getOnboardingStatus,
   getOnboardingStep,
   getRefreshToken,
@@ -25,6 +26,8 @@ type AuthState = {
   verificationToken: string | null;
   verificationEmail: string | null;
   verificationPhone: string | null;
+
+  driverId: string | null;
 
   isEmailVerified: boolean;
   isPhoneVerified: boolean;
@@ -51,6 +54,8 @@ export const useAuthStore = create<AuthState>()(
       verificationEmail: null,
 
       verificationPhone: null,
+
+      driverId: null,
 
       onboardingStatus: null,
 
@@ -109,7 +114,7 @@ export const useAuthStore = create<AuthState>()(
 
           onboardingStatus: null,
           onboardingStep: null,
-
+          driverId: null,
           authStatus: 'UNAUTHENTICATED',
           isHydrated: true,
         });
@@ -137,12 +142,16 @@ export const restoreAuth = async () => {
 
     const onboardingStep = await getOnboardingStep();
 
+    const driverId = await getDriverId();
+
     // 🔥 AUTHENTICATED USER
     if (accessToken || refreshToken) {
       useAuthStore.getState().setAuth({
         accessToken,
 
         refreshToken,
+
+        driverId,
 
         authStatus: 'AUTHENTICATED',
 
@@ -195,6 +204,7 @@ export const restoreAuth = async () => {
       verificationToken: null,
       verificationEmail: null,
       verificationPhone: null,
+      driverId: null,
 
       onboardingStatus: null,
       onboardingStep: null,

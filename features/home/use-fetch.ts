@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getDashboardStatsService, updateDriverStatusService } from './service';
+import { getSocket } from '@/services/socket/driver';
 
 export interface DashboardProfile {
   id: string;
@@ -58,9 +59,15 @@ export function useUpdateDriverStatus() {
     mutationFn: (status: 'ONLINE' | 'OFFLINE') =>
       updateDriverStatusService(status),
 
-    onSuccess: () => {
+    onSuccess: (_, status) => {
       queryClient.invalidateQueries({
         queryKey: ['dashboard-stats'],
+      });
+
+      const socket = getSocket();
+
+      socket?.emit('driver-status', {
+        status,
       });
     },
   });

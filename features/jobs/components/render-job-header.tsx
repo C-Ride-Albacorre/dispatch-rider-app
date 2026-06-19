@@ -38,8 +38,8 @@ const createStyles = (Colors: any) =>
          color: Colors.text
     },
     subtitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandRegular,
+      fontSize: normalize(12),
+      fontFamily: Fonts.brandMedium,
       textAlign: 'center',
     },
   });

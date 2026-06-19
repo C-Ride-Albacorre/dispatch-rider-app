@@ -4,10 +4,16 @@ import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { set } from 'zod';
+import ConfirmRequest from './confirm-job-request';
 
 export default function RenderJobCard({ item }: { item: any }) {
+const[showConfirmRequestModal, setShowConfirmRequestModal] = useState<boolean>(false);
+
+const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
@@ -24,6 +30,10 @@ export default function RenderJobCard({ item }: { item: any }) {
 
   const handleAcceptOrder = useCallback((orderId: string, amount: number) => {
     console.log(`Accepting order ${orderId} for ₦${amount}`);
+
+    setSelectedOrderId(orderId);
+    setShowConfirmRequestModal(true);
+
   }, []);
 
   // Total number of discrete products ordered
@@ -39,7 +49,16 @@ export default function RenderJobCard({ item }: { item: any }) {
     : 'Nearby';
 
   return (
-    <TouchableOpacity
+
+    <>
+
+    <ConfirmRequest
+      showConfirmRequestModal={showConfirmRequestModal}
+      setShowConfirmRequestModal={setShowConfirmRequestModal}
+      selectedOrderId={selectedOrderId}
+    />
+
+      <TouchableOpacity
       activeOpacity={0.9}
       onPress={() => handleViewOrderDetails(item.order_id)}
       style={styles.jobCard}
@@ -136,6 +155,8 @@ export default function RenderJobCard({ item }: { item: any }) {
         </Button>
       </View>
     </TouchableOpacity>
+    </>
+  
   );
 }
 

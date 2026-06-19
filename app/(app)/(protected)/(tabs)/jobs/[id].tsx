@@ -2,12 +2,13 @@ import { ScrollHeaderContext } from '@/components/layout/scroll-header-context';
 import Button from '@/components/ui/buttons/button';
 import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts } from '@/constants/theme';
+import ConfirmRequest from '@/features/jobs/components/confirm-job-request';
 import { useAvailableJobDetails } from '@/features/jobs/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useContext, useEffect } from 'react';
+import React, { useCallback, useContext, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -19,13 +20,15 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { set } from 'zod';
 
-export default function OrderDetailSheet({
-  onAccept,
-}: {
-  onAccept: (orderId: string, amount: number) => void;
-}) {
-  // const headerTranslateY = useSharedValue(0);
+export default function OrderDetailSheet() {
+  const [showConfirmRequestModal, setShowConfirmRequestModal] =
+    useState<boolean>(false);
+
+  const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+
+  const router = useRouter();
 
   const ctx = useContext(ScrollHeaderContext);
 
@@ -62,218 +65,230 @@ export default function OrderDetailSheet({
 
   const styles = createStyles(Colors);
 
-  const router = useRouter();
+  const handleAccept = () => {
+    setShowConfirmRequestModal(true);
+    setSelectedOrderId(order.id);
+  };
 
   return (
-    <View style={{ flex: 1, backgroundColor: Colors.background }}>
-      {/* Fixed Header Row Elements */}
-      <View style={styles.headerContainer}>
-        <View>
-          <Text style={[styles.headerTitle, { color: Colors.text }]}>
-            Order Breakdown
-          </Text>
-          {order?.orderNumber && (
-            <Text style={styles.headerSubtitle}>
-              #{order.orderNumber.split('-')[1]}
+    <>
+      <ConfirmRequest
+        showConfirmRequestModal={showConfirmRequestModal}
+        setShowConfirmRequestModal={setShowConfirmRequestModal}
+        selectedOrderId={selectedOrderId}
+      />
+
+      <View style={{ flex: 1, backgroundColor: Colors.background }}>
+        {/* Fixed Header Row Elements */}
+        <View style={styles.headerContainer}>
+          <View>
+            <Text style={[styles.headerTitle, { color: Colors.text }]}>
+              Order Breakdown
             </Text>
-          )}
-        </View>
-
-        <IconButton
-          size="sm"
-          variant="outlineSecondary"
-          onPress={() => router.dismiss()}
-        >
-          <Ionicons name="close" size={16} color={Colors.textSecondary} />
-        </IconButton>
-      </View>
-
-      {isLoading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-        </View>
-      ) : order ? (
-        <>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: scale(16) }}
-          >
-            {/* 1. Secure Verification Code Display */}
-            <View
-              style={[
-                styles.alertBanner,
-                { backgroundColor: Colors.successExtraLight },
-              ]}
-            >
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={18}
-                color={Colors.success}
-              />
-              <Text style={[styles.alertText, { color: Colors.success }]}>
-                Requires Delivery PIN Verification:{' '}
-                <Text style={{ fontFamily: Fonts.brandSemiBold }}>
-                  {order.orderCode}
-                </Text>
+            {order?.orderNumber && (
+              <Text style={styles.headerSubtitle}>
+                #{order.orderNumber.split('-')[1]}
               </Text>
-            </View>
+            )}
+          </View>
 
-            {/* 2. Dispatch Nodes Segment */}
-            <View style={styles.sectionSection}>
-              <Text style={styles.sectionLabel}>DISPATCH ROUTE</Text>
+          <IconButton
+            size="sm"
+            variant="outlineSecondary"
+            onPress={() => router.dismiss()}
+          >
+            <Ionicons name="close" size={16} color={Colors.textSecondary} />
+          </IconButton>
+        </View>
 
-              {order.stores?.map((store: any) => (
-                <View key={store.id} style={styles.nodeRow}>
+        {isLoading ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+          </View>
+        ) : order ? (
+          <>
+            <ScrollView
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: scale(16) }}
+            >
+              {/* 1. Secure Verification Code Display */}
+              <View
+                style={[
+                  styles.alertBanner,
+                  { backgroundColor: Colors.successExtraLight },
+                ]}
+              >
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={18}
+                  color={Colors.success}
+                />
+                <Text style={[styles.alertText, { color: Colors.success }]}>
+                  Requires Delivery PIN Verification:{' '}
+                  <Text style={{ fontFamily: Fonts.brandSemiBold }}>
+                    {order.orderCode}
+                  </Text>
+                </Text>
+              </View>
+
+              {/* 2. Dispatch Nodes Segment */}
+              <View style={styles.sectionSection}>
+                <Text style={styles.sectionLabel}>DISPATCH ROUTE</Text>
+
+                {order.stores?.map((store: any) => (
+                  <View key={store.id} style={styles.nodeRow}>
+                    <View
+                      style={[
+                        styles.iconWrapper,
+                        {
+                          backgroundColor: Colors.successExtraLight,
+                          marginTop: scale(2),
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name="storefront-outline"
+                        size={16}
+                        color={Colors.success}
+                      />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.nodeTitle, { color: Colors.text }]}>
+                        {store.storeName}
+                      </Text>
+                      <Text style={styles.nodeDesc} numberOfLines={2}>
+                        {store.storeAddress}
+                      </Text>
+                    </View>
+                  </View>
+                ))}
+
+                <View style={[styles.nodeRow, { marginTop: scale(12) }]}>
                   <View
                     style={[
                       styles.iconWrapper,
                       {
-                        backgroundColor: Colors.successExtraLight,
+                        backgroundColor: Colors.errorLight,
                         marginTop: scale(2),
                       },
                     ]}
                   >
                     <Ionicons
-                      name="storefront-outline"
+                      name="location-outline"
                       size={16}
-                      color={Colors.success}
+                      color={Colors.error}
                     />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.nodeTitle, { color: Colors.text }]}>
-                      {store.storeName}
+                      Deliver to: {order?.recipientName}
                     </Text>
                     <Text style={styles.nodeDesc} numberOfLines={2}>
-                      {store.storeAddress}
+                      {order.dropoffLocation?.address},{' '}
+                      {order.dropoffLocation?.city}
                     </Text>
                   </View>
                 </View>
-              ))}
-
-              <View style={[styles.nodeRow, { marginTop: scale(12) }]}>
-                <View
-                  style={[
-                    styles.iconWrapper,
-                    {
-                      backgroundColor: Colors.errorLight,
-                      marginTop: scale(2),
-                    },
-                  ]}
-                >
-                  <Ionicons
-                    name="location-outline"
-                    size={16}
-                    color={Colors.error}
-                  />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.nodeTitle, { color: Colors.text }]}>
-                    Deliver to: {order?.recipientName}
-                  </Text>
-                  <Text style={styles.nodeDesc} numberOfLines={2}>
-                    {order.dropoffLocation?.address},{' '}
-                    {order.dropoffLocation?.city}
-                  </Text>
-                </View>
               </View>
-            </View>
 
-            {/* 3. Driver Hand-Off Instructions */}
-            {order.deliveryInstructions && (
-              <View style={[styles.sectionSection, styles.instructionBox]}>
-                <Text style={styles.sectionLabel}>DELIVERY INSTRUCTIONS</Text>
-                <Text style={styles.instructionText}>
-                  "{order.deliveryInstructions}"
+              {/* 3. Driver Hand-Off Instructions */}
+              {order.deliveryInstructions && (
+                <View style={[styles.sectionSection, styles.instructionBox]}>
+                  <Text style={styles.sectionLabel}>DELIVERY INSTRUCTIONS</Text>
+                  <Text style={styles.instructionText}>
+                    "{order.deliveryInstructions}"
+                  </Text>
+                </View>
+              )}
+
+              {/* 4. Ordered Items Map Array */}
+              <View style={styles.sectionSection}>
+                <Text style={styles.sectionLabel}>
+                  ITEMS PACKAGE ({order.items?.length || 0})
                 </Text>
-              </View>
-            )}
-
-            {/* 4. Ordered Items Map Array */}
-            <View style={styles.sectionSection}>
-              <Text style={styles.sectionLabel}>
-                ITEMS PACKAGE ({order.items?.length || 0})
-              </Text>
-              {order.items?.map((item: any) => (
-                <View key={item.id} style={styles.itemRow}>
-                  {item.productImage?.imageUrl ? (
-                    <Image
-                      source={{ uri: item.productImage.imageUrl }}
-                      style={styles.itemImage}
-                    />
-                  ) : (
-                    <View
-                      style={[
-                        styles.itemImage,
-                        { backgroundColor: Colors.border },
-                      ]}
-                    />
-                  )}
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={[styles.itemName, { color: Colors.text }]}
-                      numberOfLines={1}
-                    >
-                      {item.productName}
-                    </Text>
-                    <Text style={styles.itemMeta}>
-                      Qty: {item.quantity} · ₦{item.unitPrice.toLocaleString()}
-                      /unit
+                {order.items?.map((item: any) => (
+                  <View key={item.id} style={styles.itemRow}>
+                    {item.productImage?.imageUrl ? (
+                      <Image
+                        source={{ uri: item.productImage.imageUrl }}
+                        style={styles.itemImage}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.itemImage,
+                          { backgroundColor: Colors.border },
+                        ]}
+                      />
+                    )}
+                    <View style={{ flex: 1 }}>
+                      <Text
+                        style={[styles.itemName, { color: Colors.text }]}
+                        numberOfLines={1}
+                      >
+                        {item.productName}
+                      </Text>
+                      <Text style={styles.itemMeta}>
+                        Qty: {item.quantity} · ₦
+                        {item.unitPrice.toLocaleString()}
+                        /unit
+                      </Text>
+                    </View>
+                    <Text style={[styles.itemTotal, { color: Colors.text }]}>
+                      ₦{item.totalPrice.toLocaleString()}
                     </Text>
                   </View>
-                  <Text style={[styles.itemTotal, { color: Colors.text }]}>
-                    ₦{item.totalPrice.toLocaleString()}
+                ))}
+              </View>
+
+              {/* 5. Financial Audit Settlement Breakdown */}
+              <View style={styles.billContainer}>
+                <View style={styles.billRow}>
+                  <Text style={styles.billLabel}>Subtotal</Text>
+                  <Text style={[styles.billValue, { color: Colors.text }]}>
+                    ₦{order.subtotal?.toLocaleString()}
                   </Text>
                 </View>
-              ))}
-            </View>
+                <View style={styles.billRow}>
+                  <Text style={styles.billLabel}>Delivery Fare Pay</Text>
+                  <Text style={[styles.billValue, { color: Colors.success }]}>
+                    +₦{order.deliveryFee?.toLocaleString()}
+                  </Text>
+                </View>
+                <View style={styles.billRowSpacer} />
+                <View style={styles.billRow}>
+                  <Text style={styles.totalLabel}>Total Payout</Text>
+                  <Text style={[styles.totalValue, { color: Colors.primary }]}>
+                    ₦{order.totalAmount?.toLocaleString()}
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
 
-            {/* 5. Financial Audit Settlement Breakdown */}
-            <View style={styles.billContainer}>
-              <View style={styles.billRow}>
-                <Text style={styles.billLabel}>Subtotal</Text>
-                <Text style={[styles.billValue, { color: Colors.text }]}>
-                  ₦{order.subtotal?.toLocaleString()}
-                </Text>
-              </View>
-              <View style={styles.billRow}>
-                <Text style={styles.billLabel}>Delivery Fare Pay</Text>
-                <Text style={[styles.billValue, { color: Colors.success }]}>
-                  +₦{order.deliveryFee?.toLocaleString()}
-                </Text>
-              </View>
-              <View style={styles.billRowSpacer} />
-              <View style={styles.billRow}>
-                <Text style={styles.totalLabel}>Total Payout</Text>
-                <Text style={[styles.totalValue, { color: Colors.primary }]}>
-                  ₦{order.totalAmount?.toLocaleString()}
-                </Text>
-              </View>
+            {/* Action Primary Sticky Footer Trigger */}
+            <View
+              style={[
+                styles.actionWrapper,
+                {
+                  backgroundColor: Colors.background,
+                  paddingBottom: insets.bottom,
+                },
+              ]}
+            >
+              <Button onPress={handleAccept}>
+                Accept Request · ₦{order.totalAmount?.toLocaleString()}
+              </Button>
             </View>
-          </ScrollView>
-
-          {/* Action Primary Sticky Footer Trigger */}
-          <View
-            style={[
-              styles.actionWrapper,
-              {
-                backgroundColor: Colors.background,
-                paddingBottom: insets.bottom,
-              },
-            ]}
-          >
-            <Button onPress={() => onAccept(order.id, order.totalAmount)}>
-              Accept Request · ₦{order.totalAmount?.toLocaleString()}
-            </Button>
+          </>
+        ) : (
+          <View style={styles.loaderContainer}>
+            <Text style={{ color: Colors.textMuted }}>
+              Failed to load parameters.
+            </Text>
           </View>
-        </>
-      ) : (
-        <View style={styles.loaderContainer}>
-          <Text style={{ color: Colors.textMuted }}>
-            Failed to load parameters.
-          </Text>
-        </View>
-      )}
-    </View>
+        )}
+      </View>
+    </>
   );
 }
 
@@ -310,7 +325,7 @@ const createStyles = (Colors: any) =>
       alignItems: 'center',
     },
     loaderContainer: {
-   flex: 1,
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
     },

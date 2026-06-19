@@ -1,5 +1,7 @@
-
-import { HEADER_HEIGHT, useScrollHeader } from '@/components/layout/scroll-header-context';
+import {
+  HEADER_HEIGHT,
+  useScrollHeader,
+} from '@/components/layout/scroll-header-context';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
@@ -9,252 +11,279 @@ import { Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function  ActiveDeliveryContent() {
+type DeliveryStatus = 'accepted' | 'arrived_pickup' | 'picked_up' | 'delivered';
+
+const timelineSteps = [
+  {
+    key: 'accepted',
+    title: 'Heading to Pickup',
+    description: 'Driver accepted the request',
+  },
+  {
+    key: 'arrived_pickup',
+    title: 'At Pickup',
+    description: 'Driver arrived at pickup location',
+  },
+  {
+    key: 'picked_up',
+    title: 'On the Way',
+    description: 'Package collected and in transit',
+  },
+  {
+    key: 'delivered',
+    title: 'Delivered',
+    description: 'Order delivered successfully',
+  },
+];
+
+export default function ActiveDeliveryContent() {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
-    const insets = useSafeAreaInsets()
+  const insets = useSafeAreaInsets();
 
-    const scrollHandler = useScrollHeader();
-  
+  const scrollHandler = useScrollHeader();
+
+  // const currentStatus = order?.status;
+
+  const currentStatus: DeliveryStatus = 'picked_up'; // Example status, replace with actual data
+
+  const currentIndex = timelineSteps.findIndex(
+    (step) => step.key === currentStatus,
+  );
 
   return (
-     <Animated.ScrollView
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-           contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
-        >
-    <View style={styles.container}>
-      {/* 1. Map Canvas Section */}
-      <View style={styles.mapContainer}>
-        {/* Mock Grid/Map background placeholder */}
-        <View style={styles.mockMapBackground}>
-          <View
-            style={[
-              styles.mapDot,
-              styles.pickupDot,
-              { left: '15%', bottom: '20%' },
-            ]}
-          >
-            <View style={styles.pulseInner} />
-          </View>
-          <Text style={[styles.mapLabel, { left: '22%', bottom: '19%' }]}>
-            Pickup
-          </Text>
-
-          {/* Connected Route Indicator Line */}
-          <View style={styles.routeLinePlaceholder} />
-
-          <View
-            style={[
-              styles.mapDot,
-              styles.dropoffDot,
-              { right: '15%', top: '25%' },
-            ]}
-          />
-          <Text style={[styles.mapLabel, { right: '22%', top: '24%' }]}>
-            Drop-off
-          </Text>
-
-          {/* Delivery Agent Vector Arrow */}
-          <View style={[styles.agentMarker, { left: '45%', top: '45%' }]}>
-            <Ionicons name="navigate-outline" size={scale(18)} color="#FFFFFF" />
-          </View>
-        </View>
-
-        {/* Floating ETA Tag */}
-        <View style={styles.etaContainer}>
-          <Text style={styles.etaText}>ETA 12 mins</Text>
-        </View>
-      </View>
-
-      {/* 2. Linear Step Indicator Progress Bar */}
-      <View style={styles.progressCard}>
-        <View style={styles.stepRow}>
-          {/* Step 1 */}
-          <View style={styles.stepItem}>
+    <Animated.ScrollView
+      onScroll={scrollHandler}
+      scrollEventThrottle={16}
+      contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
+    >
+      <View style={styles.container}>
+        {/* 1. Map Canvas Section */}
+        <View style={styles.mapContainer}>
+          {/* Mock Grid/Map background placeholder */}
+          <View style={styles.mockMapBackground}>
             <View
               style={[
-                styles.stepCheckCircle,
-                { backgroundColor: Colors.success },
+                styles.mapDot,
+                styles.pickupDot,
+                { left: '15%', bottom: '20%' },
               ]}
             >
-              <Ionicons name="checkmark" size={scale(12)} color="#FFFFFF" />
+              <View style={styles.pulseInner} />
             </View>
-            <Text
-              style={[
-                styles.stepTextLabel,
-                { color: Colors.success, fontFamily: Fonts.brandMedium },
-              ]}
-            >
-              Heading to Pickup
+            <Text style={[styles.mapLabel, { left: '22%', bottom: '19%' }]}>
+              Pickup
             </Text>
-          </View>
 
-          <View
-            style={[styles.stepLine, { backgroundColor: Colors.success }]}
-          />
+            {/* Connected Route Indicator Line */}
+            <View style={styles.routeLinePlaceholder} />
 
-          {/* Step 2 */}
-          <View style={styles.stepItem}>
             <View
               style={[
-                styles.stepCheckCircle,
-                { backgroundColor: Colors.success },
+                styles.mapDot,
+                styles.dropoffDot,
+                { right: '15%', top: '25%' },
               ]}
-            >
-              <Ionicons name="checkmark" size={scale(12)} color="#FFFFFF" />
-            </View>
-            <Text
-              style={[
-                styles.stepTextLabel,
-                { color: Colors.success, fontFamily: Fonts.brandMedium },
-              ]}
-            >
-              At Pickup
+            />
+            <Text style={[styles.mapLabel, { right: '22%', top: '24%' }]}>
+              Drop-off
             </Text>
-          </View>
 
-          <View
-            style={[styles.stepLine, { backgroundColor: Colors.success }]}
-          />
-
-          {/* Step 3 */}
-          <View style={styles.stepItem}>
-            <View
-              style={[
-                styles.stepCheckCircle,
-                {
-                  borderColor: Colors.success,
-                  borderWidth: 2,
-                  backgroundColor: '#FFFFFF',
-                },
-              ]}
-            >
-              <View
-                style={[
-                  styles.innerActiveDot,
-                  { backgroundColor: Colors.success },
-                ]}
+            {/* Delivery Agent Vector Arrow */}
+            <View style={[styles.agentMarker, { left: '45%', top: '45%' }]}>
+              <Ionicons
+                name="navigate-outline"
+                size={scale(18)}
+                color="#FFFFFF"
               />
             </View>
-            <Text
-              style={[
-                styles.stepTextLabel,
-                { color: Colors.success, fontFamily: Fonts.brandSemiBold },
-              ]}
-            >
-              On the Way
-            </Text>
           </View>
 
-          <View style={[styles.stepLine, { backgroundColor: Colors.border }]} />
-
-          {/* Step 4 */}
-          <View style={styles.stepItem}>
-            <View
-              style={[
-                styles.stepCheckCircle,
-                { backgroundColor: Colors.textMuted + '40' },
-              ]}
-            >
-              <View
-                style={[
-                  styles.innerActiveDot,
-                  { backgroundColor: Colors.textMuted },
-                ]}
-              />
-            </View>
-            <Text
-              style={[
-                styles.stepTextLabel,
-                { color: Colors.textMuted, fontFamily: Fonts.brandRegular },
-              ]}
-            >
-              Delivered
-            </Text>
+          {/* Floating ETA Tag */}
+          <View style={styles.etaContainer}>
+            <Text style={styles.etaText}>ETA 12 mins</Text>
           </View>
         </View>
-      </View>
 
-      {/* 3. Customer & Address Details Card */}
-      <View style={styles.detailsCard}>
-        <View style={styles.customerHeaderRow}>
-          <View>
-            <Text style={styles.metaLabelText}>Customer</Text>
-            <Text style={styles.customerNameText}>Chioma Okafor</Text>
+        {/* 2. Linear Step Indicator Progress Bar */}
+        <View style={styles.progressCard}>
+        <View style={styles.progressHeader}>
+
+          <Ionicons name="bicycle" size={24} color={Colors.success} />
+            <Text style={styles.progressTitle}>Delivery Progress</Text>
+
+        </View>
+        <View style={{ paddingHorizontal: scale(16) }}>
+             {timelineSteps.map((step, index) => {
+            const completed = index < currentIndex;
+            const active = index === currentIndex;
+            const pending = index > currentIndex;
+
+            return (
+              <View key={step.key} style={styles.timelineItem}>
+                <View style={styles.timelineIndicator}>
+                  {/* Circle */}
+                  {completed ? (
+                    <View
+                      style={[
+                        styles.timelineCircle,
+                        { backgroundColor: Colors.success },
+                      ]}
+                    >
+                      <Ionicons name="checkmark" size={12} color="#FFF" />
+                    </View>
+                  ) : active ? (
+                    <View
+                      style={[
+                        styles.timelineCircle,
+                        {
+                          borderWidth: 2,
+                          borderColor: Colors.primary,
+                          backgroundColor: '#FFF',
+                        },
+                      ]}
+                    >
+                      <View
+                        style={[
+                          styles.activeDot,
+                          { backgroundColor: Colors.primary },
+                        ]}
+                      />
+                    </View>
+                  ) : (
+                    <View
+                      style={[
+                        styles.timelineCircle,
+                        { backgroundColor: Colors.border },
+                      ]}
+                    />
+                  )}
+
+                  {/* Connector */}
+                  {index !== timelineSteps.length - 1 && (
+                    <View
+                      style={[
+                        styles.timelineLine,
+                        {
+                          backgroundColor:
+                            index < currentIndex
+                              ? Colors.success
+                              : Colors.border,
+                        },
+                      ]}
+                    />
+                  )}
+                </View>
+
+                <View style={styles.timelineContent}>
+                  <Text
+                    style={[
+                      styles.timelineTitle,
+                      completed
+                        ? { color: Colors.success }
+                        : active
+                          ? { color: Colors.primary }
+                          : { color: Colors.textMuted },
+                    ]}
+                  >
+                    {step.title}
+                  </Text>
+
+                  <Text style={styles.timelineSubtitle}>
+                    {step.description}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+
+        </View>
+       
+        </View>
+        {/* 3. Customer & Address Details Card */}
+        <View style={styles.detailsCard}>
+          <View style={styles.customerHeaderRow}>
+            <View>
+              <Text style={styles.metaLabelText}>Customer</Text>
+              <Text style={styles.customerNameText}>Chioma Okafor</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.phoneButton, { backgroundColor: Colors.success }]}
+            >
+              <Ionicons name="call" size={scale(20)} color="#FFFFFF" />
+            </TouchableOpacity>
           </View>
+
+          <View style={styles.addressesContainerRow}>
+            <View
+              style={[
+                styles.addressBlock,
+                { backgroundColor: Colors.backgroundSecondary ?? '#F8F9FA' },
+              ]}
+            >
+              <Text style={styles.addressTypeLabel}>Pickup</Text>
+              <Text style={styles.addressValueText} numberOfLines={2}>
+                Terra Kulture, Victoria Island
+              </Text>
+            </View>
+
+            <View
+              style={[
+                styles.addressBlock,
+                { backgroundColor: Colors.backgroundSecondary ?? '#F8F9FA' },
+              ]}
+            >
+              <Text style={styles.addressTypeLabel}>Drop-off</Text>
+              <Text style={styles.addressValueText} numberOfLines={2}>
+                Plot 22, Ahmadu Bello Way, VI
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 4. Items Summary & Expected Earnings Card */}
+        <View style={styles.detailsCard}>
+          <View style={styles.itemsEarningsRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.metaLabelText}>Items</Text>
+              <Text style={styles.itemsValueText}>Afang Soup, Pounded Yam</Text>
+            </View>
+            <View style={{ alignItems: 'flex-end' }}>
+              <Text style={styles.metaLabelText}>Earning</Text>
+              <Text
+                style={[styles.earningValueText, { color: Colors.primary }]}
+              >
+                ₦5,500
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* 5. Direct Action CTA Buttons */}
+        <View style={styles.actionRowContainer}>
+          <TouchableOpacity style={[styles.actionBtnBase, styles.navigateBtn]}>
+            <Ionicons
+              name="navigate-outline"
+              size={scale(18)}
+              color="#FFFFFF"
+            />
+            <Text style={styles.navigateBtnText}>Navigate</Text>
+          </TouchableOpacity>
+
           <TouchableOpacity
-            style={[styles.phoneButton, { backgroundColor: Colors.success }]}
+            style={[styles.actionBtnBase, { backgroundColor: Colors.success }]}
           >
-            <Ionicons name="call" size={scale(20)} color="#FFFFFF" />
+            <Ionicons
+              name="checkmark-circle-outline"
+              size={scale(18)}
+              color="#FFFFFF"
+            />
+            <Text style={styles.completeBtnText}>Complete</Text>
           </TouchableOpacity>
         </View>
-
-        <View style={styles.addressesContainerRow}>
-          <View
-            style={[
-              styles.addressBlock,
-              { backgroundColor: Colors.backgroundSecondary ?? '#F8F9FA' },
-            ]}
-          >
-            <Text style={styles.addressTypeLabel}>Pickup</Text>
-            <Text style={styles.addressValueText} numberOfLines={2}>
-              Terra Kulture, Victoria Island
-            </Text>
-          </View>
-
-          <View
-            style={[
-              styles.addressBlock,
-              { backgroundColor: Colors.backgroundSecondary ?? '#F8F9FA' },
-            ]}
-          >
-            <Text style={styles.addressTypeLabel}>Drop-off</Text>
-            <Text style={styles.addressValueText} numberOfLines={2}>
-              Plot 22, Ahmadu Bello Way, VI
-            </Text>
-          </View>
-        </View>
       </View>
-
-      {/* 4. Items Summary & Expected Earnings Card */}
-      <View style={styles.detailsCard}>
-        <View style={styles.itemsEarningsRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.metaLabelText}>Items</Text>
-            <Text style={styles.itemsValueText}>Afang Soup, Pounded Yam</Text>
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={styles.metaLabelText}>Earning</Text>
-            <Text style={[styles.earningValueText, { color: Colors.primary }]}>
-              ₦5,500
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* 5. Direct Action CTA Buttons */}
-      <View style={styles.actionRowContainer}>
-        <TouchableOpacity style={[styles.actionBtnBase, styles.navigateBtn]}>
-          <Ionicons name="navigate-outline" size={scale(18)} color="#FFFFFF" />
-          <Text style={styles.navigateBtnText}>Navigate</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionBtnBase, { backgroundColor: Colors.success }]}
-        >
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={scale(18)}
-            color="#FFFFFF"
-          />
-          <Text style={styles.completeBtnText}>Complete</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
     </Animated.ScrollView>
-    
   );
 }
 
@@ -341,44 +370,78 @@ const createStyles = (Colors: any) =>
       fontFamily: Fonts.brandSemiBold,
       color: '#0F172A',
     },
-    progressCard: {
-      backgroundColor: '#FFFFFF',
+
+       progressCard: {
       borderRadius: scale(16),
-      padding: scale(14),
+   
       borderWidth: 1,
-      borderColor: '#EDF2F7',
+      borderColor: Colors.border,
     },
-    stepRow: {
+
+    progressHeader:{
       flexDirection: 'row',
       alignItems: 'center',
-      justifyContent: 'space-between',
+      marginBottom: scale(16),
+      gap: scale(8),
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    padding: scale(16),
     },
-    stepItem: {
-      alignItems: 'center',
-      flex: 1,
-    },
-    stepCheckCircle: {
-      width: scale(20),
-      height: scale(20),
-      borderRadius: scale(10),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    innerActiveDot: {
-      width: scale(8),
-      height: scale(8),
-      borderRadius: scale(4),
-    },
-    stepTextLabel: {
-      fontSize: normalize(9),
-      textAlign: 'center',
-      marginTop: scale(6),
-    },
-    stepLine: {
-      height: scale(2),
-      flex: 0.8,
-      marginBottom: scale(14),
-    },
+ 
+
+    progressTitle: {
+  fontSize: normalize(14),
+  fontFamily: Fonts.brandSemiBold,
+},
+
+timelineItem: {
+  flexDirection: 'row',
+  
+},
+
+timelineIndicator: {
+  alignItems: 'center',
+  marginRight: scale(12),
+},
+
+timelineCircle: {
+  width: scale(24),
+  height: scale(24),
+  borderRadius: scale(12),
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+
+activeDot: {
+  width: scale(10),
+  height: scale(10),
+  borderRadius: scale(5),
+},
+
+timelineLine: {
+  width: scale(2),
+  minHeight: scale(40),
+  marginTop: scale(4),
+  flex: 1,
+},
+
+timelineContent: {
+  flex: 1,
+  paddingBottom: scale(20),
+},
+
+timelineTitle: {
+  fontSize: normalize(14),
+  fontFamily: Fonts.brandSemiBold,
+},
+
+timelineSubtitle: {
+  marginTop: scale(2),
+  fontSize: normalize(12),
+  color: Colors.textSecondary,
+  fontFamily: Fonts.brandRegular,
+},
+
     detailsCard: {
       backgroundColor: '#FFFFFF',
       borderRadius: scale(16),

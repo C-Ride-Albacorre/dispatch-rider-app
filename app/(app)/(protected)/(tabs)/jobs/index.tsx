@@ -6,20 +6,22 @@ import {
 } from '@/components/layout/scroll-header-context';
 import Button from '@/components/ui/buttons/button';
 import { Fonts } from '@/constants/theme';
+import { useDashboardStats } from '@/features/home/use-fetch';
 import ErrorContent from '@/features/jobs/components/error';
 import LoadingJobs from '@/features/jobs/components/loading-jobs';
 import NoJobs from '@/features/jobs/components/no-job';
 import RenderJobCard from '@/features/jobs/components/render-job-card';
 import RenderJobHeader from '@/features/jobs/components/render-job-header';
 import { useAvailableJobs } from '@/features/jobs/use-fetch';
+import { useDriverSocket } from '@/hooks/use-driver-socket';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
+import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef } from 'react';
-import { FlatList, Image } from 'react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useCallback } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -39,6 +41,13 @@ export default function Jobs() {
 
   const styles = createStyles(Colors);
 
+
+    const { data: dashboardData } = useDashboardStats();
+
+  const driverStatus = dashboardData?.stats?.status;
+
+  useDriverSocket(driverStatus === 'ONLINE');
+
   const {
     location,
     loading: locationLoading,
@@ -55,7 +64,13 @@ export default function Jobs() {
 
   console.log('Available jobs:', data);
 
-  const jobs = data?.data ?? [];
+  const socketJobs = useDriverJobsStore((state) => state.incomingOrders);
+
+  const apiJobs = data?.data ?? [];
+
+  console.log(' Socket jobs:', socketJobs, 'API jobs:', apiJobs);
+
+  const jobs = socketJobs.length > 0 ? socketJobs : apiJobs;
 
   const renderListHeader = useCallback(
     () => <RenderJobHeader jobs={jobs} />,

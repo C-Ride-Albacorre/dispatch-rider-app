@@ -1,7 +1,7 @@
 import Toast from 'react-native-toast-message';
 import { resendOtp, verifyEmail, verifyPhone } from './service';
 import { VerifyEmailPayload, VerifyPhonePayload } from './types';
-import { saveAccessToken, saveRefreshToken } from '@/utils/token-storage';
+import { saveAccessToken, saveDriverId, saveRefreshToken } from '@/utils/token-storage';
 import { useAuthStore } from '@/store/auth-store';
 
 export const verifyPhoneAction = async (payload: VerifyPhonePayload) => {
@@ -75,9 +75,12 @@ export const verifyEmailAction = async (payload: VerifyEmailPayload) => {
 
     await saveRefreshToken(data.refreshToken);
 
+    await saveDriverId(data.user.id);
+
     useAuthStore.getState().setAuth({
       accessToken: data.accessToken,
       refreshToken: data.refreshToken,
+      driverId: data.user.id,
       authStatus: 'AUTHENTICATED',
     });
 

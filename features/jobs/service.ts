@@ -28,12 +28,12 @@ export async function getAvailableJobsDetailsService(orderId: string) {
 
 export async function acceptJobsService(orderId: string) {
   console.log('Accepting job with ID:', { orderId });
+if (!orderId) {
+    throw new Error('Order ID is required');
+  }
 
-  if (!orderId) return null;
 
-  const response = await api.post(`/driver/${orderId}/accept`, {
-    method: 'POST',
-  });
+  const response = await api.post(`/driver/${orderId}/accept`);
 
   return response.data;
 }

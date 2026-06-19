@@ -21,6 +21,7 @@ import ExpiredTokenModal from '@/features/verify/components/expired-token-modal'
 
 import { usePathname } from 'expo-router';
 import Toast from 'react-native-toast-message';
+import { SocketProvider } from './providers/socket-provider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -59,6 +60,11 @@ export default function RootLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
+  const authStatus = useAuthStore((s) => s.authStatus);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  const driverId = useAuthStore((s) => s.driverId);
+
   // Hide native splash ONLY after everything is ready
   useEffect(() => {
     if (fontsLoaded && isHydrated) {
@@ -68,26 +74,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isHydrated) return;
-
-    // if (authStatus === 'AUTHENTICATED') {
-
-
-
-    //   getNotificationPermissionDecision().then((decision) => {
-    //     if (decision === 'allowed') {
-    //       initializeNotifications();
-    //     } else if (decision === null) {
-    //       setShowNotificationModal(true);
-    //     }
-    //   });
-    // }
-
-    // if (authStatus === 'UNAUTHENTICATED') {
-    //   cleanupNotifications();
-    // }
-
-
-  }, [ isHydrated]);
+  }, [isHydrated]);
 
   console.log({
     fontsLoaded,
@@ -107,14 +94,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ReactQueryProvider>
-        <AuthGate>
-          <Slot />
-        </AuthGate>
-        <ExpiredTokenModal
-          showExpiredModal={showExpiredModal}
-          setShowExpiredModal={setShowExpiredModal}
-        />
-       
+        <SocketProvider>
+          <AuthGate>
+            <Slot />
+          </AuthGate>
+          <ExpiredTokenModal
+            showExpiredModal={showExpiredModal}
+            setShowExpiredModal={setShowExpiredModal}
+          />
+        </SocketProvider>
       </ReactQueryProvider>
       <Toast config={toastConfig} />
     </GestureHandlerRootView>

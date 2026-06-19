@@ -7,67 +7,94 @@ import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { act, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useAcceptJob } from '../use-fetch';
+import Toast from 'react-native-toast-message';
 
-export default function ConfirmLogout({
-  showLogoutModal,
-  setShowLogoutModal,
+export default function ConfirmRequest({
+  showConfirmRequestModal,
+  setShowConfirmRequestModal,
+  selectedOrderId,
 }: {
-  showLogoutModal: boolean;
-  setShowLogoutModal: (value: boolean) => void;
+  showConfirmRequestModal: boolean;
+  setShowConfirmRequestModal: (value: boolean) => void;
+  selectedOrderId: string;
 }) {
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
-  const logout = useAuthStore((state) => state.logout);
+  const { mutate: acceptJob, isPending } = useAcceptJob();
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    await logout();
-    setIsLoggingOut(false);
+  const handleAccept = () => {
+
+      if (!selectedOrderId) {
+    Toast.show({
+      type: 'error',
+      text1: 'No order selected',
+    });
+    return;
+  }
+
+
+  
+    acceptJob(selectedOrderId, {
+      onSuccess: () => {
+        setShowConfirmRequestModal(false);
+
+        Toast.show({
+          type: 'success',
+          text1: 'Request accepted successfully',
+        });
+      },
+
+      onError: (error: any) => {
+        Toast.show({
+          type: 'error',
+          text1: error?.message || 'Failed to accept request',
+        });
+      },
+    });
   };
 
   return (
     <AppModal
-      visible={showLogoutModal}
-      onClose={() => setShowLogoutModal(false)}
-      closeOnBackdropPress={!isLoggingOut}
+      visible={showConfirmRequestModal}
+      onClose={() => setShowConfirmRequestModal(false)}
+        closeOnBackdropPress={!isPending}
     >
-      <View style={styles.logoutModal}>
-        <View style={styles.logoutIconWrapper}>
+      <View style={styles.confirmRequestModal}>
+        <View style={styles.confirmRequestIconWrapper}>
           <Ionicons
-            name="log-out-outline"
+            name="bicycle-outline"
             size={scale(32)}
-            color={Colors.error}
+            color={Colors.primary}
           />
         </View>
 
-        <Text style={styles.logoutTitle}>Sign Out</Text>
+        <Text style={styles.confirmRequestTitle}>Confirm Request</Text>
 
-        <Text style={styles.logoutDescription}>
-          Are you sure you want to sign out? You will need to log in again to
-          access your account.
+        <Text style={styles.confirmRequestDescription}>
+          Are you sure you want to confirm this request?
         </Text>
 
         <View style={styles.actionContainer}>
           <Button
-            variant="red"
-            loading={isLoggingOut}
-            onPress={handleLogout}
-            style={styles.logoutButton}
+            variant="outline"
+            onPress={() => setShowConfirmRequestModal(false)}
+            style={styles.cancelBtn}
+            disabled={isPending}
           >
-            Yes, Sign Out
+            Cancel
           </Button>
 
           <Button
-            variant="outline"
-            disabled={isLoggingOut}
-            onPress={() => setShowLogoutModal(false)}
-            style={styles.logoutButton}
+            variant="primary"
+            loading={isPending}
+            disabled={isPending}
+            onPress={handleAccept}
+            style={styles.confirmRequestButton}
           >
-            Cancel
+            Yes, Confirm
           </Button>
         </View>
       </View>
@@ -77,29 +104,29 @@ export default function ConfirmLogout({
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    logoutModal: {
+    confirmRequestModal: {
       alignItems: 'center',
       paddingVertical: scale(8),
     },
 
-    logoutIconWrapper: {
+    confirmRequestIconWrapper: {
       width: scale(64),
       height: scale(64),
       borderRadius: scale(32),
-      backgroundColor: Colors.errorLight,
+      backgroundColor: Colors.primaryLight,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: scale(16),
     },
 
-    logoutTitle: {
+    confirmRequestTitle: {
       fontFamily: Fonts.brandSemiBold,
       fontSize: normalize(18),
       color: Colors.text,
       marginBottom: scale(8),
     },
 
-    logoutDescription: {
+    confirmRequestDescription: {
       fontFamily: Fonts.brandRegular,
       fontSize: normalize(13),
       color: Colors.textSecondary,
@@ -114,7 +141,10 @@ const createStyles = (Colors: any) =>
       width: '100%',
     },
 
-    logoutButton: {
+    cancelBtn: {
+      flex: 1,
+    },
+    confirmRequestButton: {
       flex: 1,
     },
   });

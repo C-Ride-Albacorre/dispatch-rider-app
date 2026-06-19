@@ -57,6 +57,15 @@ export const saveVerificationEmail = async (email: string) => {
   await setItem('verificationEmail', email);
 };
 
+
+export const saveDriverId = async (driverId: string) => {
+  await setItem('driverId', driverId);
+};
+
+export const getDriverId = async () => {
+  return await getItem('driverId');
+};
+
 export const getVerificationEmail = async () => {
   return await getItem('verificationEmail');
 };
@@ -116,6 +125,8 @@ export const clearTokens = async () => {
   await deleteItem('verificationToken');
   await deleteItem('verificationEmail');
   await deleteItem('verificationPhone');
+
+  await deleteItem('driverId');
 
   await deleteItem('notification_permission_decision');
 };

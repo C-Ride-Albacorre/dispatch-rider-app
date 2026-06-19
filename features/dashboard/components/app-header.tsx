@@ -20,9 +20,9 @@ import {
 export default function AppHeader() {
   const { Colors } = useTheme();
   const styles = createHeaderStyles(Colors);
-  const [driverStatus, setDriverStatus] = useState<'ONLINE' | 'OFFLINE'>(
-    'OFFLINE',
-  );
+  // const [driverStatus, setDriverStatus] = useState<'ONLINE' | 'OFFLINE'>(
+  //   'OFFLINE',
+  // );
   const { data, isPending } = useDashboardStats();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -33,9 +33,11 @@ export default function AppHeader() {
 
   const status = data?.stats?.status ?? 'OFFLINE';
 
-  useEffect(() => {
-    setDriverStatus(status);
-  }, [status]);
+  // useEffect(() => {
+  //   setDriverStatus(status);
+  // }, [status]);
+
+  const driverStatus = data?.stats?.status ?? 'OFFLINE';
 
   const driverName =
     `${driverInfo?.firstName ?? ''} ${driverInfo?.lastName ?? ''}`.trim();
