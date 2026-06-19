@@ -19,3 +19,10 @@ export const forgotPassword = async (payload: ForgetPasswordPayload) => {
 
   return response.data;
 };
+
+
+// export const verifyReset = async (payload: ForgetPasswordPayload) => {
+//   const response = await api.post('/auth/forgot-password', payload);
+
+//   return response.data;
+// };

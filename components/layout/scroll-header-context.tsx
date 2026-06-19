@@ -15,24 +15,21 @@ export const HEADER_HEIGHT = 60;
 interface ScrollHeaderContextValue {
   headerTranslateY: SharedValue<number>;
   lastScrollY: SharedValue<number>;
+  showHeader: boolean;
+  setShowHeader: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export const ScrollHeaderContext =
   createContext<ScrollHeaderContextValue | null>(null);
 
-/**
- * Call in a tab screen that has a scrollable list.
- * Returns an `onScroll` handler to attach to Animated.ScrollView.
- *
- * Example:
- *   const scrollHandler = useScrollHeader();
- *   <Animated.ScrollView onScroll={scrollHandler} scrollEventThrottle={16}>
- */
+
 export function useScrollHeader() {
   const ctx = useContext(ScrollHeaderContext);
   if (!ctx) {
     throw new Error('useScrollHeader must be used inside the (tabs) layout');
   }
+
+  const { setShowHeader } = ctx;
 
   const { headerTranslateY, lastScrollY } = ctx;
 

@@ -153,11 +153,11 @@ export default function VerifyPhoneScreen() {
               setErrorMessage={setErrorMessage}
             />
 
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <Link href="/(app)/(auth)/register" asChild>
                 <Text style={styles.resendText}>Change Phone</Text>
               </Link>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

@@ -7,6 +7,8 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
 
   const authStatus = useAuthStore((s) => s.authStatus);
   const verificationToken = useAuthStore((s) => s.verificationToken);
+  const onboardingStatus = useAuthStore((s) => s.onboardingStatus);
+  const onboardingStep = useAuthStore((s) => s.onboardingStep);
 
   useEffect(() => {
     if (!authStatus) return;
@@ -19,7 +21,14 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     // 🔐 AUTHENTICATED
     if (authStatus === 'AUTHENTICATED') {
       if (!isProtected) {
-        router.replace('/(app)/(protected)/(tabs)/home');
+        if (onboardingStatus !== 'COMPLETED') {
+          const completedStep = Number(onboardingStep ?? 0);
+          router.replace(
+            `/(app)/(protected)/onboarding?step=${completedStep + 1}&resumeStep=${completedStep}`,
+          );
+        } else {
+          router.replace('/(app)/(protected)/(tabs)/home');
+        }
       }
       return;
     }
@@ -27,7 +36,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     // 🟡 VERIFYING
     if (authStatus === 'VERIFYING') {
       if (!verificationToken) {
-        router.replace('/(app)/(auth)/login'); // fallback safe route
+        router.replace('/(app)/(auth)/login');
         return;
       }
 
@@ -44,7 +53,13 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
         router.replace('/(public)');
       }
     }
-  }, [authStatus, segments, verificationToken]);
+  }, [
+    authStatus,
+    segments,
+    verificationToken,
+    onboardingStatus,
+    onboardingStep,
+  ]);
 
   return <>{children}</>;
 }

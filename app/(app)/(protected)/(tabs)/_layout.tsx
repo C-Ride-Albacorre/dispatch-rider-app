@@ -1,3 +1,4 @@
+import NotificationPermissionModal from '@/components/layout/notification-permission-modal';
 import {
   HEADER_HEIGHT,
   ScrollHeaderContext,
@@ -5,9 +6,12 @@ import {
 import { Fonts } from '@/constants/theme';
 import AppHeader from '@/features/dashboard/components/app-header';
 import { useTheme } from '@/hooks/use-theme';
+import { initializeNotifications } from '@/services/notifications/initializeNotifications';
 import { normalize } from '@/utils/scaling';
+import { getNotificationPermissionDecision, saveNotificationPermissionDecision } from '@/utils/token-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   useAnimatedStyle,
@@ -16,6 +20,12 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabsLayout() {
+
+  
+  const [showNotificationModal, setShowNotificationModal] = useState<boolean>(false);
+  const [showHeader, setShowHeader] = useState(true);
+
+
   const { Colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -27,8 +37,23 @@ export default function TabsLayout() {
     transform: [{ translateY: headerTranslateY.value }],
   }));
 
+  useEffect(() => {
+    const checkPermission = async () => {
+      const decision = await getNotificationPermissionDecision();
+
+      if (decision === 'allowed') {
+        initializeNotifications();
+      } else if (decision === null) {
+        setShowNotificationModal(true);
+      }
+    };
+
+    checkPermission();
+  }, []);
+
   return (
-    <ScrollHeaderContext.Provider value={{ headerTranslateY, lastScrollY }}>
+    <ScrollHeaderContext.Provider value={{ headerTranslateY, lastScrollY ,  showHeader,
+    setShowHeader,}}>
       <View
         style={[
           styles.root,
@@ -40,7 +65,7 @@ export default function TabsLayout() {
         ]}
       >
         {/* ── Shared animated header ─────────────────────────────────────── */}
-        <Animated.View
+      {  showHeader &&  <Animated.View
           style={[
             styles.header,
             {
@@ -53,7 +78,7 @@ export default function TabsLayout() {
         >
           <AppHeader />
         </Animated.View>
-
+}
         {/* ── Tab navigator ──────────────────────────────────────────────── */}
         <Tabs
           screenOptions={{
@@ -64,7 +89,6 @@ export default function TabsLayout() {
             },
             tabBarIconStyle: {
               marginTop: 4,
-              
             },
 
             tabBarActiveTintColor: Colors.primary,
@@ -79,7 +103,7 @@ export default function TabsLayout() {
             name="home"
             options={{
               headerShown: false,
-                  title: 'Home',
+              title: 'Home',
 
               tabBarIcon: ({ color, size, focused }) => (
                 <Ionicons
@@ -152,6 +176,19 @@ export default function TabsLayout() {
           />
         </Tabs>
       </View>
+
+       <NotificationPermissionModal
+          visible={showNotificationModal}
+          onAllow={async () => {
+            setShowNotificationModal(false);
+            await saveNotificationPermissionDecision('allowed');
+            initializeNotifications();
+          }}
+          onDeny={async () => {
+            setShowNotificationModal(false);
+            await saveNotificationPermissionDecision('denied');
+          }}
+        />
     </ScrollHeaderContext.Provider>
   );
 }

@@ -205,8 +205,8 @@ export default function LoginForm() {
         setShowModal(true);
         setModalType('verification');
         setModalTitle('Account Under Review');
-        setButtonText('Go to Dashboard');
-        setRedirectPath('/(app)/(protected)/(tabs)/home');
+        // setButtonText('Go to Dashboard');
+        // setRedirectPath('/(app)/(protected)/(tabs)/home');
         setNextSteps([
           'Your account is currently under review',
           'We will notify you once the verification is complete',

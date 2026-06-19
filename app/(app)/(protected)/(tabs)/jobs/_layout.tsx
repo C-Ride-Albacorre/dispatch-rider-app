@@ -1,22 +1,17 @@
-
 import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function JobsLayout() {
-  // const insets = useSafeAreaInsets();
+  const { Colors } = useTheme();
 
-  const {Colors} = useTheme()
+  const insets = useSafeAreaInsets();
   return (
     <Stack
       screenOptions={{
         headerShown: false,
         contentStyle: {
           backgroundColor: Colors.background,
-          // paddingTop: insets.top,
-          // paddingBottom: insets.bottom,
-          // paddingLeft: insets.left,
-          // paddingRight: insets.right,
         },
         gestureEnabled: true,
 
@@ -26,6 +21,27 @@ export default function JobsLayout() {
       }}
     >
       <Stack.Screen name="index" />
+
+      <Stack.Screen
+        name="[id]"
+        options={{
+          animation: 'slide_from_bottom',
+        }}
+      />
+
+      {/* <Stack.Screen
+        name="[id]"
+          options={{
+          presentation: 'formSheet',
+          animation: 'slide_from_bottom',
+          title: '',
+          sheetGrabberVisible: true,
+          sheetCornerRadius: 24,
+          headerShown: false,
+           sheetAllowedDetents: [0.8],
+          
+        }}
+      /> */}
     </Stack>
   );
 }

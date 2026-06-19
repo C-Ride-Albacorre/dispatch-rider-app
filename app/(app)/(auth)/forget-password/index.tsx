@@ -31,14 +31,17 @@ export default function ForgetPassword() {
 
   const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
 
-  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] =
+    useState<boolean>(false);
 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const [successData, setSuccessData] = useState<{
     identifier: string;
     method: string;
   } | null>(null);
+
+  const route = useRouter();
 
   const {
     control,
@@ -79,22 +82,30 @@ export default function ForgetPassword() {
     }
   };
 
+
+  if(successData?.identifier && successData?.method) {
+
+    return
+  }
+
   return (
     <>
-      {successModalVisible && successData && (
+      {/* {successModalVisible && successData && (
         <SuccessModal
           title={`Check your ${
             successData?.method === 'email' ? 'inbox' : 'messages'
           }`}
           description={`We have sent a code to your ${
             successData?.method === 'email' ? 'email' : 'phone'
-          } (${successData?.identifier}). Please use it to reset your password.`}
+          } (${successData?.identifier}). Please proceed to verify your  ${
+            successData?.method === 'email' ? 'email' : 'phone'
+          } `}
           buttonText={`Verify ${successData?.method === 'email' ? 'Email' : 'Phone'}  `}
-          path="/(app)/(auth)/login"
+          path={successData.method === 'email' ? '/(app)/(auth)/reset-verify/email' : '/(app)/(auth)/reset-verify/phone'}
           showSuccessModal={successModalVisible}
           setShowSuccessModal={setSuccessModalVisible}
         />
-      )}
+      )} */}
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}

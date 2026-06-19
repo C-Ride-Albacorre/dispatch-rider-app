@@ -349,7 +349,8 @@ const createStyles = (Colors: any) =>
 
   evContainer: {
     gap: scale(12),
-    padding: scale(12),
+    paddingHorizontal: scale(12),
+    paddingVertical: scale(16),
     borderWidth: 1,
     borderColor: Colors.successLight,
     borderRadius: scale(8),
@@ -361,24 +362,24 @@ const createStyles = (Colors: any) =>
     fontSize: normalize(16),
     fontFamily: Fonts.brandSemiBold,
     color: Colors.text,
-    textAlign: 'center',
+    flexWrap: 'wrap',
   },
 
   evTextContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
     gap: scale(8),
   },
 
   evIconContainer: {
+    
     flexDirection: 'row',
     alignItems: 'center',
     gap: scale(2),
     backgroundColor: Colors.success,
     paddingHorizontal: scale(6),
-    paddingVertical: scale(3),
     borderRadius: scale(24),
+    height:  scale(24),
   },
 
   evSubText: {
@@ -388,7 +389,7 @@ const createStyles = (Colors: any) =>
   },
 
   evDescription: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
     lineHeight: normalize(20),
