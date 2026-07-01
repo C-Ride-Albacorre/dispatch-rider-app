@@ -23,12 +23,11 @@ export default function HomeHeader({
     firstName?: string;
     lastName?: string;
   };
-  driverStatus: 'ONLINE' | 'OFFLINE';
+  driverStatus: 'ONLINE' | 'OFFLINE' | 'BUSY';
 }) {
   const [isEnabled, setIsEnabled] = useState<boolean>(
     driverStatus === 'ONLINE' ? true : false,
   );
-
 
   const { Colors } = useTheme();
 
@@ -36,30 +35,32 @@ export default function HomeHeader({
 
   const { mutate, isPending } = useUpdateDriverStatus();
 
+  const isBusy = driverStatus === 'BUSY';
+
   useEffect(() => {
     setIsEnabled(driverStatus === 'ONLINE');
   }, [driverStatus]);
 
-  const toggleSwitch = () => {
-    const newStatus = !isEnabled;
+ const toggleSwitch = () => {
+  if (isBusy) return;
 
-    // optimistic update
-    setIsEnabled(newStatus);
+  const newStatus = !isEnabled;
 
-    mutate(newStatus ? 'ONLINE' : 'OFFLINE', {
-      onSuccess: () => {
-        // success toast or feedback can be added here
-        Toast.show({
-          type: `${newStatus ? 'success' : 'info'}`,
-          text1: `You are now ${newStatus ? 'ONLINE' : 'OFFLINE'}`,
-        });
-      },
-      onError: () => {
-        // rollback if request fails
-        setIsEnabled(!newStatus);
-      },
-    });
-  };
+  setIsEnabled(newStatus);
+
+  mutate(newStatus ? 'ONLINE' : 'OFFLINE', {
+    onSuccess: () => {
+      Toast.show({
+        type: `${newStatus ? 'success' : 'info'}`,
+        text1: `You are now ${newStatus ? 'Online' : 'Offline'}`,
+        text1Style: { fontFamily: Fonts.brandMedium },
+      });
+    },
+    onError: () => {
+      setIsEnabled(!newStatus);
+    },
+  });
+};
 
   const driverName =
     `${driverInfo?.firstName ?? ''} ${driverInfo?.lastName ?? ''}`.trim();
@@ -78,24 +79,33 @@ export default function HomeHeader({
       </View>
 
       <View style={styles.statusContainer}>
-        <Text style={styles.statusText}>
-          {isEnabled ? 'Online' : 'Offline'}
+        <Text style={[styles.statusText, { color: isBusy ? Colors.warning : isEnabled ? Colors.success : Colors.textSecondary }]}>
+          {isBusy ? 'Busy' : isEnabled ? 'Online' : 'Offline'}
         </Text>
 
         {isPending ? (
           <ActivityIndicator size="small" color={Colors.success} />
         ) : (
           <Switch
+            disabled={isBusy || isPending}
             trackColor={{
+
               false: Colors.light,
               true: Colors.success,
             }}
-            thumbColor={isEnabled ? Colors.background : Colors.light}
+            thumbColor={
+              isBusy
+                ? Colors.warning
+                : isEnabled
+                  ? Colors.background
+                  : Colors.light
+            }
             ios_backgroundColor={Colors.light}
             onValueChange={toggleSwitch}
             value={isEnabled}
             style={{
               transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }],
+              opacity: isBusy ? 0.5 : 1,
             }}
           />
         )}
@@ -143,10 +153,14 @@ const createStyles = (Colors: any) =>
     statusText: {
       fontSize: normalize(12),
       fontFamily: Fonts.brandMedium,
-      color: Colors.textSecondary,
       marginRight: scale(4),
     },
 
-    title: { fontFamily: Fonts.brandSemiBold, fontSize: normalize(16) , color: Colors.text},
+    title: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: normalize(16),
+      color: Colors.text,
+      textTransform: 'capitalize',
+    },
     message: { color: Colors.textSecondary, marginBottom: scale(20) },
   });

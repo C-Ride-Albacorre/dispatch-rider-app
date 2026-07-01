@@ -47,34 +47,17 @@ export async function submitDriverDocuments(payload: Step3Payload) {
 
   formData.append('documentsMetadata', JSON.stringify(metadata));
 
-  for (const doc of payload.documents) {
-    console.log('Processing document:', doc);
-
-    const blobResponse = await fetch(doc.uri);
-
-    if (!blobResponse.ok) {
-      throw new Error(
-        `Failed to load document "${doc.name}": ${blobResponse.status} ${blobResponse.statusText}`,
-      );
-    }
-
-    const blob = await blobResponse.blob();
-
-    const file = new File([blob], doc.name, {
+  payload.documents.forEach((doc) => {
+    formData.append('documents', {
+      uri: doc.uri,
+      name: doc.name,
       type: doc.mimeType,
-    });
-
-    formData.append('documents', file);
-  }
-
-  for (const pair of formData.entries()) {
-    console.log('FORM DATA ENTRY:', pair);
-  }
+    } as any);
+  });
 
   const response = await api.post('/driver/onboarding/submit', formData, {
     headers: {
-      Accept: 'application/json',
-      'Content-Type': undefined,
+      'Content-Type': 'multipart/form-data',
     },
   });
 

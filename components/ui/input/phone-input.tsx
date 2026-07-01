@@ -1,22 +1,8 @@
 import { Colors, Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
-import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { useEffect, useState } from 'react';
-
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
 
 type Country = {
   name: string;
@@ -44,37 +30,38 @@ interface PhoneInputProps {
   onChangePhone?: (fullNumber: string) => void;
 }
 
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet } from 'react-native';
+
 export default function PhoneInput({
   label = 'Phone Number',
-
   placeholder = '800 000 0000',
-
   onChangePhone,
-
   errorMessage,
-
   inputInfo,
-
   value = '',
-
   ...props
 }: PhoneInputProps) {
   const [countries, setCountries] = useState<Country[]>([]);
-
   const [selected, setSelected] = useState<Country>(DEFAULT_COUNTRY);
-
   const [open, setOpen] = useState(false);
-
   const [search, setSearch] = useState('');
-
   const [loading, setLoading] = useState(true);
+  const [localNumber, setLocalNumber] = useState('');
 
   const { Colors } = useTheme();
-
   const styles = createStyles(Colors);
-
-  // 🔥 LOCAL NUMBER
-  const [localNumber, setLocalNumber] = useState('');
 
   // =========================
   // FETCH COUNTRIES
@@ -86,15 +73,15 @@ export default function PhoneInput({
           'https://restcountries.com/v3.1/all?fields=name,idd,cca2',
         );
 
-        const raw: any[] = await res.json();
+        const data = await res.json().catch(() => []);
+
+        const raw = Array.isArray(data) ? data : [];
 
         const parsed: Country[] = raw
           .filter((c) => c.idd?.root && c.idd?.suffixes?.length)
           .map((c) => ({
             name: c.name.common,
-
             code: c.cca2,
-
             dial: `${c.idd.root}${
               c.idd.suffixes.length === 1 ? c.idd.suffixes[0] : ''
             }`,
@@ -117,7 +104,6 @@ export default function PhoneInput({
     (async () => {
       try {
         const res = await fetch('https://ipapi.co/json/');
-
         const data = await res.json();
 
         const match = countries.find((c) => c.code === data.country_code);
@@ -130,35 +116,18 @@ export default function PhoneInput({
   }, [countries]);
 
   // =========================
-  // HANDLE CONTROLLED VALUE
+  // SYNC CONTROLLED VALUE
   // =========================
   useEffect(() => {
-    if (!value) {
-      setLocalNumber('');
-      return;
+    const stripped = value.startsWith(selected.dial)
+      ? value.slice(selected.dial.length)
+      : value;
+
+    if (stripped !== localNumber) {
+      setLocalNumber(stripped);
     }
+  }, [value, selected.dial]);
 
-    // Remove dial code if exists
-    const stripped = value.replace(selected.dial, '');
-
-    setLocalNumber(stripped);
-  }, [value]);
-
-  // =========================
-  // SEND VALUE TO PARENT
-  // =========================
-  useEffect(() => {
-    if (!localNumber) {
-      onChangePhone?.('');
-      return;
-    }
-
-    onChangePhone?.(`${selected.dial}${localNumber}`);
-  }, [localNumber, selected]);
-
-  // =========================
-  // FILTER COUNTRIES
-  // =========================
   const filtered = countries.filter(
     (c) =>
       c.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -169,12 +138,9 @@ export default function PhoneInput({
 
   return (
     <View style={styles.wrapper}>
-      {/* LABEL */}
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
-      {/* INPUT ROW */}
       <View style={[styles.row, hasError && styles.rowError]}>
-        {/* COUNTRY */}
         <TouchableOpacity
           style={styles.dialButton}
           onPress={() => setOpen(true)}
@@ -201,41 +167,37 @@ export default function PhoneInput({
 
         <View style={styles.divider} />
 
-        {/* INPUT */}
         <TextInput
           style={styles.input}
           placeholder={placeholder}
           placeholderTextColor="#9ca3af"
           value={localNumber}
-          onChangeText={(text) => {
-            const cleaned = text.replace(/\D/g, '');
-
-            setLocalNumber(cleaned);
-          }}
           keyboardType="phone-pad"
           autoComplete="tel"
           autoCorrect={false}
+          maxLength={11}
+          onChangeText={(text) => {
+            const cleaned = text.replace(/\D/g, '').slice(0, 11);
+
+            setLocalNumber(cleaned);
+            onChangePhone?.(`${selected.dial}${cleaned}`);
+          }}
           {...props}
         />
       </View>
 
-      {/* ERROR */}
       {hasError && <Text style={styles.error}>{errorMessage}</Text>}
 
-      {/* INFO */}
       {inputInfo && <Text style={styles.info}>{inputInfo}</Text>}
 
-      {/* MODAL */}
       <Modal visible={open} animationType="slide" presentationStyle="pageSheet">
         <View style={styles.modal}>
-          {/* HEADER */}
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Select Country</Text>
 
             <Pressable
               onPress={() => {
                 setOpen(false);
-
                 setSearch('');
               }}
             >
@@ -243,7 +205,6 @@ export default function PhoneInput({
             </Pressable>
           </View>
 
-          {/* SEARCH */}
           <View style={styles.searchRow}>
             <Text style={styles.searchIcon}>🔍</Text>
 
@@ -255,7 +216,6 @@ export default function PhoneInput({
             />
           </View>
 
-          {/* LIST */}
           <FlatList
             data={filtered}
             keyExtractor={(item) => item.code}
@@ -267,14 +227,14 @@ export default function PhoneInput({
                 <TouchableOpacity
                   style={[
                     styles.countryRow,
-
                     isActive && styles.countryRowSelected,
                   ]}
                   onPress={() => {
                     setSelected(item);
 
-                    setOpen(false);
+                    onChangePhone?.(`${item.dial}${localNumber}`);
 
+                    setOpen(false);
                     setSearch('');
                   }}
                 >
@@ -305,164 +265,164 @@ const createStyles = (Colors: any) =>
       width: '100%',
     },
 
-  label: {
-    fontSize: normalize(16),
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-  },
+    label: {
+      fontSize: normalize(16),
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+    },
 
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: scale(12),
-    overflow: 'hidden',
-    backgroundColor: Colors.inputBackground,
-  },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: scale(12),
+      overflow: 'hidden',
+      backgroundColor: Colors.inputBackground,
+    },
 
-  rowError: {
-    borderWidth: scale(1),
-    borderColor: '#ef4444',
-    backgroundColor: '#FEF2F2',
-  },
+    rowError: {
+      borderWidth: scale(1),
+      borderColor: Colors.warning,
+      backgroundColor: Colors.warningLight,
+    },
 
-  dialButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(6),
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(16),
-  },
+    dialButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(6),
+      paddingHorizontal: scale(12),
+      paddingVertical: scale(16),
+    },
 
-  flag: {
-    width: scale(22),
-    height: scale(16),
-    borderRadius: scale(2),
-  },
+    flag: {
+      width: scale(22),
+      height: scale(16),
+      borderRadius: scale(2),
+    },
 
-  dialCode: {
-    fontSize: normalize(15),
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-  },
+    dialCode: {
+      fontSize: normalize(15),
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+    },
 
-  chevron: {
-    fontSize: normalize(12),
-    color: '#9ca3af',
-  },
+    chevron: {
+      fontSize: normalize(12),
+      color: Colors.textMuted,
+    },
 
-  divider: {
-    width: scale(1),
-    height: scale(24),
-    backgroundColor: Colors.border,
-  },
+    divider: {
+      width: scale(1),
+      height: scale(24),
+      backgroundColor: Colors.border,
+    },
 
-  input: {
-    flex: 1,
+    input: {
+      flex: 1,
 
-    paddingVertical: scale(16),
+      paddingVertical: scale(16),
 
-    fontSize: normalize(16),
+      fontSize: normalize(16),
 
-    fontFamily: Fonts.brandRegular,
+      fontFamily: Fonts.brandRegular,
 
-    color: Colors.text,
-  },
+      color: Colors.text,
+    },
 
-  error: {
-    color: '#ef4444',
+    error: {
+      color: Colors.warning,
 
-    fontSize: normalize(13),
-    fontFamily: Fonts.brandMedium,
+      fontSize: normalize(13),
+      fontFamily: Fonts.brandMedium,
 
-    marginTop: scale(2),
+      marginTop: scale(2),
 
-    marginLeft: scale(4),
-  },
+      marginLeft: scale(4),
+    },
 
-  info: {
-    color: '#6b7280',
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandMedium,
+    info: {
+      color: '#6b7280',
+      fontSize: normalize(12),
+      fontFamily: Fonts.brandMedium,
 
-    marginTop: scale(2),
+      marginTop: scale(2),
 
-    marginLeft: scale(4),
-  },
+      marginLeft: scale(4),
+    },
 
-  modal: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+    modal: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
 
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    modalHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
 
-    alignItems: 'center',
+      alignItems: 'center',
 
-    paddingHorizontal: scale(16),
+      paddingHorizontal: scale(16),
 
-    paddingVertical: scale(14),
+      paddingVertical: scale(14),
 
-    borderBottomWidth: scale(1),
+      borderBottomWidth: scale(1),
 
-    borderBottomColor: '#e5e7eb',
-  },
+      borderBottomColor: Colors.border,
+    },
 
-  modalTitle: {
-    fontSize: normalize(17),
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-  },
+    modalTitle: {
+      fontSize: normalize(17),
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+    },
 
-  modalClose: {
-    fontSize: normalize(16),
-    color: '#3b82f6',
-  },
+    modalClose: {
+      fontSize: normalize(16),
+      color: Colors.primary,
+    },
 
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(8),
-    margin: scale(12),
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(10),
-    backgroundColor: '#f3f4f6',
-    borderRadius: scale(10),
-  },
+    searchRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(8),
+      margin: scale(12),
+      paddingHorizontal: scale(12),
+      paddingVertical: scale(10),
+      backgroundColor: Colors.background,
+      borderRadius: scale(10),
+    },
 
-  searchIcon: {
-    fontSize: normalize(14),
-  },
+    searchIcon: {
+      fontSize: normalize(14),
+    },
 
-  searchInput: {
-    flex: 1,
-    fontSize: normalize(15),
-    color: Colors.text,
-  },
+    searchInput: {
+      flex: 1,
+      fontSize: normalize(15),
+      color: Colors.text,
+    },
 
-  countryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(12),
-    paddingHorizontal: scale(16),
-    paddingVertical: scale(13),
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#f3f4f6',
-  },
+    countryRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(12),
+      paddingHorizontal: scale(16),
+      paddingVertical: scale(13),
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: Colors.border,
+    },
 
-  countryRowSelected: {
-    backgroundColor: '#eff6ff',
-  },
+    countryRowSelected: {
+      backgroundColor: Colors.primary ,
+    },
 
-  countryName: {
-    flex: 1,
-    fontSize: normalize(15),
-    color: Colors.text,
-  },
+    countryName: {
+      flex: 1,
+      fontSize: normalize(15),
+      color: Colors.text,
+    },
 
-  countryDial: {
-    fontSize: normalize(14),
-    color: '#6b7280',
-  },
-});
+    countryDial: {
+      fontSize: normalize(14),
+      color: Colors.textSecondary,
+    },
+  });

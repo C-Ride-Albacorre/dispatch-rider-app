@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { getDashboardStatsService, updateDriverStatusService } from './service';
-import { getSocket } from '@/services/socket/driver';
 
 export interface DashboardProfile {
   id: string;
@@ -49,6 +48,7 @@ export function useDashboardStats() {
       const res = await getDashboardStatsService();
       return res.data as DashboardApiData;
     },
+      refetchInterval: 30000,
   });
 }
 
@@ -64,11 +64,7 @@ export function useUpdateDriverStatus() {
         queryKey: ['dashboard-stats'],
       });
 
-      const socket = getSocket();
-
-      socket?.emit('driver-status', {
-        status,
-      });
+   
     },
   });
 }

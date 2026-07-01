@@ -4,11 +4,17 @@ import {
   getAvailableJobsDetailsService,
   getAvailableJobsService,
 } from './service';
-export function useAvailableJobs(lat?: number, lng?: number) {
+export function useAvailableJobs(
+  lat?: number,
+  lng?: number,
+  options?: {
+    enabled?: boolean;
+  },
+) {
   return useQuery({
     queryKey: ['available-jobs', lat, lng],
     queryFn: () => getAvailableJobsService(lat!, lng!),
-    enabled: !!lat && !!lng,
+    enabled: !!lat && !!lng && options?.enabled !== false,
     refetchInterval: 30000,
   });
 }
@@ -34,6 +40,11 @@ export function useAcceptJob() {
 
       queryClient.invalidateQueries({
         queryKey: ['available-job-details'],
+      });
+
+
+       queryClient.invalidateQueries({
+        queryKey: ['dashboard-stats'],
       });
     },
   });

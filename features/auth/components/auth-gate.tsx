@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/auth-store';
+import { requiresOnboarding } from '@/utils/onboarding-status';
 import { router, useSegments } from 'expo-router';
 import { useEffect } from 'react';
 
@@ -21,7 +22,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
     // 🔐 AUTHENTICATED
     if (authStatus === 'AUTHENTICATED') {
       if (!isProtected) {
-        if (onboardingStatus !== 'COMPLETED') {
+        if (requiresOnboarding(onboardingStatus)) {
           const completedStep = Number(onboardingStep ?? 0);
           router.replace(
             `/(app)/(protected)/onboarding?step=${completedStep + 1}&resumeStep=${completedStep}`,

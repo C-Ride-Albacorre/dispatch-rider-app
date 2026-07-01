@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEffect } from 'react';
 
 import { useAuthStore } from '@/store/auth-store';
+import { requiresOnboarding } from '@/utils/onboarding-status';
 
 export default function ProtectedLayout() {
   const { authStatus, onboardingStatus, onboardingStep } = useAuthStore();
@@ -18,7 +19,7 @@ export default function ProtectedLayout() {
 
     const isOnboarding = segments.includes('onboarding' as never);
 
-    if (onboardingStatus !== 'COMPLETED' && !isOnboarding) {
+    if (requiresOnboarding(onboardingStatus) && !isOnboarding) {
       const completedStep = Number(onboardingStep ?? 0);
       router.replace(
         `/(app)/(protected)/onboarding?step=${completedStep + 1}&resumeStep=${completedStep}`,
@@ -46,7 +47,7 @@ export default function ProtectedLayout() {
         animation: 'slide_from_right',
       }}
     >
-      <Stack.Screen name="(main)" />
+      <Stack.Screen name="(tabs)" />
 
       <Stack.Screen name="onboarding" />
     </Stack>

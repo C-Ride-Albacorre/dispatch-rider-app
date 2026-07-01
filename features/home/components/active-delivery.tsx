@@ -1,57 +1,81 @@
 import { Fonts } from '@/constants/theme';
+import StatusDot from '@/features/active/status-dot';
 import { useTheme } from '@/hooks/use-theme';
+import { ActiveOrderProps } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-export default function ActiveDelivery() {
+export default function ActiveDelivery({
+  activeOrder,
+  etaText,
+  etaVendor,
+  etaCustomer,
+  isPickupActive,
+  isCustomerActive,
+}: {
+  activeOrder: ActiveOrderProps;
+  etaText: string;
+  isPickupActive: boolean;
+  isCustomerActive: boolean;
+  etaVendor: number | null;
+  etaCustomer: number | null;
+}) {
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
+
   return (
-    <View style={styles.activeDeliveryContainer}>
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <Ionicons name="bicycle-outline" size={16} color={Colors.success} />
-          <Text style={styles.activeDeliveryText}>Active Delivery</Text>
+    <View style={styles.routeCard}>
+      <Text style={styles.sectionTitle}>Delivery Route</Text>
+
+      {/* Pickup */}
+      <View style={styles.timelineItem}>
+        <View style={styles.indicator}>
+          <StatusDot active={isPickupActive} />
+          <View style={styles.timelineLine} />
         </View>
 
-        <Text style={styles.deliveryIdText}>#CR-2846</Text>
+        <View style={styles.content}>
+          <View style={styles.row}>
+            <Text style={styles.label}>Pickup</Text>
+
+            {etaVendor != null && (
+              <View style={styles.etaContainer}>
+                <Text style={styles.etaText}>ETA: {etaText}</Text>
+              </View>
+            )}
+          </View>
+
+          <Text style={styles.title} numberOfLines={1}>{activeOrder.store_name}</Text>
+
+          <Text style={styles.address} numberOfLines={1}>
+            {activeOrder.pickup_location.address}
+          </Text>
+        </View>
       </View>
 
-      <View style={styles.deliveryInfoContainer}>
-        <View style={styles.deliveryAddresses}>
-          <View style={styles.addressContainer}>
-            <Text style={styles.labelText}>From</Text>
-
-            <Text style={styles.addressText}>
-              Terra Kulture, Victoria Island
-            </Text>
-          </View>
-
-          <Ionicons
-            name="navigate-outline"
-            size={16}
-            color={Colors.textSecondary}
-          />
-
-          <View style={styles.addressContainer}>
-            <Text style={styles.labelText}>To</Text>
-
-            <Text style={styles.addressText}>
-              Plot 22, Ahmadu Bello Way, VI
-            </Text>
-          </View>
+      {/* Drop-off */}
+      <View style={styles.timelineItem}>
+        <View style={styles.indicator}>
+          <StatusDot active={isCustomerActive} />
         </View>
 
-        <View style={styles.progressContainer}>
-          <View style={styles.progressBar}></View>
-        </View>
+        <View style={styles.content}>
+          <View style={styles.row}>
+            <Text style={styles.label}>Drop-off</Text>
 
-        <View style={styles.fareRow}>
-          <Text style={styles.etaText}>ETA: 12 mins</Text>
+            {etaCustomer != null && (
+              <View style={styles.etaContainer}>
+                <Text style={styles.etaText}>ETA: {etaCustomer} min</Text>
+              </View>
+            )}
+          </View>
 
-          <Text style={styles.fareText}>NGN 5,500</Text>
+          <Text style={styles.title} numberOfLines={1}>Customer</Text>
+
+          <Text style={styles.address} numberOfLines={1}>
+            {activeOrder.dropoff_location.address}
+          </Text>
         </View>
       </View>
     </View>
@@ -60,104 +84,84 @@ export default function ActiveDelivery() {
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    activeDeliveryContainer: {
+    routeCard: {
+      backgroundColor: Colors.card,
+      borderRadius: scale(16),
       padding: scale(16),
-      backgroundColor: Colors.background,
-      borderLeftWidth: 4,
       borderWidth: 1,
-      borderLeftColor: Colors.success,
       borderColor: Colors.border,
-      borderRadius: scale(12),
-      gap: scale(12),
-      shadowColor: Colors.shadow,
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
+      gap: scale(16),
     },
 
-    header: {
+    sectionTitle: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandMedium,
+      color: Colors.text,
+    },
+
+    timelineItem: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+    },
+
+    indicator: {
+      width: scale(24),
+      alignItems: 'center',
+      marginRight: scale(14),
+    },
+
+    timelineLine: {
+      width: scale(2),
+      flex: 1,
+      minHeight: scale(70),
+      marginTop: scale(6),
+      backgroundColor: Colors.border,
+    },
+
+    content: {
+      flex: 1,
+      paddingBottom: scale(24),
+    },
+
+    row: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
 
-    headerLeft: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(6),
-    },
-
-    activeDeliveryText: {
+    label: {
       fontSize: scale(12),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.text,
-    },
-
-    deliveryIdText: {
-      fontSize: scale(10),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textSecondary,
-    },
-
-    deliveryInfoContainer: {
-      gap: scale(12),
-    },
-
-    deliveryAddresses: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(12),
-    },
-
-    addressContainer: {
-      flexDirection: 'column',
-      gap: scale(4),
-
-      maxWidth: '45%',
-    },
-
-    labelText: {
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandMedium,
       color: Colors.textMuted,
-    },
-
-    addressText: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
+    },
+
+    title: {
+      marginTop: scale(4),
+      fontSize: scale(15),
+      fontFamily: Fonts.brandSemiBold,
       color: Colors.text,
+      textTransform: 'capitalize',
     },
 
-    progressContainer: {
-      height: scale(6),
-      backgroundColor: Colors.inputBackground,
-      borderRadius: scale(3),
-      overflow: 'hidden',
+    address: {
+      marginTop: scale(4),
+      fontSize: scale(13),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.textSecondary,
+      lineHeight: scale(20),
+      textTransform: 'capitalize',
     },
 
-    progressBar: {
-      width: '60%',
-      height: '100%',
-      backgroundColor: Colors.success,
-      borderRadius: scale(3),
-    },
-
-    fareRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
+    etaContainer: {
+      paddingVertical: scale(4),
+      paddingHorizontal: scale(8),
+      backgroundColor: Colors.successExtraLight,
+      borderRadius: scale(8),
     },
 
     etaText: {
-      fontSize: normalize(10),
+      fontSize: scale(11),
       fontFamily: Fonts.brandMedium,
-      color: Colors.textSecondary,
-    },
-
-    fareText: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.primary,
+      color: Colors.success,
     },
   });

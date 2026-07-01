@@ -150,7 +150,7 @@ export default function VerifyEmailScreen() {
           <View>
             <IconButton
               variant="outlineSecondary"
-              onPress={() => router.back()}
+              onPress={() => router.push('/(app)/(auth)/register')}
             >
               <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
             </IconButton>

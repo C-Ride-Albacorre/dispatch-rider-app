@@ -1,9 +1,11 @@
-import Toast from 'react-native-toast-message';
+import { useAuthStore } from '@/store/auth-store';
+import { normalizeOnboardingStatus } from '@/utils/onboarding-status';
 import {
-  PersonalInfoFormValues,
-  Step3Payload,
-  VehicleInfoFormValues,
-} from './schema';
+  saveOnboardingStatus,
+  saveOnboardingStep,
+} from '@/utils/token-storage';
+import Toast from 'react-native-toast-message';
+import { PersonalInfoFormValues, Step3Payload } from './schema';
 import { onboarding, submitDriverDocuments } from './service';
 
 export type VehicleInfoPayload = {
@@ -134,6 +136,17 @@ export async function submitDocumentsAction(payload: Step3Payload) {
       type: 'success',
       text1: 'Success',
       text2: data?.message ?? 'Documents uploaded successfully',
+    });
+
+    const latestStatus =
+      normalizeOnboardingStatus(data?.onboardingStatus) ?? 'SUBMITTED';
+
+    await saveOnboardingStatus(latestStatus);
+    await saveOnboardingStep(3);
+
+    useAuthStore.getState().setAuth({
+      onboardingStatus: latestStatus,
+      onboardingStep: 3,
     });
 
     return {

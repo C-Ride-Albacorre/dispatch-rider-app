@@ -1,88 +1,102 @@
-import AppModal from '@/components/layout/app-modal';
-import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
-import { useAcceptJob } from '../use-fetch';
+import { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Toast from 'react-native-toast-message';
-import { useDriverJobsStore } from '@/store/driver-jobs-store';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-export default function ConfirmRequest({
-  showConfirmRequestModal,
-  setShowConfirmRequestModal,
+import AppModal from '@/components/layout/app-modal';
+import Button from '@/components/ui/buttons/button';
+
+import { Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
+
+import { normalize, scale } from '@/utils/scaling';
+import { useDeliveryJob, usePickupJob } from './use-fetch';
+import { useDriverJobsStore } from '@/store/driver-jobs-store';
+
+export default function ConfirmDelivery({
+  showConfirmDeliveryModal,
+  setShowConfirmDeliveryModal,
   selectedOrderId,
 }: {
-  showConfirmRequestModal: boolean;
-  setShowConfirmRequestModal: (value: boolean) => void;
+  showConfirmDeliveryModal: boolean;
+  setShowConfirmDeliveryModal: (value: boolean) => void;
   selectedOrderId: string;
 }) {
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
-  const { mutate: acceptJob, isPending } = useAcceptJob();
+  const { mutate: deliveryJob, isPending } = useDeliveryJob();
 
-  const socket = useDriverJobsStore((s) => s.socket);
+  const setActiveOrder = useDriverJobsStore((s) => s.setActiveOrder);
+  const clearTracking = useDriverJobsStore((s) => s.clearTracking);
 
-  const handleAccept = () => {
+  const handleDelivery = () => {
     if (!selectedOrderId) {
       Toast.show({
         type: 'error',
         text1: 'No order selected',
       });
+
       return;
     }
 
-    acceptJob(selectedOrderId, {
-      onSuccess: () => {
-        setShowConfirmRequestModal(false);
-
-        Toast.show({
-          type: 'success',
-          text1: 'Request accepted successfully',
-        });
-
-        // JUST NAVIGATE
-        router.replace('/(app)/(protected)/(tabs)/active');
+    deliveryJob(
+      {
+        orderId: selectedOrderId,
       },
+      {
+        onSuccess: () => {
 
-      onError: (error: any) => {
-        Toast.show({
-          type: 'error',
-          text1: error?.message || 'Failed to accept request',
-        });
+          setActiveOrder(null);
+          clearTracking();
+
+          setShowConfirmDeliveryModal(false);
+
+          Toast.show({
+            type: 'success',
+            text1: 'Delivery confirmed successfully',
+          });
+
+          router.replace('/(app)/(protected)/(tabs)/jobs');
+        },
+
+        onError: (error: any) => {
+          Toast.show({
+            type: 'error',
+            text1: error?.message || 'Failed to confirm delivery',
+          });
+        },
       },
-    });
+    );
   };
 
   return (
     <AppModal
-      visible={showConfirmRequestModal}
-      onClose={() => setShowConfirmRequestModal(false)}
+      visible={showConfirmDeliveryModal}
+      onClose={() => setShowConfirmDeliveryModal(false)}
       closeOnBackdropPress={!isPending}
     >
       <View style={styles.confirmRequestModal}>
         <View style={styles.confirmRequestIconWrapper}>
           <Ionicons
-            name="bicycle-outline"
+            name="cube-outline"
             size={scale(32)}
-            color={Colors.primary}
+            color={Colors.success}
           />
         </View>
 
-        <Text style={styles.confirmRequestTitle}>Confirm Request</Text>
+        <Text style={styles.confirmRequestTitle}>Confirm Delivery</Text>
 
         <Text style={styles.confirmRequestDescription}>
-          Are you sure you want to confirm this request?
+          Are you sure you want to confirm the delivery?
         </Text>
 
         <View style={styles.actionContainer}>
           <Button
             variant="outline"
-            onPress={() => setShowConfirmRequestModal(false)}
+            onPress={() => setShowConfirmDeliveryModal(false)}
             style={styles.cancelBtn}
             disabled={isPending}
           >
@@ -90,13 +104,13 @@ export default function ConfirmRequest({
           </Button>
 
           <Button
-            variant="primary"
+            variant="green"
             loading={isPending}
             disabled={isPending}
-            onPress={handleAccept}
+            onPress={handleDelivery}
             style={styles.confirmRequestButton}
           >
-            Yes, Confirm
+            Confirm
           </Button>
         </View>
       </View>
@@ -115,7 +129,7 @@ const createStyles = (Colors: any) =>
       width: scale(64),
       height: scale(64),
       borderRadius: scale(32),
-      backgroundColor: Colors.primaryLight,
+      backgroundColor: Colors.successExtraLight,
       justifyContent: 'center',
       alignItems: 'center',
       marginBottom: scale(16),
@@ -134,18 +148,41 @@ const createStyles = (Colors: any) =>
       color: Colors.textSecondary,
       textAlign: 'center',
       lineHeight: normalize(20),
-      marginBottom: scale(24),
+      marginBottom: scale(20),
+    },
+
+    reasonsContainer: {
+      width: '100%',
+      gap: scale(10),
+      marginBottom: scale(20),
+    },
+
+    reasonButton: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: scale(12),
+      paddingVertical: scale(14),
+      paddingHorizontal: scale(14),
+      width: '100%',
+    },
+
+    reasonText: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: normalize(13),
+      color: Colors.text,
     },
 
     actionContainer: {
       flexDirection: 'row',
       gap: scale(12),
       width: '100%',
+      marginTop: scale(20),
     },
 
     cancelBtn: {
       flex: 1,
     },
+
     confirmRequestButton: {
       flex: 1,
     },

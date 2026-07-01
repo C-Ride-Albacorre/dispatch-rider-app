@@ -97,7 +97,7 @@ export default function OrderDetailSheet() {
             variant="outlineSecondary"
             onPress={() => router.dismiss()}
           >
-            <Ionicons name="close" size={16} color={Colors.textSecondary} />
+            <Ionicons name="chevron-down" size={16} color={Colors.textSecondary} />
           </IconButton>
         </View>
 

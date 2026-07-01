@@ -16,14 +16,39 @@ import { useAvailableJobs } from '@/features/jobs/use-fetch';
 import { useDriverSocket } from '@/hooks/use-driver-socket';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
+import { useAuthStore } from '@/store/auth-store';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DriverStatus } from '../home';
+
+export type DriverOrder = {
+  order_id: string;
+  order_number?: string;
+  order_status?: string;
+
+  store_name?: string;
+  store_logo?: string;
+
+  total_amount: number;
+
+  pickup_location?: {
+    latitude: number;
+    longitude: number;
+    storeName?: string;
+  };
+
+  dropoff_location?: {
+    address?: string;
+  };
+
+  created_at?: string;
+};
 
 export default function Jobs() {
   const insets = useSafeAreaInsets();
@@ -35,18 +60,20 @@ export default function Jobs() {
     }, []),
   );
 
+  const router = useRouter();
+
   const scrollHandler = useScrollHeader();
 
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
+  const { data: dashboardData } = useDashboardStats();
 
-    const { data: dashboardData } = useDashboardStats();
+  const driverStatus: DriverStatus =
+    (dashboardData?.stats?.status as DriverStatus) ?? 'OFFLINE';
 
-  const driverStatus = dashboardData?.stats?.status;
-
-  useDriverSocket(driverStatus === 'ONLINE');
+  const isBusy = driverStatus === 'BUSY';
 
   const {
     location,
@@ -57,25 +84,65 @@ export default function Jobs() {
     dismissPermissionModal,
   } = useLocation();
 
+  // Only connect socket when ONLINE
+  useDriverSocket(driverStatus);
+
+  // Only fetch jobs when NOT busy
   const { data, isLoading, error } = useAvailableJobs(
     location?.latitude,
     location?.longitude,
+    {
+      enabled: !isBusy,
+    },
   );
-
-  console.log('Available jobs:', data);
-
-  const socketJobs = useDriverJobsStore((state) => state.incomingOrders);
 
   const apiJobs = data?.data ?? [];
 
-  console.log(' Socket jobs:', socketJobs, 'API jobs:', apiJobs);
+  const socketJobs = useDriverJobsStore((s) => s.incomingOrders);
 
-  const jobs = socketJobs.length > 0 ? socketJobs : apiJobs;
+  /**
+   * Normalize job structure
+   */
+  const normalizeJob = (job: any) => ({
+    ...job,
+
+    order_id: job.order_id || job.orderId,
+
+    store_name:
+      job.store_name || job.storeName || job.pickup_location?.storeName,
+
+    total_amount: job.total_amount || job.totalAmount || 0,
+
+    store_lat: job.store_lat || job.pickup_location?.latitude,
+
+    store_lng: job.store_lng || job.pickup_location?.longitude,
+  });
+
+  /**
+   * Merge API jobs + realtime socket jobs
+   */
+  const jobsMap = new Map<string, any>();
+
+  // API jobs
+  apiJobs.forEach((job: any) => {
+    const normalized = normalizeJob(job);
+
+    jobsMap.set(normalized.order_id, normalized);
+  });
+
+  // Socket jobs override API jobs
+  socketJobs.forEach((job: any) => {
+    const normalized = normalizeJob(job);
+
+    jobsMap.set(normalized.order_id, normalized);
+  });
+
+  const jobs = Array.from(jobsMap.values());
 
   const renderListHeader = useCallback(
     () => <RenderJobHeader jobs={jobs} />,
     [jobs],
-  ); // Only re-creates if the jobs array size changes
+  );
 
   const renderEmptyState = useCallback(() => <NoJobs />, []);
 
@@ -84,13 +151,16 @@ export default function Jobs() {
     [],
   );
 
-  // Checking permission status on first mount
+  // Checking permission status
   if (permissionStatus === 'checking') {
     return (
       <View
         style={[
           styles.container,
-          { justifyContent: 'center', alignItems: 'center' },
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
         ]}
       >
         <View
@@ -102,18 +172,23 @@ export default function Jobs() {
             color={Colors.primary}
           />
         </View>
+
         <Text style={styles.loadingText}>Checking location access...</Text>
       </View>
     );
   }
 
-  // Permission explicitly denied — show actionable blocked state
+  // Permission denied
   if (permissionStatus === 'denied') {
     return (
       <View
         style={[
           styles.container,
-          { justifyContent: 'center', alignItems: 'center', gap: scale(16) },
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: scale(16),
+          },
         ]}
       >
         <View
@@ -125,9 +200,11 @@ export default function Jobs() {
             color={Colors.textMuted}
           />
         </View>
+
         <Text style={[styles.title, { textAlign: 'center' }]}>
           Location Access Required
         </Text>
+
         <Text
           style={[
             styles.loadingText,
@@ -141,6 +218,7 @@ export default function Jobs() {
           C-Ride needs your location to show nearby delivery jobs. Please enable
           location access in your device settings.
         </Text>
+
         <LocationPermissionModal
           visible={showPermissionModal}
           onAllow={requestPermission}
@@ -150,6 +228,68 @@ export default function Jobs() {
     );
   }
 
+  // BUSY state
+  if (isBusy) {
+    return (
+      <>
+        <LocationPermissionModal
+          visible={showPermissionModal}
+          onAllow={requestPermission}
+          onDeny={dismissPermissionModal}
+        />
+
+        <View
+          style={[
+            styles.container,
+            {
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}
+        >
+          <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
+            <View
+              style={[
+                styles.iconWrapper,
+                {
+                  backgroundColor: Colors.warningLight,
+                },
+              ]}
+            >
+              <Ionicons
+                name="briefcase-outline"
+                size={scale(36)}
+                color={Colors.warning}
+              />
+            </View>
+
+            <View style={{ gap: scale(8), marginBottom: scale(16) }}>
+              <Text style={styles.title}>You currently have an active job</Text>
+
+              <Text style={styles.subtitle}>
+                Complete your current delivery before accepting new jobs.
+              </Text>
+            </View>
+
+            <Button
+              variant="green"
+              style={{
+                width: '100%',
+              }}
+              onPress={() => router.push('/(app)/(protected)/(tabs)/active')}
+              // onPress={() => {
+              //   router.push('/active-order');
+              // }}
+            >
+              View Active Order
+            </Button>
+          </View>
+        </View>
+      </>
+    );
+  }
+
+  // Loading state
   if (locationLoading || isLoading) {
     return (
       <>
@@ -164,6 +304,7 @@ export default function Jobs() {
     );
   }
 
+  // Error state
   if (error) {
     return <ErrorContent error={error} />;
   }
@@ -224,6 +365,7 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(14),
       fontFamily: Fonts.brandRegular,
       textAlign: 'center',
+      color: Colors.textMuted,
     },
 
     loadingText: {

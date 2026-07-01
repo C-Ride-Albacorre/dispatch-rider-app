@@ -26,13 +26,10 @@ export default function NoDelivery() {
         variant="green"
         size="md"
         onPress={() => router.push('/(app)/(protected)/(tabs)/jobs')}
-        leftIcon={
-          <Ionicons
-            name="navigate-outline"
-            size={16}
-            color={isDark ? Colors.text : Colors.background}
-          />
-        }
+       
+        
+
+    leftIcon={<Ionicons name="search-outline" size={16}  color={isDark ? Colors.text : Colors.background} />}
       >
         Search for Deliveries
       </Button>

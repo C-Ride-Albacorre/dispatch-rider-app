@@ -184,9 +184,11 @@ export default function Documents({
         title="Onboarding Completed"
         // path="/(app)/(protected)/(tabs)/home"
         description="You have successfully completed the onboarding process. Your account is now being reviewed. We will notify you once the verification is complete."
-        buttonText="Contact Support"
+   
         showSuccessModal={showSuccessModal}
         setShowSuccessModal={setShowSuccessModal}
+        // buttonText="Get Started"
+       
       />
     </>
   );

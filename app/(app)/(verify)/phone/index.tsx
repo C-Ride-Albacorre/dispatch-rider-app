@@ -111,8 +111,8 @@ export default function VerifyPhoneScreen() {
         <ScrollView contentContainerStyle={styles.container}>
           <View>
             <IconButton
-            variant='outlineSecondary'
-
+              variant="outlineSecondary"
+              onPress={() => router.push('/(app)/(auth)/register')}
             >
               <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
             </IconButton>
@@ -172,53 +172,51 @@ const createStyles = (Colors: any) =>
       backgroundColor: Colors.background,
     },
 
-  container: {
-    paddingHorizontal: scale(20),
-    paddingBottom: scale(20),
-    paddingTop: scale(12),
-    flexGrow: 1,
-    gap: scale(24),
-  },
+    container: {
+      paddingHorizontal: scale(20),
+      paddingBottom: scale(20),
+      paddingTop: scale(12),
+      flexGrow: 1,
+      gap: scale(24),
+    },
 
+    returnIcon: {
+      color: Colors.textSecondary,
+    },
 
+    textContainer: {
+      gap: 8,
+      alignItems: 'center',
+      marginVertical: scale(20),
+    },
 
-  returnIcon: {
-    color: Colors.textSecondary,
-  },
+    title: {
+      fontSize: normalize(26),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
 
-  textContainer: {
-    gap: 8,
-    alignItems: 'center',
-    marginVertical: scale(20),
-  },
+    subtitle: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.textSecondary,
+      textAlign: 'center',
+    },
 
-  title: {
-    fontSize: normalize(26),
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
+    resendContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: scale(20),
+      gap: scale(16),
+    },
 
-  subtitle: {
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-    textAlign: 'center',
-  },
+    resendText: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandMedium,
+      color: Colors.primary,
+    },
 
-  resendContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: scale(20),
-    gap: scale(16),
-  },
-
-  resendText: {
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandMedium,
-    color: Colors.primary,
-  },
-
-  disabledResendText: {
-    color: Colors.textSecondary,
-  },
-});
+    disabledResendText: {
+      color: Colors.textSecondary,
+    },
+  });

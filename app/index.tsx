@@ -8,6 +8,7 @@ import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
+import { requiresOnboarding } from '@/utils/onboarding-status';
 
 export default function Home() {
   const opacity = useRef(new Animated.Value(0)).current;
@@ -56,7 +57,7 @@ export default function Home() {
       } = useAuthStore.getState();
 
       if (authStatus === 'AUTHENTICATED') {
-        if (onboardingStatus !== 'COMPLETED') {
+        if (requiresOnboarding(onboardingStatus)) {
           const completedStep = Number(onboardingStep ?? 0);
           router.replace(
             `/(app)/(protected)/onboarding?step=${completedStep + 1}&resumeStep=${completedStep}`,

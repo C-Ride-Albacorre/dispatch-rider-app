@@ -145,7 +145,7 @@ export default function TabsLayout() {
             }}
           />
 
-          <Tabs.Screen
+          {/* <Tabs.Screen
             name="earnings"
             options={{
               title: 'Earnings',
@@ -158,7 +158,7 @@ export default function TabsLayout() {
                 />
               ),
             }}
-          />
+          /> */}
 
           <Tabs.Screen
             name="profile"

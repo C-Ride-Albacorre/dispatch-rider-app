@@ -11,10 +11,20 @@ import RecentDeliveries from '@/features/home/components/recent-deliveries';
 import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  ActiveOrderProps,
+  useDriverJobsStore,
+} from '@/store/driver-jobs-store';
 import { scale } from '@/utils/scaling';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import ActiveDelivery from '@/features/home/components/active-delivery';
+import { useDriverSocket } from '@/hooks/use-driver-socket';
+import { useMapSocket } from '@/hooks/use-map-socket';
+import { useEffect, useMemo } from 'react';
+
+export type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
 
 export default function Dashboard() {
   const insets = useSafeAreaInsets();
@@ -25,13 +35,57 @@ export default function Dashboard() {
 
   const driverInfo = data?.personalInfo;
 
-  const driverStatus = stats?.status ?? 'OFFLINE';
+  const driverStatus: DriverStatus =
+    (stats?.status as DriverStatus) ?? 'OFFLINE';
+
+  useDriverSocket(driverStatus);
+
+  const activeOrder: ActiveOrderProps | null = useDriverJobsStore(
+    (s) => s.activeOrder,
+  );
+
+  useMapSocket(activeOrder?.order_id);
+
+  const etaToVendor = useDriverJobsStore((s) => s.tracking.eta.toVendor);
+
+  const etaToCustomer = useDriverJobsStore((s) => s.tracking.eta.toCustomer);
 
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
   const scrollHandler = useScrollHeader();
+
+  const etaText = useMemo(() => {
+    const eta = etaToCustomer ?? etaToVendor;
+
+    if (eta == null) return 'Waiting...';
+
+    if (eta < 60) return `${eta} sec`;
+
+    return `${Math.ceil(eta / 60)} min`;
+  }, [etaToVendor, etaToCustomer]);
+
+  const vendorPolyline: string | null = useDriverJobsStore(
+    (s) => s.tracking.polylines.toVendor,
+  );
+
+  const customerPolyline: string | null = useDriverJobsStore(
+    (s) => s.tracking.polylines.toCustomer,
+  );
+
+  const orderStatus = useDriverJobsStore((s) => s.tracking.orderStatus);
+
+  const deliveryPhase = useMemo(() => {
+    if (vendorPolyline) return 'TO_VENDOR';
+    if (customerPolyline) return 'TO_CUSTOMER';
+    if (orderStatus === 'PICKED_UP') return 'PICKED_UP';
+    if (orderStatus === 'DELIVERED') return 'DELIVERED';
+    return 'IDLE';
+  }, [vendorPolyline, customerPolyline, orderStatus]);
+
+  const isPickupActive = deliveryPhase === 'TO_VENDOR';
+  const isCustomerActive = deliveryPhase === 'TO_CUSTOMER';
 
   return (
     <Animated.ScrollView
@@ -44,11 +98,20 @@ export default function Dashboard() {
 
         <StatFrame stats={stats} isLoading={isLoading} />
 
-        <NoDelivery />
+        {!activeOrder ? (
+          <NoDelivery />
+        ) : (
+          <ActiveDelivery
+            activeOrder={activeOrder}
+            etaText={etaText}
+            isPickupActive={isPickupActive}
+            isCustomerActive={isCustomerActive}
+            etaVendor={etaToVendor}
+            etaCustomer={etaToCustomer}
+          />
+        )}
 
         <RecentDeliveries />
-
-   
       </View>
 
       {/* <Footer /> */}

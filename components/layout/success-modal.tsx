@@ -14,6 +14,7 @@ import Button from '@/components/ui/buttons/button';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Fonts } from '@/constants/theme';
 
 type AppRoutes =
   | '/(app)/(auth)/login'
@@ -174,12 +175,15 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(24),
       fontWeight: '600',
       textAlign: 'center',
+      fontFamily: Fonts.brandSemiBold,
       marginBottom: scale(18),
       color: Colors.text,
     },
 
     description: {
-      fontSize: normalize(16),
+      fontSize: normalize(14),
+      lineHeight: scale(20),  
+      fontFamily: Fonts.brandRegular,
       textAlign: 'center',
       marginBottom: scale(24),
       color: Colors.textSecondary,

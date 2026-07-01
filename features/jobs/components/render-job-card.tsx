@@ -261,6 +261,7 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(13),
       color: Colors.textSecondary,
       fontFamily: Fonts.brandMedium,
+      textTransform: 'capitalize',
     },
     metaRow: {
       flexDirection: 'row',

@@ -1,3 +1,4 @@
+import { DriverStatus } from '@/app/(app)/(protected)/(tabs)/home';
 import AppModal from '@/components/layout/app-modal';
 import Avatar from '@/components/ui/avatar';
 import IconButton from '@/components/ui/buttons/icon-button';
@@ -17,6 +18,8 @@ import {
   View,
 } from 'react-native';
 
+
+
 export default function AppHeader() {
   const { Colors } = useTheme();
   const styles = createHeaderStyles(Colors);
@@ -31,13 +34,12 @@ export default function AppHeader() {
 
   const driverInfo = data?.personalInfo;
 
-  const status = data?.stats?.status ?? 'OFFLINE';
-
   // useEffect(() => {
   //   setDriverStatus(status);
   // }, [status]);
 
-  const driverStatus = data?.stats?.status ?? 'OFFLINE';
+  const driverStatus: DriverStatus =
+    (data?.stats?.status as DriverStatus) ?? 'OFFLINE';
 
   const driverName =
     `${driverInfo?.firstName ?? ''} ${driverInfo?.lastName ?? ''}`.trim();
@@ -61,11 +63,15 @@ export default function AppHeader() {
               backgroundColor:
                 driverStatus === 'ONLINE'
                   ? Colors.successExtraLight
-                  : Colors.backgroundTertiary,
+                  : driverStatus === 'BUSY'
+                    ? Colors.warningLight
+                    : Colors.backgroundTertiary,
               borderColor:
                 driverStatus === 'ONLINE'
                   ? Colors.success
-                  : Colors.backgroundSecondary,
+                  : driverStatus === 'BUSY'
+                    ? Colors.warning
+                    : Colors.backgroundSecondary,
             },
           ]}
         >
@@ -76,7 +82,9 @@ export default function AppHeader() {
                 backgroundColor:
                   driverStatus === 'ONLINE'
                     ? Colors.success
-                    : Colors.textSecondary,
+                    : driverStatus === 'BUSY'
+                      ? Colors.warning
+                      : Colors.textSecondary,
               },
             ]}
           />
@@ -88,7 +96,9 @@ export default function AppHeader() {
                 color:
                   driverStatus === 'ONLINE'
                     ? Colors.success
-                    : Colors.textSecondary,
+                    : driverStatus === 'BUSY'
+                      ? Colors.warning
+                      : Colors.textSecondary,
               },
             ]}
           >
@@ -96,6 +106,8 @@ export default function AppHeader() {
               <ActivityIndicator size={12} color={Colors.success} />
             ) : driverStatus === 'ONLINE' ? (
               'Online'
+            ) : driverStatus === 'BUSY' ? (
+              'Busy'
             ) : (
               'Offline'
             )}
@@ -168,7 +180,7 @@ const createHeaderStyles = (Colors: any) =>
     },
     statusRow: {
       paddingHorizontal: scale(8),
-      paddingVertical: scale(4),
+      paddingVertical: scale(2),
       borderRadius: scale(20),
 
       borderWidth: 1,

@@ -278,7 +278,7 @@ export default function LoginForm() {
               )}
             />
 
-            <View style={styles.forgotPasswordContainer}>
+            {/* <View style={styles.forgotPasswordContainer}>
               <Link href={'/forget-password'} asChild>
                 <TouchableOpacity>
                   <Text style={styles.forgotPasswordText}>
@@ -286,7 +286,7 @@ export default function LoginForm() {
                   </Text>
                 </TouchableOpacity>
               </Link>
-            </View>
+            </View> */}
 
             <Button
               size="lg"
