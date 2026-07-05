@@ -1,75 +1,46 @@
-import { create } from 'zustand';
 import { Socket } from 'socket.io-client';
+import { create } from 'zustand';
 
-export type DriverOrder = {
-  order_id: string;
-  order_number?: string;
-  order_status?: string;
-
-  store_name?: string;
-  store_logo?: string;
-
-  total_amount: number;
-
-  pickup_location?: {
-    latitude: number;
-    longitude: number;
-    storeName?: string;
-  };
-
-  dropoff_location?: {
-    address?: string;
-  };
-
-  created_at?: string;
-};
-
-export type OrderHistoryItem = {
-  status: string;
-  timestamp: string;
-};
-
-export type DriverLocationPayload = {
-  lat: number;
-  lng: number;
-  heading?: number;
-};
+export type OrderStatus =
+  | 'ORDER_ASSIGNED'
+  | 'PICKED_UP'
+  | 'DELIVERED'
+  | 'CANCELLED'
+  | 'IN_TRANSIT'
+  | string;
 
 export interface ActiveOrderProps {
-  assigned_at: string;
-  created_at: string;
-
-  distance_meters: number;
-
   order_id: string;
   order_number: string;
+  order_status: OrderStatus;
 
-  order_status: string;
+  store_id: string;
+  store_name: string;
+  store_logo: string;
+
+  store_lat: number;
+  store_lng: number;
 
   total_amount: number;
 
-  rn: string;
-
-  store_id: string;
-  store_lat: number;
-  store_lng: number;
-  store_logo: string;
-  store_name: string;
+  distance_meters?: number;
 
   pickup_location: {
     address: string;
     latitude: number;
     longitude: number;
-    storeId: string;
     storeName: string;
+    storeId: string;
   };
 
   dropoff_location: {
     address: string;
+    latitude: number;
+    longitude: number;
     city: string;
+    state: string;
     country: string;
     postalCode: string;
-    state: string;
   };
 
   items: {
@@ -77,183 +48,146 @@ export interface ActiveOrderProps {
     quantity: number;
     unitPrice: number;
   }[];
+
+  created_at: string;
+  assigned_at: string;
 }
 
+export type DriverLocation = {
+  lat: number;
+  lng: number;
+  heading?: number;
+};
+
+export type DriverInfo = {
+  driver_id: string;
+  driver_name: string;
+  driver_photo: string | null;
+  driver_phone: string;
+  driver_rating: number;
+  driver_total_trips: number;
+  driver_status: string;
+};
+
 type DriverJobsState = {
-  /**
-   * SOCKET
-   */
+  /** SOCKET */
   socket: Socket | null;
   setSocket: (socket: Socket | null) => void;
 
-  /**
-   * ACTIVE ORDER
-   */
+  /** ORDER LIFECYCLE */
   activeOrder: ActiveOrderProps | null;
+  orderStatus: OrderStatus | null;
+
   setActiveOrder: (order: ActiveOrderProps | null) => void;
+  setOrderStatus: (status: OrderStatus) => void;
 
-  /**
-   * LIVE TRACKING
-   */
-  tracking: {
-    driverLocation: DriverLocationPayload | null;
+  clearActiveOrder: () => void;
 
-    eta: {
-      toVendor: number | null;
-      toCustomer: number | null;
-    };
+  /** DERIVED SAFE ACCESS (prevents null flicker in UI) */
+  hasActiveOrder: () => boolean;
 
-    polylines: {
-      toVendor: string | null;
-      toCustomer: string | null;
-    };
+  /** DRIVER INFO (for the assigned driver) */
+  driverInfo: DriverInfo | null;
+  setDriverInfo: (driver: DriverInfo | null) => void;
 
-    orderStatus: string | null;
+  /** TRACKING */
+  driverLocation: DriverLocation | null;
+  setDriverLocation: (loc: DriverLocation | null) => void;
 
-    history: OrderHistoryItem[];
-  };
+  etaToVendor: number | null;
+  etaToCustomer: number | null;
 
-  setDriverLocation: (location: DriverLocationPayload | null) => void;
+  setEta: (type: 'vendor' | 'customer', value: number | null) => void;
 
-  setEta: (leg: 'to-vendor' | 'to-customer', eta: number | null) => void;
+  polylineToVendor: string | null;
+  polylineToCustomer: string | null;
 
-  setPolyline: (
-    leg: 'to-vendor' | 'to-customer',
-    polyline: string | null,
-  ) => void;
-
-  setOrderStatus: (status: string | null) => void;
-
-  setHistory: (history: OrderHistoryItem[]) => void;
+  setPolyline: (type: 'vendor' | 'customer', value: string | null) => void;
 
   clearTracking: () => void;
 
-  /**
-   * INCOMING JOBS
-   */
-  incomingOrders: DriverOrder[];
-
-  addOrder: (order: DriverOrder) => void;
-
+  /** INCOMING ORDERS */
+  incomingOrders: any[];
+  addOrder: (order: any) => void;
   removeOrder: (orderId: string) => void;
-
-  clearOrders: () => void;
+  clearIncoming: () => void;
 };
 
-export const useDriverJobsStore = create<DriverJobsState>((set) => ({
-  /**
-   * SOCKET
-   */
+export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
+  /** SOCKET */
   socket: null,
+  setSocket: (socket) => set({ socket }),
 
-  setSocket: (socket) =>
-    set({
-      socket,
-    }),
-
-  /**
-   * ACTIVE ORDER
-   */
+  /** ORDER */
   activeOrder: null,
+  orderStatus: null,
 
   setActiveOrder: (order) =>
     set({
       activeOrder: order,
+      orderStatus: order?.order_status ?? null,
     }),
-
-  /**
-   * TRACKING
-   */
-  tracking: {
-    driverLocation: null,
-
-    eta: {
-      toVendor: null,
-      toCustomer: null,
-    },
-
-    polylines: {
-      toVendor: null,
-      toCustomer: null,
-    },
-
-    orderStatus: null,
-
-    history: [],
-  },
-
-  setDriverLocation: (location) =>
-    set((state) => ({
-      tracking: {
-        ...state.tracking,
-        driverLocation: location,
-      },
-    })),
-
-  setEta: (leg, eta) =>
-    set((state) => ({
-      tracking: {
-        ...state.tracking,
-        eta: {
-          ...state.tracking.eta,
-          [leg === 'to-vendor' ? 'toVendor' : 'toCustomer']: eta,
-        },
-      },
-    })),
-
-  setPolyline: (leg, polyline) =>
-    set((state) => ({
-      tracking: {
-        ...state.tracking,
-        polylines: {
-          ...state.tracking.polylines,
-          [leg === 'to-vendor' ? 'toVendor' : 'toCustomer']: polyline,
-        },
-      },
-    })),
 
   setOrderStatus: (status) =>
     set((state) => ({
-      tracking: {
-        ...state.tracking,
-        orderStatus: status,
-      },
+      orderStatus: status,
+      activeOrder: state.activeOrder
+        ? { ...state.activeOrder, order_status: status }
+        : null,
     })),
 
-  setHistory: (history) =>
+  clearActiveOrder: () =>
+    set({
+      activeOrder: null,
+      orderStatus: null,
+      incomingOrders: [],
+      driverInfo: null,
+      driverLocation: null,
+      etaToVendor: null,
+      etaToCustomer: null,
+      polylineToVendor: null,
+      polylineToCustomer: null,
+    }),
+
+  hasActiveOrder: () => !!get().activeOrder?.order_id,
+
+  /** DRIVER INFO */
+  driverInfo: null,
+  setDriverInfo: (driver) => set({ driverInfo: driver }),
+
+  /** TRACKING */
+  driverLocation: null,
+  setDriverLocation: (loc) => set({ driverLocation: loc }),
+
+  etaToVendor: null,
+  etaToCustomer: null,
+
+  setEta: (type, value) =>
     set((state) => ({
-      tracking: {
-        ...state.tracking,
-        history,
-      },
+      etaToVendor: type === 'vendor' ? value : state.etaToVendor,
+      etaToCustomer: type === 'customer' ? value : state.etaToCustomer,
+    })),
+
+  polylineToVendor: null,
+  polylineToCustomer: null,
+
+  setPolyline: (type, value) =>
+    set((state) => ({
+      polylineToVendor: type === 'vendor' ? value : state.polylineToVendor,
+      polylineToCustomer:
+        type === 'customer' ? value : state.polylineToCustomer,
     })),
 
   clearTracking: () =>
-    set((state) => ({
-      tracking: {
-        ...state.tracking,
+    set({
+      driverLocation: null,
+      etaToVendor: null,
+      etaToCustomer: null,
+      polylineToVendor: null,
+      polylineToCustomer: null,
+    }),
 
-        driverLocation: null,
-
-        eta: {
-          toVendor: null,
-          toCustomer: null,
-        },
-
-        polylines: {
-          toVendor: null,
-          toCustomer: null,
-        },
-
-        orderStatus: null,
-
-        history: [],
-      },
-    })),
-
-  /**
-   * INCOMING JOBS
-   */
+  /** INCOMING */
   incomingOrders: [],
 
   addOrder: (order) =>
@@ -271,8 +205,5 @@ export const useDriverJobsStore = create<DriverJobsState>((set) => ({
       ),
     })),
 
-  clearOrders: () =>
-    set({
-      incomingOrders: [],
-    }),
+  clearIncoming: () => set({ incomingOrders: [] }),
 }));

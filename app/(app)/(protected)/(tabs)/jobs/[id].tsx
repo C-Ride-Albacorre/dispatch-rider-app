@@ -28,6 +28,8 @@ export default function OrderDetailSheet() {
 
   const [selectedOrderId, setSelectedOrderId] = useState<string>('');
 
+  // const [selectedOrder, setSelectedOrder] = useState<any>(null);
+
   const router = useRouter();
 
   const ctx = useContext(ScrollHeaderContext);
@@ -68,6 +70,7 @@ export default function OrderDetailSheet() {
   const handleAccept = () => {
     setShowConfirmRequestModal(true);
     setSelectedOrderId(order.id);
+    // setSelectedOrder(order);
   };
 
   return (
@@ -76,6 +79,7 @@ export default function OrderDetailSheet() {
         showConfirmRequestModal={showConfirmRequestModal}
         setShowConfirmRequestModal={setShowConfirmRequestModal}
         selectedOrderId={selectedOrderId}
+        // selectedOrder={selectedOrder}
       />
 
       <View style={{ flex: 1, backgroundColor: Colors.background }}>
@@ -97,7 +101,11 @@ export default function OrderDetailSheet() {
             variant="outlineSecondary"
             onPress={() => router.dismiss()}
           >
-            <Ionicons name="chevron-down" size={16} color={Colors.textSecondary} />
+            <Ionicons
+              name="chevron-down"
+              size={16}
+              color={Colors.textSecondary}
+            />
           </IconButton>
         </View>
 

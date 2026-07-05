@@ -1,8 +1,7 @@
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import AppModal from '@/components/layout/app-modal';
 import Button from '@/components/ui/buttons/button';
@@ -10,9 +9,10 @@ import Button from '@/components/ui/buttons/button';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { normalize, scale } from '@/utils/scaling';
-import { useDeliveryJob, usePickupJob } from './use-fetch';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
+import { normalize, scale } from '@/utils/scaling';
+import { clearActiveOrder } from '@/utils/token-storage';
+import { useDeliveryJob } from './use-fetch';
 
 export default function ConfirmDelivery({
   showConfirmDeliveryModal,
@@ -48,9 +48,9 @@ export default function ConfirmDelivery({
       },
       {
         onSuccess: () => {
-
           setActiveOrder(null);
           clearTracking();
+          void clearActiveOrder();
 
           setShowConfirmDeliveryModal(false);
 

@@ -2,22 +2,25 @@ import AppModal from '@/components/layout/app-modal';
 import Button from '@/components/ui/buttons/button';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
-import { useAcceptJob } from '../use-fetch';
-import Toast from 'react-native-toast-message';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
+import { normalize, scale } from '@/utils/scaling';
+import { saveActiveOrder } from '@/utils/token-storage';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { StyleSheet, Text, View } from 'react-native';
+import Toast from 'react-native-toast-message';
+import { useAcceptJob } from '../use-fetch';
 
 export default function ConfirmRequest({
   showConfirmRequestModal,
   setShowConfirmRequestModal,
   selectedOrderId,
+  // selectedOrder,
 }: {
   showConfirmRequestModal: boolean;
   setShowConfirmRequestModal: (value: boolean) => void;
   selectedOrderId: string;
+  // selectedOrder: any;
 }) {
   const { Colors } = useTheme();
 
@@ -40,13 +43,15 @@ export default function ConfirmRequest({
       onSuccess: () => {
         setShowConfirmRequestModal(false);
 
+        void saveActiveOrder(selectedOrderId);
+
         Toast.show({
           type: 'success',
           text1: 'Request accepted successfully',
         });
 
         // JUST NAVIGATE
-        router.replace('/(app)/(protected)/(tabs)/active');
+        router.push('/(app)/(protected)/(tabs)/active');
       },
 
       onError: (error: any) => {

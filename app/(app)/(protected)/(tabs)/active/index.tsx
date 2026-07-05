@@ -9,15 +9,10 @@ import ConfirmDelivery from '@/features/active/confirm-delivery';
 import ConfirmPickup from '@/features/active/confirm-pickup';
 import NoActiveJob from '@/features/active/no-active-job';
 import StatusDot from '@/features/active/status-dot';
-import { useDashboardStats } from '@/features/home/use-fetch';
+import { useOrderTracking } from '@/features/active/use-fetch';
 import { formatDate } from '@/helpers/date-formatter';
-import { useDriverSocket } from '@/hooks/use-driver-socket';
-import { useMapSocket } from '@/hooks/use-map-socket';
 import { useTheme } from '@/hooks/use-theme';
-import {
-  ActiveOrderProps,
-  useDriverJobsStore,
-} from '@/store/driver-jobs-store';
+import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import polyline from '@mapbox/polyline';
@@ -26,7 +21,6 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { DriverStatus } from '../home';
 
 // const STATUS_CONFIG = {
 //   ORDER_ASSIGNED: {
@@ -71,83 +65,131 @@ export default function ActiveDeliveryContent() {
 
   // const currentStatus = order?.status;
 
-  const { data } = useDashboardStats();
-
-  const stats = data?.stats;
-
-  const driverStatus: DriverStatus =
-    (stats?.status as DriverStatus) ?? 'OFFLINE';
-
-  useDriverSocket(driverStatus);
-
-  const activeOrder: ActiveOrderProps | null = useDriverJobsStore(
-    (s) => s.activeOrder,
-  );
-
-  console.log('📦 ACTIVE ORDER:', activeOrder);
-
-  const orderId = useMemo(() => activeOrder?.order_id, [activeOrder?.order_id]);
-
-  const shouldConnect = !!orderId;
-
-  useMapSocket(shouldConnect ? orderId : undefined);
-
-  const driverLocation = useDriverJobsStore((s) => s.tracking.driverLocation);
-
-  const etaToVendor = useDriverJobsStore((s) => s.tracking.eta.toVendor);
-
-  const etaToCustomer = useDriverJobsStore((s) => s.tracking.eta.toCustomer);
-
-  const vendorPolyline: string | null = useDriverJobsStore(
-    (s) => s.tracking.polylines.toVendor,
-  );
-
-  const customerPolyline: string | null = useDriverJobsStore(
-    (s) => s.tracking.polylines.toCustomer,
-  );
-
-  const orderStatus = useDriverJobsStore((s) => s.tracking.orderStatus);
+  const activeOrder = useDriverJobsStore((s) => s.activeOrder);
+  const driverLocation = useDriverJobsStore((s) => s.driverLocation);
+  const etaToVendor = useDriverJobsStore((s) => s.etaToVendor);
+  const etaToCustomer = useDriverJobsStore((s) => s.etaToCustomer);
+  const polylineToVendor = useDriverJobsStore((s) => s.polylineToVendor);
+  const polylineToCustomer = useDriverJobsStore((s) => s.polylineToCustomer);
 
   console.log(
-    '📦 ORDER STATUS:',
-    orderStatus,
-    'DRIVER LOCATION:',
-    driverLocation,
-    'ETA TO VENDOR:',
-    etaToVendor,
-    'ETA TO CUSTOMER:',
-    etaToCustomer,
-    'VENDOR POLYLINE:',
-    vendorPolyline,
-    'CUSTOMER POLYLINE:',
-    customerPolyline,
+    // 'ACTIVE ORDER :',
+    // activeOrder,
+    // 'DRIVER LOCATION :',
+    // driverLocation,
+    // 'ETA TO CUSTOMER : ',
+    // etaToCustomer,
+    // 'ETA TO VENDOR : ',
+    // etaToVendor,
+    ' POLYLINE TO CUSTOMER :',
+    polylineToCustomer,
+    ' POLYLINE TO VENDOR :',
+    polylineToVendor,
   );
 
-  const activePolyline = vendorPolyline ?? customerPolyline;
+  /**
+   * -----------------------------
+   * SAFE STATUS NORMALIZATION
+   * -----------------------------
+   */
+  function normalizeStatus(status?: string) {
+    if (!status) return 'IDLE';
+
+    switch (status) {
+      case 'ORDER_ASSIGNED':
+      case 'ASSIGNED':
+        return 'TO_VENDOR';
+
+      case 'PICKED_UP':
+        return 'TO_CUSTOMER';
+
+      case 'DELIVERED':
+        return 'DELIVERED';
+
+      default:
+        return 'IDLE';
+    }
+  }
+
+  const deliveryPhase = useMemo(() => {
+    return normalizeStatus(activeOrder?.order_status);
+  }, [activeOrder?.order_status]);
+
+  const isPickupActive = deliveryPhase === 'TO_VENDOR';
+  const isCustomerActive =
+    deliveryPhase === 'TO_CUSTOMER' || deliveryPhase === 'DELIVERED';
+
+  /**
+   * -----------------------------
+   * POLYLINE SELECTION
+   * -----------------------------
+   */
+  const activePolyline =
+    deliveryPhase === 'TO_VENDOR' ? polylineToVendor : polylineToCustomer;
 
   const coordinates = useMemo(() => {
     if (!activePolyline) return [];
 
     try {
-      const decoded = polyline.decode(activePolyline) as Array<
-        [number, number]
-      >;
+      const decoded = polyline.decode(activePolyline) as [number, number][];
 
-      const routePoints = decoded.map(([lat, lng]) => ({
-        latitude: Number(lat),
-        longitude: Number(lng),
-      }));
-
-      return routePoints.filter(
-        (point) =>
-          Number.isFinite(point.latitude) && Number.isFinite(point.longitude),
-      );
-    } catch (error) {
-      console.log('❌ Failed to decode polyline:', error);
+      return decoded
+        .map(([lat, lng]) => ({
+          latitude: Number(lat),
+          longitude: Number(lng),
+        }))
+        .filter(
+          (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
+        );
+    } catch (e) {
+      console.log('❌ polyline decode error:', e);
       return [];
     }
   }, [activePolyline]);
 
+  const vendorCoordinates = useMemo(() => {
+    if (!polylineToVendor) return [];
+    try {
+      const decoded = polyline.decode(polylineToVendor) as [number, number][];
+
+      return decoded
+        .map(([lat, lng]) => ({
+          latitude: Number(lat),
+          longitude: Number(lng),
+        }))
+        .filter(
+          (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
+        );
+    } catch (e) {
+      console.log('❌ polyline decode error:', e);
+      return [];
+    }
+  }, [polylineToVendor]);
+
+  const customerCoordinates = useMemo(() => {
+    if (!polylineToCustomer) return [];
+    try {
+      const decoded = polyline.decode(polylineToCustomer) as [number, number][];
+
+      return decoded
+        .map(([lat, lng]) => ({
+          latitude: Number(lat),
+          longitude: Number(lng),
+        }))
+        .filter(
+          (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
+        );
+    } catch (e) {
+      console.log('❌ polyline decode error:', e);
+      return [];
+    }
+  }, [polylineToCustomer]);
+
+  /**
+   * -----------------------------
+   * MAP REFS
+   * -----------------------------
+   */
   const mapRef = useRef<MapView>(null);
 
   useEffect(() => {
@@ -161,17 +203,6 @@ export default function ActiveDeliveryContent() {
       zoom: 16,
     });
   }, [driverLocation]);
-
-  const deliveryPhase = useMemo(() => {
-    if (vendorPolyline) return 'TO_VENDOR';
-    if (customerPolyline) return 'TO_CUSTOMER';
-    if (orderStatus === 'PICKED_UP') return 'PICKED_UP';
-    if (orderStatus === 'DELIVERED') return 'DELIVERED';
-    return 'IDLE';
-  }, [vendorPolyline, customerPolyline, orderStatus]);
-
-  const isPickupActive = deliveryPhase === 'TO_VENDOR';
-  const isCustomerActive = deliveryPhase === 'TO_CUSTOMER';
 
   useEffect(() => {
     if (!isMapReady) return;
@@ -191,29 +222,60 @@ export default function ActiveDeliveryContent() {
     });
   }, [coordinates, isMapReady]);
 
+  /**
+   * -----------------------------
+   * ETA HANDLING (SAFE)
+   * -----------------------------
+   */
   const etaText = useMemo(() => {
-    const eta = etaToCustomer ?? etaToVendor;
+    const etaValue =
+      deliveryPhase === 'TO_CUSTOMER' ? etaToCustomer : etaToVendor;
 
-    if (eta == null) return 'Waiting...';
+    if (etaValue == null) return 'Waiting...';
 
-    if (eta < 60) return `${eta} sec`;
+    if (etaValue < 60) return `${etaValue} sec`;
 
-    return `${Math.ceil(eta / 60)} min`;
-  }, [etaToVendor, etaToCustomer]);
+    return `${Math.ceil(etaValue / 60)} min`;
+  }, [etaToCustomer, etaToVendor, deliveryPhase]);
 
+  /**
+   * -----------------------------
+   * TRACKING MESSAGE
+   * -----------------------------
+   */
   const trackingMessage = useMemo(() => {
-    if (vendorPolyline) return 'Driver is heading to vendor';
-
-    if (customerPolyline) return 'Driver is heading to customer';
-
-    if (orderStatus === 'PICKED_UP') return 'Order picked up';
-
-    if (orderStatus === 'DELIVERED') return 'Delivered';
-
+    if (isPickupActive) return 'Driver is heading to vendor';
+    if (isCustomerActive) return 'Driver is heading to customer';
+    if (activeOrder?.order_status === 'PICKED_UP') return 'Order picked up';
+    if (activeOrder?.order_status === 'DELIVERED') return 'Delivered';
     return 'Waiting...';
-  }, [vendorPolyline, customerPolyline, orderStatus]);
+  }, [isPickupActive, isCustomerActive, activeOrder?.order_status]);
 
-  // const eta = activeOrder?.etaSeconds ?? 0;
+  /**
+   * -----------------------------
+   * SAFE GUARD (NO NULL FLASH)
+   * -----------------------------
+   */
+  if (!activeOrder?.order_id) {
+    return <NoActiveJob />;
+  }
+
+  const pickup = activeOrder.pickup_location;
+  const dropoff = activeOrder.dropoff_location;
+
+  const driverCoord = driverLocation
+    ? {
+        latitude: driverLocation.lat,
+        longitude: driverLocation.lng,
+      }
+    : null;
+
+  const initialRegion = {
+    latitude: pickup?.latitude ?? 6.5244,
+    longitude: pickup?.longitude ?? 3.3792,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  };
 
   const handleConfirmDecline = () => {
     if (!activeOrder?.order_id) {
@@ -235,13 +297,6 @@ export default function ActiveDeliveryContent() {
     setShowConfirmPickupModal(true);
   };
 
-  const driverCoord = driverLocation
-    ? {
-        latitude: driverLocation.lat,
-        longitude: driverLocation.lng,
-      }
-    : null;
-
   const handleConfirmDelivery = () => {
     if (!activeOrder?.order_id) {
       return;
@@ -252,19 +307,37 @@ export default function ActiveDeliveryContent() {
     setShowConfirmDeliveryModal(true);
   };
 
-  // console.log('📦 ACTIVE ORDER:', activeOrder);
-  console.log(
-    ' 📦 PICK UP LOCATION:',
-    activeOrder?.pickup_location ?? 'Pick Up done',
-  );
-
-  console.log(' 📦Activeeeee:', activeOrder);
-
   // Example status, replace with actual data
 
   // const currentIndex = timelineSteps.findIndex(
   //   (step) => step.key === currentStatus,
   // );
+
+  const mapStyle = [
+    {
+      featureType: 'poi',
+      stylers: [{ visibility: 'off' }],
+    },
+    {
+      featureType: 'transit',
+      stylers: [{ visibility: 'off' }],
+    },
+    {
+      featureType: 'administrative',
+      stylers: [{ visibility: 'off' }],
+    },
+    {
+      featureType: 'landscape',
+      stylers: [{ saturation: -80 }],
+    },
+    {
+      featureType: 'road',
+      elementType: 'labels',
+      stylers: [{ visibility: 'off' }],
+    },
+  ];
+
+  console.log('Storeeeeeeeeee Logooooo:', activeOrder.store_logo);
 
   if (!activeOrder) {
     return (
@@ -304,6 +377,7 @@ export default function ActiveDeliveryContent() {
               onMapReady={() => setIsMapReady(true)}
               showsUserLocation={false}
               showsCompass
+              customMapStyle={mapStyle}
             >
               {/* Store */}
 
@@ -312,8 +386,33 @@ export default function ActiveDeliveryContent() {
                   latitude: activeOrder.pickup_location.latitude,
                   longitude: activeOrder.pickup_location.longitude,
                 }}
-                pinColor="green"
-              />
+              >
+                <View
+                  style={{
+                    width: 54,
+                    height: 54,
+                    borderRadius: 27,
+                    backgroundColor: Colors.background,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 2,
+                    borderColor: Colors.border,
+                    shadowColor: '#000',
+                    shadowOpacity: 0.2,
+                    shadowRadius: 6,
+                    elevation: 6,
+                  }}
+                >
+                  <Image
+                    source={{ uri: activeOrder.store_logo }}
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: 12,
+                    }}
+                  />
+                </View>
+              </Marker>
 
               {/* <Marker
                 coordinate={{
@@ -322,9 +421,7 @@ export default function ActiveDeliveryContent() {
                 }}
                 pinColor="red"
               /> */}
-
               {/* Driver */}
-
               {driverLocation && (
                 <Marker
                   coordinate={{
@@ -332,27 +429,87 @@ export default function ActiveDeliveryContent() {
                     longitude: driverLocation.lng,
                   }}
                 >
-                  <Ionicons name="car" size={32} color="#16a34a" />
+                  <Animated.View
+                    style={{
+                      transform: [{ rotate: `${driverLocation.heading}deg` }],
+                    }}
+                  >
+                    <Image
+                      source={require('@/assets/images/3d-car.png')}
+                      style={{
+                        width: 24,
+                        height: 24,
+                        resizeMode: 'contain',
+                      }}
+                    />
+                  </Animated.View>
                 </Marker>
               )}
 
-              <Polyline
+              <Marker
+                coordinate={{
+                  latitude: activeOrder.dropoff_location.latitude,
+                  longitude: activeOrder.dropoff_location.longitude,
+                }}
+              >
+                <View
+                  style={{
+                    alignItems: 'center',
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 48,
+                      height: 48,
+                      borderRadius: 24,
+                      backgroundColor: Colors.border,
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <Ionicons name="home" size={22} color="#fff" />
+                  </View>
+
+                  <View
+                    style={{
+                      width: 4,
+                      height: 12,
+                      backgroundColor: Colors.backgroundTertiary,
+                    }}
+                  />
+                </View>
+              </Marker>
+
+              {/* <Polyline
                 coordinates={
                   driverCoord ? [driverCoord, ...coordinates] : coordinates
                 }
-                strokeWidth={4}
-                strokeColor="#16a34a"
-              />
+                strokeWidth={6}
+                strokeColor="#2563EB"
+                lineCap="round"
+                lineJoin="round"
+              /> */}
+              {vendorCoordinates && (
+                <Polyline
+                  coordinates={vendorCoordinates}
+                  strokeColor={Colors.primary}
+                  strokeWidth={5}
+                />
+              )}
+
+              {customerCoordinates && (
+                <Polyline
+                  coordinates={customerCoordinates}
+                  strokeColor={Colors.success}
+                  strokeWidth={6}
+                />
+              )}
             </MapView>
           </View>
 
           <View style={styles.statusContainer}>
             <View style={styles.statusContent}>
-              <Ionicons
-                name="bicycle"
-                size={scale(20)}
-                color={Colors.success}
-              />
+              <Ionicons name="car" size={scale(20)} color={Colors.success} />
               <Text style={styles.statusText}> {trackingMessage}</Text>
             </View>
 
@@ -584,27 +741,26 @@ export default function ActiveDeliveryContent() {
             <View style={styles.metaGrid}>
               <View style={styles.metaItem}>
                 <Text style={styles.metaLabel}>Created</Text>
-
                 <Text style={styles.metaValue}>
                   {formatDate(activeOrder.created_at)}
                 </Text>
               </View>
-
               <View style={styles.metaItem}>
                 <Text style={styles.metaLabel}>Assigned</Text>
-
                 <Text style={styles.metaValue}>
                   {formatDate(activeOrder.assigned_at)}
                 </Text>
               </View>
 
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Distance</Text>
+              {activeOrder?.distance_meters && (
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Distance</Text>
 
-                <Text style={styles.metaValue}>
-                  {(activeOrder.distance_meters / 1000).toFixed(1)} km
-                </Text>
-              </View>
+                  <Text style={styles.metaValue}>
+                    {(activeOrder?.distance_meters / 1000).toFixed(1)} km
+                  </Text>
+                </View>
+              )}
 
               <View style={styles.metaItem}>
                 <Text style={styles.metaLabel}>Order ID</Text>
@@ -655,7 +811,7 @@ export default function ActiveDeliveryContent() {
         </View> */}
 
           <View style={styles.footer}>
-            {activePolyline === vendorPolyline ? (
+            {isPickupActive ? (
               <View style={styles.footerRow}>
                 <Button
                   onPress={handleConfirmDecline}

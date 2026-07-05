@@ -1,53 +1,78 @@
-import { useAuthStore } from '@/store/auth-store';
-import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { useEffect, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-type RawMapPayload = Record<string, any> | null | undefined;
+import { useAuthStore } from '@/store/auth-store';
+import { useDriverJobsStore } from '@/store/driver-jobs-store';
 
-function unwrapPayload(payload: unknown): RawMapPayload {
+const DEBUG_MAP_SOCKET = true;
+
+function mapSocketLog(...args: unknown[]) {
+  if (!DEBUG_MAP_SOCKET) return;
+
+  console.log('[map-socket]', ...args);
+}
+
+function unwrapSocketPayload(payload: unknown): Record<string, any> | null {
   const first = Array.isArray(payload) ? payload[0] : payload;
 
   if (!first || typeof first !== 'object') return null;
 
   const data = (first as Record<string, any>).data;
 
-  if (data && typeof data === 'object') return data as RawMapPayload;
+  if (data && typeof data === 'object') return data as Record<string, any>;
 
-  return first as RawMapPayload;
-}
-
-function normalizeLeg(leg: unknown): 'to-vendor' | 'to-customer' | null {
-  if (typeof leg !== 'string') return null;
-
-  const normalized = leg.toLowerCase().replace(/[_\s]/g, '-');
-
-  if (normalized === 'to-vendor' || normalized === 'vendor') {
-    return 'to-vendor';
-  }
-
-  if (normalized === 'to-customer' || normalized === 'customer') {
-    return 'to-customer';
-  }
-
-  return null;
+  return first as Record<string, any>;
 }
 
 export function useMapSocket(orderId?: string) {
   const token = useAuthStore((s) => s.accessToken);
 
   const setOrderStatus = useDriverJobsStore((s) => s.setOrderStatus);
-
   const setDriverLocation = useDriverJobsStore((s) => s.setDriverLocation);
-
   const setEta = useDriverJobsStore((s) => s.setEta);
-
   const setPolyline = useDriverJobsStore((s) => s.setPolyline);
+  const clearTracking = useDriverJobsStore((s) => s.clearTracking);
 
   const socketRef = useRef<Socket | null>(null);
+  const lastOrderId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!orderId || !token) return;
+    mapSocketLog('effect run', {
+      orderId,
+      hasToken: !!token,
+      lastOrderId: lastOrderId.current,
+      currentlyConnected: !!socketRef.current?.connected,
+    });
+
+if (!orderId || !token) {
+  socketRef.current?.disconnect();
+  socketRef.current = null;
+  lastOrderId.current = null;
+  clearTracking();
+
+  mapSocketLog('No active order. Socket disconnected.');
+
+  return;
+}
+
+    /**
+     * IMPORTANT:
+     * prevent reconnecting for same order
+     */
+    // if (lastOrderId.current === orderId && socketRef.current?.connected) {
+    //   mapSocketLog('skip reconnect: already connected for same order', {
+    //     orderId,
+    //   });
+    //   return;
+    // }
+
+    mapSocketLog('disconnect previous socket before reconnect', {
+      previousOrderId: lastOrderId.current,
+      nextOrderId: orderId,
+    });
+    socketRef.current?.disconnect();
+
+    lastOrderId.current = orderId;
 
     const socket = io('https://backend-service-1rc7.onrender.com/map', {
       query: { orderId },
@@ -57,83 +82,126 @@ export function useMapSocket(orderId?: string) {
 
     socketRef.current = socket;
 
+    socket.on('connect_error', (err) => {
+      mapSocketLog('connect_error', err?.message ?? err);
+    });
+
+    socket.on('disconnect', (reason) => {
+      mapSocketLog('disconnect', { reason, orderId });
+    });
+
     socket.on('connect', () => {
-      console.log('🗺 MAP SOCKET CONNECTED:', socket.id);
+      mapSocketLog('connected', { socketId: socket.id, orderId });
 
-      console.log('📦 SUBSCRIBING TO ORDER:', orderId);
-
-      console.log('📦 ACCESS TOKEN:', token);
-
+      mapSocketLog('emit subscribe-order', { orderId });
       socket.emit('subscribe-order', orderId);
     });
 
-    socket.onAny((event, ...args) => {
-      console.log('🗺 MAP EVENT:', event);
-      console.log('🗺 MAP PAYLOAD:', args);
-    });
-
+    /**
+     * ORDER STATUS (FIXED)
+     */
     socket.on('order-status', (payload) => {
-      const data = unwrapPayload(payload);
-      const status =
-        data?.status ?? data?.orderStatus ?? data?.order_status ?? null;
+      const data = Array.isArray(payload)
+        ? (payload[0]?.data ?? payload[0])
+        : (payload?.data ?? payload);
 
-      setOrderStatus(typeof status === 'string' ? status : null);
+      const status = data?.status ?? data?.orderStatus ?? data?.order_status;
+
+      mapSocketLog('order-status', {
+        status,
+      });
+
+      if (typeof status === 'string') {
+        setOrderStatus(status);
+
+        if (status === 'PICKED_UP') {
+          // optional cleanup
+        }
+
+        if (status === 'DELIVERED') {
+          clearTracking();
+        }
+      }
     });
 
+    /**
+     * DRIVER LOCATION
+     */
     socket.on('driver-location', (payload) => {
-      const data = unwrapPayload(payload);
+      const data = Array.isArray(payload)
+        ? (payload[0]?.data ?? payload[0])
+        : (payload?.data ?? payload);
 
       const lat = Number(data?.lat ?? data?.latitude);
-      const lng = Number(data?.lng ?? data?.lon ?? data?.longitude);
-      const headingValue = data?.heading;
+      const lng = Number(data?.lng ?? data?.longitude);
 
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-        return;
-      }
+      mapSocketLog('driver-location', {
+        hasCoordinates: Number.isFinite(lat) && Number.isFinite(lng),
+      });
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
 
       setDriverLocation({
         lat,
         lng,
-        heading:
-          typeof headingValue === 'number' && Number.isFinite(headingValue)
-            ? headingValue
-            : undefined,
+        heading: data?.heading,
       });
     });
 
+    /**
+     * ETA
+     */
     socket.on('eta-update', (payload) => {
-      const data = unwrapPayload(payload);
-      const leg = normalizeLeg(data?.leg);
+      const data = unwrapSocketPayload(payload);
 
-      if (!leg) return;
+      if (!data) return;
 
-      const etaRaw = data?.etaSeconds ?? data?.eta ?? null;
-      const eta = etaRaw == null ? null : Number(etaRaw);
+      const leg = data?.leg === 'to-vendor' ? 'vendor' : 'customer';
 
-      setEta(leg, Number.isFinite(eta as number) ? (eta as number) : null);
+      const eta = Number(data?.etaSeconds ?? data?.eta);
+
+      mapSocketLog('eta-update', { leg, eta });
+
+      if (Number.isFinite(eta)) {
+        setEta(leg, eta);
+      }
     });
 
+    /**
+     * POLYLINE
+     */
     socket.on('polyline-update', (payload) => {
-      const data = unwrapPayload(payload);
-      const leg = normalizeLeg(data?.leg);
-      const encoded = data?.polyline ?? data?.encodedPolyline ?? null;
+      const data = unwrapSocketPayload(payload);
 
-      if (!leg || typeof encoded !== 'string') return;
+      if (!data) return;
 
-      setPolyline(leg, encoded);
+      const leg = data?.leg === 'to-vendor' ? 'vendor' : 'customer';
+
+      const polyline = data?.polyline ?? data?.encodedPolyline;
+
+      mapSocketLog('polyline-update', {
+        leg,
+        hasPolyline: typeof polyline === 'string' && polyline.length > 0,
+      });
+
+      if (typeof polyline === 'string') {
+        setPolyline(leg, polyline);
+      }
     });
 
-    socket.on('disconnect', () => {
-      console.log('❌ MAP SOCKET DISCONNECTED');
-    });
+   return () => {
+  mapSocketLog('cleanup -> disconnect socket', { orderId });
 
-    socket.on('connect_error', (err) => {
-      console.log('❌ MAP SOCKET ERROR:', err.message);
-    });
+  socket.disconnect();
 
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [orderId, token]);
+  socketRef.current = null;
+  lastOrderId.current = null;
+};
+  }, [ orderId,
+  token,
+  setOrderStatus,
+  setDriverLocation,
+  setEta,
+  setPolyline,
+  clearTracking,]);
 }

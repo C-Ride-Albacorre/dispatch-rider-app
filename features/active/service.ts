@@ -1,5 +1,17 @@
 import { api } from '@/libs/api';
 
+export async function getActiveOrderService() {
+  const response = await api.get('/driver/active-order');
+
+  return response.data;
+}
+
+export async function getOrderTrackingService(orderId: string) {
+  const response = await api.get(`/driver/${orderId}/tracking`);
+
+  return response.data;
+}
+
 export async function declineJobsService({
   orderId,
   reason,
@@ -17,12 +29,7 @@ export async function declineJobsService({
   return response.data;
 }
 
-
-export async function pickupJobsService({
-  orderId,
-}: {
-  orderId: string;
-}) {
+export async function pickupJobsService({ orderId }: { orderId: string }) {
   console.log('Picking up job with ID:', { orderId });
   if (!orderId) {
     throw new Error('Order ID is required');
@@ -33,12 +40,7 @@ export async function pickupJobsService({
   return response.data;
 }
 
-
-export async function deliveryJobsService({
-  orderId,
-}: {
-  orderId: string;
-}) {
+export async function deliveryJobsService({ orderId }: { orderId: string }) {
   console.log('Delivering job with ID:', { orderId });
   if (!orderId) {
     throw new Error('Order ID is required');

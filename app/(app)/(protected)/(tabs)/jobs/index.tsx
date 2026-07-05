@@ -13,10 +13,8 @@ import NoJobs from '@/features/jobs/components/no-job';
 import RenderJobCard from '@/features/jobs/components/render-job-card';
 import RenderJobHeader from '@/features/jobs/components/render-job-header';
 import { useAvailableJobs } from '@/features/jobs/use-fetch';
-import { useDriverSocket } from '@/hooks/use-driver-socket';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
-import { useAuthStore } from '@/store/auth-store';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
@@ -83,9 +81,6 @@ export default function Jobs() {
     requestPermission,
     dismissPermissionModal,
   } = useLocation();
-
-  // Only connect socket when ONLINE
-  useDriverSocket(driverStatus);
 
   // Only fetch jobs when NOT busy
   const { data, isLoading, error } = useAvailableJobs(

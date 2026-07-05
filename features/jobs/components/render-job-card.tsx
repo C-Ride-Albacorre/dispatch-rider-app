@@ -6,13 +6,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { set } from 'zod';
 import ConfirmRequest from './confirm-job-request';
 
 export default function RenderJobCard({ item }: { item: any }) {
-const[showConfirmRequestModal, setShowConfirmRequestModal] = useState<boolean>(false);
+  const [showConfirmRequestModal, setShowConfirmRequestModal] =
+    useState<boolean>(false);
 
-const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+  const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+  // const [selectedOrder, setSelectedOrder] = useState<any>(null);
 
   const { Colors } = useTheme();
 
@@ -32,8 +33,8 @@ const [selectedOrderId, setSelectedOrderId] = useState<string>('');
     console.log(`Accepting order ${orderId} for ₦${amount}`);
 
     setSelectedOrderId(orderId);
+    // setSelectedOrder(item);
     setShowConfirmRequestModal(true);
-
   }, []);
 
   // Total number of discrete products ordered
@@ -49,114 +50,115 @@ const [selectedOrderId, setSelectedOrderId] = useState<string>('');
     : 'Nearby';
 
   return (
-
     <>
-
-    <ConfirmRequest
-      showConfirmRequestModal={showConfirmRequestModal}
-      setShowConfirmRequestModal={setShowConfirmRequestModal}
-      selectedOrderId={selectedOrderId}
-    />
+      <ConfirmRequest
+        showConfirmRequestModal={showConfirmRequestModal}
+        setShowConfirmRequestModal={setShowConfirmRequestModal}
+        selectedOrderId={selectedOrderId}
+        // selectedOrder={selectedOrder}
+      />
 
       <TouchableOpacity
-      activeOpacity={0.9}
-      onPress={() => handleViewOrderDetails(item.order_id)}
-      style={styles.jobCard}
-    >
-      {/* Header Block: Brand Meta & Target Payout */}
-      <View style={styles.jobHeader}>
-        <View style={styles.storeProfileRow}>
-          {item.store_logo ? (
-            <Image source={{ uri: item.store_logo }} style={styles.storeLogo} />
-          ) : (
-            <View
-              style={[
-                styles.storeLogoPlaceholder,
-                { backgroundColor: Colors.primaryLight },
-              ]}
+        activeOpacity={0.9}
+        onPress={() => handleViewOrderDetails(item.order_id)}
+        style={styles.jobCard}
+      >
+        {/* Header Block: Brand Meta & Target Payout */}
+        <View style={styles.jobHeader}>
+          <View style={styles.storeProfileRow}>
+            {item.store_logo ? (
+              <Image
+                source={{ uri: item.store_logo }}
+                style={styles.storeLogo}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.storeLogoPlaceholder,
+                  { backgroundColor: Colors.primaryLight },
+                ]}
+              />
+            )}
+            <View style={styles.storeInfoText}>
+              <Text style={styles.storeNameText} numberOfLines={1}>
+                {item.store_name}
+              </Text>
+              <Text style={styles.orderNumberText} numberOfLines={1}>
+                {item.order_number?.split('-')[1] ||
+                  item.order_id.slice(0, 8).toUpperCase()}
+              </Text>
+            </View>
+          </View>
+          <Text style={[styles.jobPrice, { color: Colors.primary }]}>
+            NGN {(item.total_amount || 0).toLocaleString()}
+          </Text>
+        </View>
+
+        <View style={styles.divider} />
+
+        {/* Dispatch Route Roadmap Segment */}
+        <View style={styles.timeline}>
+          <View style={styles.timelineColumn}>
+            <View style={[styles.dot, { backgroundColor: Colors.success }]} />
+            <View style={styles.connector} />
+            <View style={[styles.dot, { backgroundColor: Colors.primary }]} />
+          </View>
+
+          <View style={styles.timelineContent}>
+            <View style={styles.locationBlock}>
+              <Text style={styles.routeStageLabel}>PICKUP FROM</Text>
+              <Text style={styles.jobLocationText} numberOfLines={1}>
+                {item.pickup_location?.address ||
+                  `${item.store_name || 'Store location'}`}
+              </Text>
+            </View>
+
+            <View style={styles.locationBlock}>
+              <Text style={styles.routeStageLabel}>DELIVER TO</Text>
+              <Text style={styles.jobLocationText} numberOfLines={1}>
+                {item.dropoff_location?.address || 'Customer Address'},{' '}
+                {item.dropoff_location?.city || ''}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Context Chip Rows */}
+        <View style={styles.metaRow}>
+          <View style={styles.metaChip}>
+            <Ionicons
+              name="location-outline"
+              size={14}
+              color={Colors.textMuted}
             />
-          )}
-          <View style={styles.storeInfoText}>
-            <Text style={styles.storeNameText} numberOfLines={1}>
-              {item.store_name}
-            </Text>
-            <Text style={styles.orderNumberText} numberOfLines={1}>
-              {item.order_number?.split('-')[1] ||
-                item.order_id.slice(0, 8).toUpperCase()}
-            </Text>
-          </View>
-        </View>
-        <Text style={[styles.jobPrice, { color: Colors.primary }]}>
-          NGN {(item.total_amount || 0).toLocaleString()}
-        </Text>
-      </View>
-
-      <View style={styles.divider} />
-
-      {/* Dispatch Route Roadmap Segment */}
-      <View style={styles.timeline}>
-        <View style={styles.timelineColumn}>
-          <View style={[styles.dot, { backgroundColor: Colors.success }]} />
-          <View style={styles.connector} />
-          <View style={[styles.dot, { backgroundColor: '#E2E8F0' }]} />
-        </View>
-
-        <View style={styles.timelineContent}>
-          <View style={styles.locationBlock}>
-            <Text style={styles.routeStageLabel}>PICKUP FROM</Text>
-            <Text style={styles.jobLocationText} numberOfLines={1}>
-              {item.pickup_location?.address ||
-                `${item.store_name || 'Store location'}`}
-            </Text>
+            <Text style={styles.jobMetaText}>{distanceKm}</Text>
           </View>
 
-          <View style={styles.locationBlock}>
-            <Text style={styles.routeStageLabel}>DELIVER TO</Text>
-            <Text style={styles.jobLocationText} numberOfLines={1}>
-              {item.dropoff_location?.address || 'Customer Address'},{' '}
-              {item.dropoff_location?.city || ''}
-            </Text>
+          <View style={styles.metaChip}>
+            <Ionicons name="cube-outline" size={14} color={Colors.textMuted} />
+            <Text style={styles.jobMetaText}>{totalItemsCount} items</Text>
           </View>
         </View>
-      </View>
 
-      {/* Context Chip Rows */}
-      <View style={styles.metaRow}>
-        <View style={styles.metaChip}>
-          <Ionicons
-            name="location-outline"
-            size={14}
-            color={Colors.textMuted}
-          />
-          <Text style={styles.jobMetaText}>{distanceKm}</Text>
+        {/* Immediate Interactive Touch Actions */}
+        <View style={styles.jobActions}>
+          <Button
+            variant="outline"
+            onPress={() => handleViewOrderDetails(item.order_id)}
+          >
+            View Details
+          </Button>
+
+          <Button
+            variant="primary"
+            onPress={() => handleAcceptOrder(item.order_id, item.total_amount)}
+            style={styles.btnPrimary}
+          >
+            Accept • ₦{(item.total_amount || 0).toLocaleString()}
+          </Button>
         </View>
-
-        <View style={styles.metaChip}>
-          <Ionicons name="cube-outline" size={14} color={Colors.textMuted} />
-          <Text style={styles.jobMetaText}>{totalItemsCount} items</Text>
-        </View>
-      </View>
-
-      {/* Immediate Interactive Touch Actions */}
-      <View style={styles.jobActions}>
-        <Button
-          variant="outline"
-          onPress={() => handleViewOrderDetails(item.order_id)}
-        >
-          View Details
-        </Button>
-
-        <Button
-          variant="primary"
-          onPress={() => handleAcceptOrder(item.order_id, item.total_amount)}
-          style={styles.btnPrimary}
-        >
-          Accept • ₦{(item.total_amount || 0).toLocaleString()}
-        </Button>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
     </>
-  
   );
 }
 

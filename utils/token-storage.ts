@@ -57,7 +57,6 @@ export const saveVerificationEmail = async (email: string) => {
   await setItem('verificationEmail', email);
 };
 
-
 export const saveDriverId = async (driverId: string) => {
   await setItem('driverId', driverId);
 };
@@ -88,6 +87,26 @@ export const getOnboardingStatus = async () => {
 
 export const saveOnboardingStep = async (step: number) => {
   await setItem('onboardingStep', String(step));
+};
+
+export const saveActiveOrder = async (orderId: string) => {
+  await setItem('activeOrder', JSON.stringify({ order_id: orderId }));
+};
+
+export const getActiveOrder = async () => {
+  const value = await getItem('activeOrder');
+
+  if (!value) return null;
+
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+};
+
+export const clearActiveOrder = async () => {
+  await deleteItem('activeOrder');
 };
 
 export const getOnboardingStep = async () => {
@@ -127,6 +146,7 @@ export const clearTokens = async () => {
   await deleteItem('verificationPhone');
 
   await deleteItem('driverId');
+  await deleteItem('activeOrder');
 
   await deleteItem('notification_permission_decision');
 };
