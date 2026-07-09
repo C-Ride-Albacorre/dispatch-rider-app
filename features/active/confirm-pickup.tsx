@@ -14,8 +14,6 @@ import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import { useDeclineJob, usePickupJob } from './use-fetch';
 
-
-
 export default function ConfirmPickup({
   showConfirmPickupModal,
   setShowConfirmPickupModal,
@@ -41,7 +39,7 @@ export default function ConfirmPickup({
       return;
     }
 
- pickupJob(
+    pickupJob(
       {
         orderId: selectedOrderId,
       },
@@ -60,7 +58,10 @@ export default function ConfirmPickup({
         onError: (error: any) => {
           Toast.show({
             type: 'error',
-            text1: error?.message || 'Failed to decline request',
+            text1:
+              error?.response?.data?.message ||
+              error?.message ||
+              'Failed to confirm pickup',
           });
         },
       },

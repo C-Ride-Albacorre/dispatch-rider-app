@@ -57,7 +57,7 @@ export default function ConfirmRequest({
       onError: (error: any) => {
         Toast.show({
           type: 'error',
-          text1: error?.message || 'Failed to accept request',
+          text1:  error?.response?.data?.message || error?.message || 'Failed to accept request',
         });
       },
     });

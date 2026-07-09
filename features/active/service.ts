@@ -40,13 +40,38 @@ export async function pickupJobsService({ orderId }: { orderId: string }) {
   return response.data;
 }
 
-export async function deliveryJobsService({ orderId }: { orderId: string }) {
-  console.log('Delivering job with ID:', { orderId });
+export async function deliveryJobsService({
+  orderId,
+  code,
+}: {
+  orderId: string;
+  code: string;
+}) {
+  console.log('🚗 Delivering job with ID:', { orderId, code });
   if (!orderId) {
     throw new Error('Order ID is required');
   }
+  if (!code) {
+    throw new Error('Delivery code is required');
+  }
 
-  const response = await api.post(`/driver/${orderId}/deliver`);
+  try {
+    const payload = { orderCode: code };
+    console.log('📤 Request payload:', payload);
+    console.log('📍 Request URL: /driver/${orderId}/deliver');
 
-  return response.data;
+    const response = await api.post(`/driver/${orderId}/deliver`, payload);
+
+    console.log('✅ Delivery response:', response.data);
+
+    return response.data;
+  } catch (error: any) {
+    console.error('❌ Delivery error:', {
+      status: error?.response?.status,
+      data: error?.response?.data,
+      message: error?.message,
+    });
+    console.log(' 🚨 Error details Status:', error);
+    throw error;
+  }
 }

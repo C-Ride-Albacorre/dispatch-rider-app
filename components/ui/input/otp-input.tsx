@@ -16,11 +16,12 @@ import ErrorMessage from '../error/error-message';
 import { normalize, scale } from '@/utils/scaling';
 import { useTheme } from '@/hooks/use-theme';
 
-const OTP_LENGTH = 6;
+
 
 interface OtpInputProps {
   label?: string;
   errorMessage?: string;
+  OTP_LENGTH?: number;
   /** Called with the full OTP string once all digits are entered */
   onComplete?: (otp: string) => void;
   /** Called on every change */
@@ -32,6 +33,7 @@ export default function OtpInput({
   errorMessage,
   onComplete,
   onChange,
+  OTP_LENGTH = 6,
 }: OtpInputProps) {
   const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);

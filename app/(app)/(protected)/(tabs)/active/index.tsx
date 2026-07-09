@@ -602,7 +602,7 @@ export default function ActiveDeliveryContent() {
             {/* <Button variant="outline">View Route</Button> */}
           </View>
 
-          <View style={styles.card}>
+          {/* <View style={styles.card}>
             <Text style={styles.sectionLabel}>Order Items</Text>
 
             {activeOrder.items.map((item) => (
@@ -625,7 +625,7 @@ export default function ActiveDeliveryContent() {
                 ₦{activeOrder.total_amount.toLocaleString()}
               </Text>
             </View>
-          </View>
+          </View> */}
 
           {/* 2. Linear Step Indicator Progress Bar */}
           {/* <View style={styles.progressCard}>
@@ -724,7 +724,7 @@ export default function ActiveDeliveryContent() {
 
             {/* <View style={styles.divider} /> */}
 
-            <View style={styles.heroBottom}>
+            {/* <View style={styles.heroBottom}>
               <View style={styles.heroBottomPrice}>
                 <Text style={styles.totalAmount}>
                   ₦{activeOrder.total_amount.toLocaleString()}
@@ -736,7 +736,7 @@ export default function ActiveDeliveryContent() {
                   </Text>
                 </View>
               </View>
-            </View>
+            </View> */}
 
             <View style={styles.metaGrid}>
               <View style={styles.metaItem}>
@@ -751,11 +751,9 @@ export default function ActiveDeliveryContent() {
                   {formatDate(activeOrder.assigned_at)}
                 </Text>
               </View>
-
               {activeOrder?.distance_meters && (
                 <View style={styles.metaItem}>
                   <Text style={styles.metaLabel}>Distance</Text>
-
                   <Text style={styles.metaValue}>
                     {(activeOrder?.distance_meters / 1000).toFixed(1)} km
                   </Text>
@@ -1103,8 +1101,8 @@ const createStyles = (Colors: any) =>
       paddingTop: scale(12),
       paddingBottom: scale(12),
       backgroundColor: Colors.background,
-      borderTopWidth: 1,
-      borderTopColor: Colors.border,
+      // borderTopWidth: 1,
+      // borderTopColor: Colors.border,
     },
 
     footerRow: {

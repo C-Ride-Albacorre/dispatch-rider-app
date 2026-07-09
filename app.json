@@ -25,6 +25,7 @@
       "package": "com.albacorre.criderider",
       "googleServicesFile": "./google-services.json",
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
+      "softwareKeyboardLayoutMode": "resize",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c"

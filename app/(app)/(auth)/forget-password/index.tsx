@@ -82,10 +82,8 @@ export default function ForgetPassword() {
     }
   };
 
-
-  if(successData?.identifier && successData?.method) {
-
-    return
+  if (successData?.identifier && successData?.method) {
+    return;
   }
 
   return (
@@ -109,7 +107,8 @@ export default function ForgetPassword() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+     
       >
         <ScrollView contentContainerStyle={styles.container}>
           <View>

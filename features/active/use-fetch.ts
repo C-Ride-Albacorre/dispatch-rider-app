@@ -80,8 +80,8 @@ export function useDeliveryJob() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ orderId }: { orderId: string }) =>
-      deliveryJobsService({ orderId }),
+    mutationFn: ({ orderId, code }: { orderId: string; code: string }) =>
+      deliveryJobsService({ orderId, code }),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

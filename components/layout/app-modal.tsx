@@ -39,7 +39,7 @@ export default function AppModal({
     >
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
       >
         {/* BACKDROP */}
         <TouchableWithoutFeedback

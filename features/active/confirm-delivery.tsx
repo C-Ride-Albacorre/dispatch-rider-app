@@ -9,9 +9,11 @@ import Button from '@/components/ui/buttons/button';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+import OtpInput from '@/components/ui/input/otp-input';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { clearActiveOrder } from '@/utils/token-storage';
+import { useState } from 'react';
 import { useDeliveryJob } from './use-fetch';
 
 export default function ConfirmDelivery({
@@ -23,6 +25,9 @@ export default function ConfirmDelivery({
   setShowConfirmDeliveryModal: (value: boolean) => void;
   selectedOrderId: string;
 }) {
+  const [code, setCode] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
@@ -42,9 +47,16 @@ export default function ConfirmDelivery({
       return;
     }
 
+    if (code.length !== 4) {
+      setErrorMessage('Please enter the 4 digit code');
+
+      return;
+    }
+
     deliveryJob(
       {
         orderId: selectedOrderId,
+        code: code,
       },
       {
         onSuccess: () => {
@@ -63,10 +75,17 @@ export default function ConfirmDelivery({
         },
 
         onError: (error: any) => {
+          const errorMsg =
+            error?.response?.data?.message ||
+            error?.message ||
+            'Failed to confirm delivery';
+
           Toast.show({
             type: 'error',
-            text1: error?.message || 'Failed to confirm delivery',
+            text1: errorMsg,
           });
+
+          setErrorMessage(errorMsg);
         },
       },
     );
@@ -90,8 +109,24 @@ export default function ConfirmDelivery({
         <Text style={styles.confirmRequestTitle}>Confirm Delivery</Text>
 
         <Text style={styles.confirmRequestDescription}>
-          Are you sure you want to confirm the delivery?
+          Kindly confirm delivery code with the customer to complete the
+          delivery. This action cannot be undone.
         </Text>
+
+        <OtpInput
+          OTP_LENGTH={4}
+          errorMessage={errorMessage}
+          onComplete={(otp) => {
+            setCode(otp);
+          }}
+          onChange={(otp) => {
+            setCode(otp);
+
+            if (errorMessage) {
+              setErrorMessage('');
+            }
+          }}
+        />
 
         <View style={styles.actionContainer}>
           <Button
@@ -106,7 +141,7 @@ export default function ConfirmDelivery({
           <Button
             variant="green"
             loading={isPending}
-            disabled={isPending}
+            disabled={isPending || code.length !== 4}
             onPress={handleDelivery}
             style={styles.confirmRequestButton}
           >

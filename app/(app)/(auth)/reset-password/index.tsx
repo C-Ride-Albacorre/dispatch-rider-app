@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
+  Platform,
   ScrollView,
   StyleSheet,
   Text,
@@ -21,7 +22,7 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <KeyboardAvoidingView style={styles.keyboardSafeArea} behavior="padding">
+    <KeyboardAvoidingView style={styles.keyboardSafeArea} behavior={Platform.OS === 'ios' ? 'padding' : 'position'}>
       <ScrollView contentContainerStyle={styles.container}>
         <View>
           <TouchableOpacity

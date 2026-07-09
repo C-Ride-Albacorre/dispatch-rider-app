@@ -42,9 +42,7 @@ export default function ConfirmDeclineRequest({
   const { mutate: declineJob, isPending } = useDeclineJob();
 
   const finalReason =
-    selectedReason === 'Other'
-      ? customReason.trim()
-      : selectedReason;
+    selectedReason === 'Other' ? customReason.trim() : selectedReason;
 
   const handleDecline = () => {
     if (!selectedOrderId) {
@@ -65,10 +63,7 @@ export default function ConfirmDeclineRequest({
       return;
     }
 
-    if (
-      selectedReason === 'Other' &&
-      !customReason.trim()
-    ) {
+    if (selectedReason === 'Other' && !customReason.trim()) {
       Toast.show({
         type: 'error',
         text1: 'Please enter a custom reason',
@@ -101,6 +96,7 @@ export default function ConfirmDeclineRequest({
           Toast.show({
             type: 'error',
             text1:
+              error?.response?.data?.message ||
               error?.message ||
               'Failed to decline request',
           });
@@ -112,9 +108,7 @@ export default function ConfirmDeclineRequest({
   return (
     <AppModal
       visible={showConfirmDeclineModal}
-      onClose={() =>
-        setShowConfirmDeclineModal(false)
-      }
+      onClose={() => setShowConfirmDeclineModal(false)}
       closeOnBackdropPress={!isPending}
     >
       <View style={styles.confirmRequestModal}>
@@ -126,9 +120,7 @@ export default function ConfirmDeclineRequest({
           />
         </View>
 
-        <Text style={styles.confirmRequestTitle}>
-          Decline Request
-        </Text>
+        <Text style={styles.confirmRequestTitle}>Decline Request</Text>
 
         <Text style={styles.confirmRequestDescription}>
           Why are you declining this request?
@@ -136,22 +128,18 @@ export default function ConfirmDeclineRequest({
 
         <View style={styles.reasonsContainer}>
           {DECLINE_REASONS.map((item) => {
-            const isSelected =
-              selectedReason === item;
+            const isSelected = selectedReason === item;
 
             return (
               <TouchableOpacity
                 key={item}
                 activeOpacity={0.8}
-                onPress={() =>
-                  setSelectedReason(item)
-                }
+                onPress={() => setSelectedReason(item)}
                 style={[
                   styles.reasonButton,
                   isSelected && {
                     borderColor: Colors.error,
-                    backgroundColor:
-                      Colors.errorLight,
+                    backgroundColor: Colors.errorLight,
                   },
                 ]}
               >
@@ -160,8 +148,7 @@ export default function ConfirmDeclineRequest({
                     styles.reasonText,
                     isSelected && {
                       color: Colors.error,
-                      fontFamily:
-                        Fonts.brandSemiBold,
+                      fontFamily: Fonts.brandSemiBold,
                     },
                   ]}
                 >
@@ -185,9 +172,7 @@ export default function ConfirmDeclineRequest({
         <View style={styles.actionContainer}>
           <Button
             variant="outline"
-            onPress={() =>
-              setShowConfirmDeclineModal(false)
-            }
+            onPress={() => setShowConfirmDeclineModal(false)}
             style={styles.cancelBtn}
             disabled={isPending}
           >

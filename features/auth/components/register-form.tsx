@@ -113,7 +113,7 @@ export default function RegisterForm() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
       >
         <ScrollView
           contentContainerStyle={styles.container}
