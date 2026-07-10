@@ -1,21 +1,17 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import Documents from '@/features/onboarding/components/forms/documents';
 import PersonalInfo from '@/features/onboarding/components/forms/personal-info';
-import Review from '@/features/onboarding/components/forms/review';
 import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
 import { useTheme } from '@/hooks/use-theme';
 import { scale } from '@/utils/scaling';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -41,12 +37,15 @@ export default function Onboarding() {
   return (
     <KeyboardAvoidingView
       style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
     >
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        bounces={false}
+        scrollEnabled={true}
       >
         <View style={styles.textContainer}>
           <Text style={styles.title}>Join C-Ride as a Fulfillment Partner</Text>

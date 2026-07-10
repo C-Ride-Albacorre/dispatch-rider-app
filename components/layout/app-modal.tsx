@@ -1,12 +1,12 @@
 import React from 'react';
 
 import {
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   TouchableWithoutFeedback,
   View,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
@@ -39,7 +39,8 @@ export default function AppModal({
     >
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         {/* BACKDROP */}
         <TouchableWithoutFeedback

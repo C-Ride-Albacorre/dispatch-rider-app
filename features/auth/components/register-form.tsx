@@ -24,6 +24,9 @@ import { Controller, useForm } from 'react-hook-form';
 
 import { zodResolver } from '@hookform/resolvers/zod';
 
+import SuccessModal from '@/components/layout/success-modal';
+import { useTheme } from '@/hooks/use-theme';
+import { normalize, scale } from '@/utils/scaling';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -33,10 +36,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import SuccessModal from '@/components/layout/success-modal';
 import { RegisterPayload, RegisterSchema } from '../schema';
-import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 
 export default function RegisterForm() {
   const router = useRouter();
@@ -113,14 +113,18 @@ export default function RegisterForm() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
+          bounces={false}
+          scrollEnabled={true}
+          showsVerticalScrollIndicator={false}
         >
           <View>
-           <AuthPageHeader />
+            <AuthPageHeader />
           </View>
 
           {errorMessage && <ErrorMessage message={errorMessage} />}

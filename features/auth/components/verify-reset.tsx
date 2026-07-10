@@ -6,10 +6,8 @@ import IconButton from '@/components/ui/buttons/icon-button';
 
 import OtpInput from '@/components/ui/input/otp-input';
 
-import { Colors, Fonts } from '@/constants/theme';
-import ResendOTP from '@/features/auth/components/resend-otp';
+import { Fonts } from '@/constants/theme';
 
-import { resendOtpAction, verifyEmailAction } from '@/features/verify/action';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -20,7 +18,7 @@ import { normalize, scale } from '@/utils/scaling';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { useEffect, useState } from 'react';
 
@@ -30,7 +28,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -62,7 +59,6 @@ export default function ResetVerifyEmailScreen() {
 
   const verificationEmail = useAuthStore((state) => state.verificationEmail);
 
-
   const handleVerify = async () => {
     if (code.length !== 6) {
       setErrorMessage('Please enter the 6 digit code');
@@ -81,7 +77,7 @@ export default function ResetVerifyEmailScreen() {
     setErrorMessage('');
 
     // const result = await verifyEmailAction({
-  
+
     // });
 
     setLoading(false);
@@ -89,7 +85,7 @@ export default function ResetVerifyEmailScreen() {
     // console.log('Verification result:', result);
 
     // if (!result.success) {
-   
+
     //   if (result.invalid) {
     //     setErrorMessage(result.message || 'Invalid verification code');
     //     return;
@@ -135,9 +131,14 @@ export default function ResetVerifyEmailScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          bounces={false}
+          scrollEnabled={true}
+        >
           <View>
             <IconButton
               variant="outlineSecondary"
@@ -176,7 +177,6 @@ export default function ResetVerifyEmailScreen() {
           </Button>
 
           <View style={styles.resendContainer}>
-          
             {/* <TouchableOpacity>
               <Link href="/(app)/(auth)/forgot-password" asChild>
                 <Text style={styles.resendText}>Change Email</Text>

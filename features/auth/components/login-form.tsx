@@ -227,12 +227,15 @@ export default function LoginForm() {
     <>
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <ScrollView
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
+          bounces={false}
+          scrollEnabled={true}
         >
           <View>
             <AuthPageHeader />

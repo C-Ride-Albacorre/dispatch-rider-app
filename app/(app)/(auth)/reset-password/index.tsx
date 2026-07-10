@@ -1,7 +1,7 @@
 import AuthPageHeader from '@/components/layout/auth-header';
 import Button from '@/components/ui/buttons/button';
 import Input from '@/components/ui/input/input';
-import { Colors, Fonts } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -10,7 +10,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -22,8 +21,16 @@ export default function ResetPassword() {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <KeyboardAvoidingView style={styles.keyboardSafeArea} behavior={Platform.OS === 'ios' ? 'padding' : 'position'}>
-      <ScrollView contentContainerStyle={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.keyboardSafeArea}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+    >
+      <ScrollView
+        contentContainerStyle={styles.container}
+        bounces={false}
+        scrollEnabled={true}
+      >
         <View>
           <TouchableOpacity
             style={styles.returnBtn}
@@ -95,8 +102,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-
-  form:{
+  form: {
     gap: 24,
-  }
+  },
 });

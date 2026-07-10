@@ -1,5 +1,4 @@
 import AuthPageHeader from '@/components/layout/auth-header';
-import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
 import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
@@ -107,10 +106,14 @@ export default function ForgetPassword() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
-     
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          bounces={false}
+          scrollEnabled={true}
+        >
           <View>
             <TouchableOpacity
               style={styles.returnBtn}

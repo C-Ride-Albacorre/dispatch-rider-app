@@ -6,10 +6,10 @@ import IconButton from '@/components/ui/buttons/icon-button';
 
 import OtpInput from '@/components/ui/input/otp-input';
 
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import ResendOTP from '@/features/auth/components/resend-otp';
 
-import { resendOtpAction, verifyEmailAction } from '@/features/verify/action';
+import { verifyEmailAction } from '@/features/verify/action';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -144,9 +144,14 @@ export default function VerifyEmailScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'position'}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.container}
+          bounces={false}
+          scrollEnabled={true}
+        >
           <View>
             <IconButton
               variant="outlineSecondary"
