@@ -31,17 +31,11 @@ interface PhoneInputProps {
 }
 
 import {
-  ActivityIndicator,
-  FlatList,
   Image,
-  Modal,
-  Pressable,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet } from 'react-native';
 
 export default function PhoneInput({
@@ -53,86 +47,26 @@ export default function PhoneInput({
   value = '',
   ...props
 }: PhoneInputProps) {
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [selected, setSelected] = useState<Country>(DEFAULT_COUNTRY);
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [localNumber, setLocalNumber] = useState('');
+
+const DIAL_CODE = '+234';
+
+const [localNumber, setLocalNumber] = useState('');
+
 
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
-  // =========================
-  // FETCH COUNTRIES
-  // =========================
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch(
-          'https://restcountries.com/v3.1/all?fields=name,idd,cca2',
-        );
+useEffect(() => {
+  const stripped = value.startsWith(DIAL_CODE)
+    ? value.slice(DIAL_CODE.length)
+    : value;
 
-        const data = await res.json().catch(() => []);
+  if (stripped !== localNumber) {
+    setLocalNumber(stripped);
+  }
+}, [value, localNumber]);
 
-        const raw = Array.isArray(data) ? data : [];
-
-        const parsed: Country[] = raw
-          .filter((c) => c.idd?.root && c.idd?.suffixes?.length)
-          .map((c) => ({
-            name: c.name.common,
-            code: c.cca2,
-            dial: `${c.idd.root}${
-              c.idd.suffixes.length === 1 ? c.idd.suffixes[0] : ''
-            }`,
-          }))
-          .sort((a, b) => a.name.localeCompare(b.name));
-
-        setCountries(parsed);
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  // =========================
-  // AUTO DETECT COUNTRY
-  // =========================
-  useEffect(() => {
-    if (!countries.length) return;
-
-    (async () => {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-
-        const match = countries.find((c) => c.code === data.country_code);
-
-        if (match) {
-          setSelected(match);
-        }
-      } catch {}
-    })();
-  }, [countries]);
-
-  // =========================
-  // SYNC CONTROLLED VALUE
-  // =========================
-  useEffect(() => {
-    const stripped = value.startsWith(selected.dial)
-      ? value.slice(selected.dial.length)
-      : value;
-
-    if (stripped !== localNumber) {
-      setLocalNumber(stripped);
-    }
-  }, [value, selected.dial]);
-
-  const filtered = countries.filter(
-    (c) =>
-      c.name.toLowerCase().includes(search.toLowerCase()) ||
-      c.dial.includes(search),
-  );
+ 
 
   const hasError = !!errorMessage;
 
@@ -141,47 +75,35 @@ export default function PhoneInput({
       {label ? <Text style={styles.label}>{label}</Text> : null}
 
       <View style={[styles.row, hasError && styles.rowError]}>
-        <TouchableOpacity
-          style={styles.dialButton}
-          onPress={() => setOpen(true)}
-          disabled={loading}
-          activeOpacity={0.7}
-        >
-          {loading ? (
-            <ActivityIndicator size="small" color={Colors.text} />
-          ) : (
-            <>
-              <Image
-                source={{
-                  uri: `https://flagcdn.com/w40/${selected.code.toLowerCase()}.png`,
-                }}
-                style={styles.flag}
-              />
+     <View style={styles.dialButton}>
+  <Image
+    source={{
+      uri: 'https://flagcdn.com/w40/ng.png',
+    }}
+    style={styles.flag}
+  />
 
-              <Text style={styles.dialCode}>{selected.dial}</Text>
+  <Text style={styles.dialCode}>{DIAL_CODE}</Text>
+</View>
 
-              <Ionicons name="chevron-down" style={styles.chevron} />
-            </>
-          )}
-        </TouchableOpacity>
 
         <View style={styles.divider} />
 
         <TextInput
-          style={styles.input}
-          placeholder={placeholder}
-          placeholderTextColor="#9ca3af"
-          value={localNumber}
-          keyboardType="phone-pad"
-          autoComplete="tel"
-          autoCorrect={false}
-          maxLength={11}
-          onChangeText={(text) => {
-            const cleaned = text.replace(/\D/g, '').slice(0, 11);
+       style={styles.input}
+    placeholder={placeholder}
+    placeholderTextColor="#9ca3af"
+    value={localNumber}
+    keyboardType="phone-pad"
+    autoComplete="tel"
+    autoCorrect={false}
+    maxLength={11}
+  onChangeText={(text) => {
+  const cleaned = text.replace(/\D/g, '').slice(0, 11);
 
-            setLocalNumber(cleaned);
-            onChangePhone?.(`${selected.dial}${cleaned}`);
-          }}
+  setLocalNumber(cleaned);
+  onChangePhone?.(`${DIAL_CODE}${cleaned}`);
+}}
           {...props}
         />
       </View>
@@ -190,70 +112,7 @@ export default function PhoneInput({
 
       {inputInfo && <Text style={styles.info}>{inputInfo}</Text>}
 
-      <Modal visible={open} animationType="slide" presentationStyle="pageSheet">
-        <View style={styles.modal}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Select Country</Text>
-
-            <Pressable
-              onPress={() => {
-                setOpen(false);
-                setSearch('');
-              }}
-            >
-              <Text style={styles.modalClose}>Done</Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.searchRow}>
-            <Text style={styles.searchIcon}>🔍</Text>
-
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search country"
-              value={search}
-              onChangeText={setSearch}
-            />
-          </View>
-
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => item.code}
-            keyboardShouldPersistTaps="handled"
-            renderItem={({ item }) => {
-              const isActive = selected.code === item.code;
-
-              return (
-                <TouchableOpacity
-                  style={[
-                    styles.countryRow,
-                    isActive && styles.countryRowSelected,
-                  ]}
-                  onPress={() => {
-                    setSelected(item);
-
-                    onChangePhone?.(`${item.dial}${localNumber}`);
-
-                    setOpen(false);
-                    setSearch('');
-                  }}
-                >
-                  <Image
-                    source={{
-                      uri: `https://flagcdn.com/w40/${item.code.toLowerCase()}.png`,
-                    }}
-                    style={styles.flag}
-                  />
-
-                  <Text style={styles.countryName}>{item.name}</Text>
-
-                  <Text style={styles.countryDial}>{item.dial}</Text>
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
-      </Modal>
+    
     </View>
   );
 }
@@ -281,8 +140,8 @@ const createStyles = (Colors: any) =>
 
     rowError: {
       borderWidth: scale(1),
-      borderColor: Colors.warning,
-      backgroundColor: Colors.warningLight,
+      borderColor: Colors.error,
+      backgroundColor: Colors.errorLight,
     },
 
     dialButton: {
@@ -294,8 +153,8 @@ const createStyles = (Colors: any) =>
     },
 
     flag: {
-      width: scale(22),
-      height: scale(16),
+      width: scale(24),
+      height: scale(14),
       borderRadius: scale(2),
     },
 
@@ -318,18 +177,16 @@ const createStyles = (Colors: any) =>
 
     input: {
       flex: 1,
-
-      paddingVertical: scale(16),
-
-      fontSize: normalize(16),
-
-      fontFamily: Fonts.brandRegular,
-
-      color: Colors.text,
+  height: '100%',
+  paddingVertical: 0,
+  fontSize: normalize(16),
+  fontFamily: Fonts.brandRegular,
+  color: Colors.text,
+  textAlignVertical: 'center',
     },
 
     error: {
-      color: Colors.warning,
+      color: Colors.error,
 
       fontSize: normalize(13),
       fontFamily: Fonts.brandMedium,

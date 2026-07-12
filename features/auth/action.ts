@@ -17,8 +17,21 @@ import { forgotPassword, loginDriver, registerDriver } from './service';
 import { LoginPayload, RegisterPayload } from './types';
 
 export const registerAction = async (payload: RegisterPayload) => {
+  const parsedPayload = {
+    ...payload,
+
+    email: payload.email.toLowerCase().trim(),
+    phoneNumber: payload.phoneNumber.trim(),
+  };
+
+
+  console.log(' Register payload:', parsedPayload);
+
+
+  
+
   try {
-    const result = await registerDriver(payload);
+    const result = await registerDriver(parsedPayload);
 
     console.log('Register response:', result);
 
@@ -54,8 +67,12 @@ export const registerAction = async (payload: RegisterPayload) => {
 };
 
 export const loginAction = async (payload: LoginPayload) => {
+  const parsedPayload = {
+    ...payload,
+    email: payload.email.toLowerCase().trim(),
+  };
   try {
-    const result = await loginDriver(payload);
+    const result = await loginDriver(parsedPayload);
 
     console.log('Login response:', result);
 

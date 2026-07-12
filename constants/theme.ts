@@ -50,8 +50,8 @@ export const Colors = {
   successLight: '#10B98133',
   successExtraLight: '#10B9811A',
 
-  error: '#FF0000',
-  errorLight: '#FFE5E5',
+  error: '#EF4444',
+  errorLight: '#FEF2F2',
 
   warning: '#FFA500',
   warningLight: '#FFF4E5',
@@ -97,8 +97,8 @@ export const LightColors = {
   successLight: '#10B98133',
   successExtraLight: '#10B9811A',
 
-  error: '#FF0000',
-  errorLight: '#FFE5E5',
+  error: '#EF4444',
+  errorLight: '#FEF2F2',
 
   warning: '#FFA500',
   warningLight: '#FFF4E5',
@@ -144,8 +144,8 @@ export const DarkColors = {
   successLight: '#064E3B',
   successExtraLight: '#022C22',
 
-  error: '#FF6B6B',
-  errorLight: '#7F1D1D',
+  error: '#EF4444',
+  errorLight: '#FEF2F2',
 
   warning: '#FBBF24',
   warningLight: '#78350F',

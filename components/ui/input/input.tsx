@@ -116,44 +116,33 @@ const createStyles = (Colors: any) =>
   },
 
   required: {
-    color: '#EF4444',
+    color: Colors.error,
 
     fontSize: normalize(16),
 
     fontFamily: Fonts.brandBold,
   },
 
-  inputContainer: {
-    flexDirection: 'row',
+ inputContainer: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  height: scale(56),
+  paddingHorizontal: scale(12),
+  borderWidth: 1,
+  borderColor: 'transparent',
+  borderRadius: scale(12),
+  backgroundColor: Colors.inputBackground,
+},
 
-    alignItems: 'center',
-
-    backgroundColor: Colors.inputBackground,
-
-    borderRadius: scale(12),
-
-    paddingHorizontal: scale(12),
-
-    minHeight: scale(56),
-
-    width: '100%',
-
-    borderWidth: 1,
-
-    borderColor: 'transparent',
-  },
-
-  input: {
-    flex: 1,
-
-    paddingVertical: scale(16),
-
-    fontSize: normalize(16),
-
-    fontFamily: Fonts.brandRegular,
-
-    color: Colors.text,
-  },
+input: {
+  flex: 1,
+  height: '100%',
+  paddingVertical: 0,
+  fontSize: normalize(16),
+  fontFamily: Fonts.brandRegular,
+  color: Colors.text,
+  textAlignVertical: 'center',
+},
 
   iconLeft: {
     marginRight: scale(8),
@@ -176,15 +165,15 @@ const createStyles = (Colors: any) =>
   },
 
   errorContainer: {
-    borderColor: '#EF4444',
+    borderColor: Colors.error,
 
-    backgroundColor: '#FEF2F2',
+    backgroundColor: Colors.errorLight,
   },
 
   errorText: {
-    fontSize: normalize(13),
+    fontSize: normalize(12),
 
-    color: '#EF4444',
+    color: Colors.error,
 
     fontFamily: Fonts.brandMedium,
 
