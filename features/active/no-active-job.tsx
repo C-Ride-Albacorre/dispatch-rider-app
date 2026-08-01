@@ -54,15 +54,15 @@ export default function NoActiveJob() {
           // onPress={() => {
           //   router.push('/active-order');
           // }}
-          leftIcon={
+        leftIcon={
             <Ionicons
-              name="search-outline"
+              name="chevron-back-outline"
               size={16}
               color={isDark ? Colors.text : Colors.background}
             />
           }
         >
-          Search for Delivery
+          Browse Jobs
         </Button>
       </View>
     </View>

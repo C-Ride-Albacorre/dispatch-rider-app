@@ -1,0 +1,38 @@
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { router } from 'expo-router';
+
+type NotificationData = {
+  type?: string;
+  orderId?: string;
+};
+
+export function handleNotificationNavigation(
+  notification: FirebaseMessagingTypes.RemoteMessage,
+) {
+  const data = notification.data as NotificationData | undefined;
+
+  if (!data) {
+    return;
+  }
+
+  const { type, orderId } = data;
+
+  switch (type) {
+    case 'delivery_request':
+      if (!orderId) {
+        return;
+      }
+
+      router.push({
+        pathname: '/jobs',
+        params: {
+          orderId,
+        },
+      });
+
+      break;
+
+    default:
+      break;
+  }
+}

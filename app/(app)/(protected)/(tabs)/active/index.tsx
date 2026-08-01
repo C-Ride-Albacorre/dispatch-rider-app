@@ -3,47 +3,34 @@ import {
   useScrollHeader,
 } from '@/components/layout/scroll-header-context';
 import Button from '@/components/ui/buttons/button';
+import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts } from '@/constants/theme';
 import ConfirmDeclineRequest from '@/features/active/confirm-decline-request';
 import ConfirmDelivery from '@/features/active/confirm-delivery';
 import ConfirmPickup from '@/features/active/confirm-pickup';
 import NoActiveJob from '@/features/active/no-active-job';
 import StatusDot from '@/features/active/status-dot';
-import { useOrderTracking } from '@/features/active/use-fetch';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import polyline from '@mapbox/polyline';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { Image, StyleSheet, Text, View } from 'react-native';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, {
+  Marker,
+  Polyline,
+  PROVIDER_GOOGLE,
+  AnimatedRegion,
+} from 'react-native-maps';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-// const STATUS_CONFIG = {
-//   ORDER_ASSIGNED: {
-//     title: 'Waiting for Pickup',
-//     color: '#F59E0B',
-//     task: 'Go to Benola Foods and collect the order.',
-//   },
-
-//   PICKED_UP: {
-//     title: 'In Transit',
-//     color: '#3B82F6',
-//     task: 'Deliver the order to the customer.',
-//   },
-
-//   DELIVERED: {
-//     title: 'Delivered',
-//     color: '#10B981',
-//     task: 'Order completed.',
-//   },
-// };
-
 export default function ActiveDeliveryContent() {
-  const { Colors, isDark } = useTheme();
+  const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
   const insets = useSafeAreaInsets();
@@ -62,6 +49,12 @@ export default function ActiveDeliveryContent() {
   const [isMapReady, setIsMapReady] = useState<boolean>(false);
 
   const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+
+  const [storeLogoLoaded, setStoreLogoLoaded] = useState(false);
+
+  const [carRotation, setCarRotation] = useState(0);
+
+  const [isFollowingDriver, setIsFollowingDriver] = useState(true);
 
   // const currentStatus = order?.status;
 
@@ -86,6 +79,26 @@ export default function ActiveDeliveryContent() {
     ' POLYLINE TO VENDOR :',
     polylineToVendor,
   );
+
+  function getBearing(
+    startLat: number,
+    startLng: number,
+    endLat: number,
+    endLng: number,
+  ) {
+    const dLng = ((endLng - startLng) * Math.PI) / 180;
+
+    const lat1 = (startLat * Math.PI) / 180;
+    const lat2 = (endLat * Math.PI) / 180;
+
+    const y = Math.sin(dLng) * Math.cos(lat2);
+
+    const x =
+      Math.cos(lat1) * Math.sin(lat2) -
+      Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLng);
+
+    return (Math.atan2(y, x) * 180) / Math.PI;
+  }
 
   /**
    * -----------------------------
@@ -147,44 +160,6 @@ export default function ActiveDeliveryContent() {
     }
   }, [activePolyline]);
 
-  const vendorCoordinates = useMemo(() => {
-    if (!polylineToVendor) return [];
-    try {
-      const decoded = polyline.decode(polylineToVendor) as [number, number][];
-
-      return decoded
-        .map(([lat, lng]) => ({
-          latitude: Number(lat),
-          longitude: Number(lng),
-        }))
-        .filter(
-          (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
-        );
-    } catch (e) {
-      console.log('❌ polyline decode error:', e);
-      return [];
-    }
-  }, [polylineToVendor]);
-
-  const customerCoordinates = useMemo(() => {
-    if (!polylineToCustomer) return [];
-    try {
-      const decoded = polyline.decode(polylineToCustomer) as [number, number][];
-
-      return decoded
-        .map(([lat, lng]) => ({
-          latitude: Number(lat),
-          longitude: Number(lng),
-        }))
-        .filter(
-          (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
-        );
-    } catch (e) {
-      console.log('❌ polyline decode error:', e);
-      return [];
-    }
-  }, [polylineToCustomer]);
-
   /**
    * -----------------------------
    * MAP REFS
@@ -192,8 +167,21 @@ export default function ActiveDeliveryContent() {
    */
   const mapRef = useRef<MapView>(null);
 
+  const hasCentered = useRef(false);
+
+  const previousLocation = useRef<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+
+  const userInteracting = useRef(false);
+
   useEffect(() => {
     if (!driverLocation) return;
+
+    if (hasCentered.current) return;
+
+    hasCentered.current = true;
 
     mapRef.current?.animateCamera({
       center: {
@@ -205,23 +193,86 @@ export default function ActiveDeliveryContent() {
   }, [driverLocation]);
 
   useEffect(() => {
+    if (!driverLocation) return;
+
+    if (previousLocation.current) {
+      const bearing = getBearing(
+        previousLocation.current.lat,
+        previousLocation.current.lng,
+        driverLocation.lat,
+        driverLocation.lng,
+      );
+
+      setCarRotation(bearing);
+    }
+
+    previousLocation.current = {
+      lat: driverLocation.lat,
+      lng: driverLocation.lng,
+    };
+  }, [driverLocation]);
+
+  useEffect(() => {
     if (!isMapReady) return;
-    if (!mapRef.current) return;
+
     if (coordinates.length < 2) return;
 
-    requestAnimationFrame(() => {
-      mapRef.current?.fitToCoordinates(coordinates, {
-        edgePadding: {
-          top: 100,
-          left: 50,
-          right: 50,
-          bottom: 200,
-        },
-        animated: true,
-      });
+    mapRef.current?.fitToCoordinates(coordinates, {
+      edgePadding: {
+        top: 160,
+        right: 70,
+        left: 70,
+        bottom: 260,
+      },
+      animated: true,
     });
   }, [coordinates, isMapReady]);
 
+  useEffect(() => {
+    if (!driverLocation || !isMapReady) return;
+    if (userInteracting.current) return;
+
+    mapRef.current?.animateCamera(
+      {
+        center: {
+          latitude: driverLocation.lat,
+          longitude: driverLocation.lng,
+        },
+        heading: carRotation,
+        pitch: 55,
+        zoom: 17,
+      },
+      {
+        duration: 800,
+      },
+    );
+  }, [driverLocation, carRotation, isMapReady]);
+
+  const driverAnimatedCoordinate = useRef(
+    new AnimatedRegion({
+      latitude: Number(
+        driverLocation?.lat ?? activeOrder?.pickup_location?.latitude ?? 0,
+      ),
+      longitude: Number(
+        driverLocation?.lng ?? activeOrder?.pickup_location?.longitude ?? 0,
+      ),
+      latitudeDelta: 0,
+      longitudeDelta: 0,
+    }),
+  ).current;
+
+  useEffect(() => {
+    if (!driverLocation) return;
+
+    driverAnimatedCoordinate
+      .timing({
+        latitude: driverLocation.lat,
+        longitude: driverLocation.lng,
+        duration: 1000,
+        useNativeDriver: false,
+      } as any)
+      .start();
+  }, [driverLocation]);
   /**
    * -----------------------------
    * ETA HANDLING (SAFE)
@@ -260,23 +311,6 @@ export default function ActiveDeliveryContent() {
     return <NoActiveJob />;
   }
 
-  const pickup = activeOrder.pickup_location;
-  const dropoff = activeOrder.dropoff_location;
-
-  const driverCoord = driverLocation
-    ? {
-        latitude: driverLocation.lat,
-        longitude: driverLocation.lng,
-      }
-    : null;
-
-  const initialRegion = {
-    latitude: pickup?.latitude ?? 6.5244,
-    longitude: pickup?.longitude ?? 3.3792,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
-  };
-
   const handleConfirmDecline = () => {
     if (!activeOrder?.order_id) {
       return;
@@ -307,11 +341,49 @@ export default function ActiveDeliveryContent() {
     setShowConfirmDeliveryModal(true);
   };
 
-  // Example status, replace with actual data
 
-  // const currentIndex = timelineSteps.findIndex(
-  //   (step) => step.key === currentStatus,
-  // );
+const handleChat = () => {
+  if (!activeOrder?.order_id) {
+    return;
+  }
+
+
+  router.push(
+    `/active/${activeOrder.order_id}`
+  );
+
+
+};
+
+
+
+  const initialMapRegion = useMemo(() => {
+    const driverLat = Number(driverLocation?.lat);
+    const driverLng = Number(driverLocation?.lng);
+
+    const pickupLat = Number(activeOrder?.pickup_location?.latitude);
+    const pickupLng = Number(activeOrder?.pickup_location?.longitude);
+
+    const routePoint = coordinates[Math.floor(coordinates.length / 2)];
+
+    return {
+      latitude: Number.isFinite(driverLat)
+        ? driverLat
+        : (routePoint?.latitude ?? pickupLat ?? 0),
+
+      longitude: Number.isFinite(driverLng)
+        ? driverLng
+        : (routePoint?.longitude ?? pickupLng ?? 0),
+
+      latitudeDelta: 0.035,
+      longitudeDelta: 0.035,
+    };
+  }, [
+    driverLocation,
+    coordinates,
+    activeOrder?.pickup_location?.latitude,
+    activeOrder?.pickup_location?.longitude,
+  ]);
 
   const mapStyle = [
     {
@@ -335,7 +407,53 @@ export default function ActiveDeliveryContent() {
       elementType: 'labels',
       stylers: [{ visibility: 'off' }],
     },
+    {
+      featureType: 'poi.business',
+      stylers: [
+        {
+          visibility: 'off',
+        },
+      ],
+    },
+    {
+      featureType: 'road.highway',
+      elementType: 'geometry',
+      stylers: [
+        {
+          color: '#d7dbe0',
+        },
+      ],
+    },
+    {
+      featureType: 'water',
+      stylers: [
+        {
+          color: '#c9e8ff',
+        },
+      ],
+    },
   ];
+
+  const recenterDriver = () => {
+    if (!driverLocation) return;
+
+    setIsFollowingDriver(true);
+
+    mapRef.current?.animateCamera(
+      {
+        center: {
+          latitude: driverLocation.lat,
+          longitude: driverLocation.lng,
+        },
+        heading: carRotation,
+        pitch: 55,
+        zoom: 17,
+      },
+      {
+        duration: 700,
+      },
+    );
+  };
 
   console.log('Storeeeeeeeeee Logooooo:', activeOrder.store_logo);
 
@@ -358,30 +476,98 @@ export default function ActiveDeliveryContent() {
           {/* 1. Map Canvas Section */}
 
           <View style={styles.mapContainer}>
-            <MapView
-              initialRegion={{
-                latitude:
-                  Number(activeOrder.pickup_location.latitude) ||
-                  coordinates[0]?.latitude ||
-                  6.5244,
-                longitude:
-                  Number(activeOrder.pickup_location.longitude) ||
-                  coordinates[0]?.longitude ||
-                  3.3792,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
+            <View
+              style={{
+                position: 'absolute',
+                top: 20,
+                left: 20,
+                right: 20,
+
+                backgroundColor: 'rgba(255,255,255,0.96)',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.05)',
+
+                borderRadius: 18,
+
+                padding: 16,
+
+                flexDirection: 'row',
+                alignItems: 'center',
+
+                shadowColor: '#000',
+                shadowOpacity: 0.15,
+                shadowRadius: 12,
+                elevation: 8,
+
+                zIndex: 10,
               }}
+            >
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: `${Colors.primary}15`,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <Ionicons
+                  name="time-outline"
+                  size={24}
+                  color={Colors.primary}
+                />
+              </View>
+
+              <View style={{ marginLeft: 12 }}>
+                <Text
+                  style={{
+                    fontWeight: '700',
+                    fontSize: 16,
+                  }}
+                >
+                  {etaText}
+                </Text>
+
+                <Text
+                  style={{
+                    color: '#6B7280',
+                    marginTop: 2,
+                  }}
+                >
+                  {trackingMessage}
+                </Text>
+              </View>
+            </View>
+            <MapView
+              initialRegion={initialMapRegion}
               ref={mapRef}
               provider={PROVIDER_GOOGLE}
-              style={StyleSheet.absoluteFill}
+              style={[
+                StyleSheet.absoluteFill,
+                {
+                  borderRadius: 24,
+                },
+              ]}
+              mapPadding={{
+                top: 180,
+                bottom: 40,
+                left: 40,
+                right: 40,
+              }}
               onMapReady={() => setIsMapReady(true)}
               showsUserLocation={false}
               showsCompass
               customMapStyle={mapStyle}
+              onPanDrag={() => {
+                userInteracting.current = true;
+                setIsFollowingDriver(false);
+              }}
             >
               {/* Store */}
 
               <Marker
+                tracksViewChanges={!storeLogoLoaded}
                 coordinate={{
                   latitude: activeOrder.pickup_location.latitude,
                   longitude: activeOrder.pickup_location.longitude,
@@ -389,28 +575,64 @@ export default function ActiveDeliveryContent() {
               >
                 <View
                   style={{
-                    width: 54,
-                    height: 54,
-                    borderRadius: 27,
-                    backgroundColor: Colors.background,
+                    width: 64,
+                    height: 64,
+                    borderRadius: 32,
+
+                    backgroundColor: '#FFFFFF',
+
                     justifyContent: 'center',
                     alignItems: 'center',
-                    borderWidth: 2,
-                    borderColor: Colors.border,
+
+                    borderWidth: 3,
+                    borderColor: Colors.primary,
+
                     shadowColor: '#000',
-                    shadowOpacity: 0.2,
-                    shadowRadius: 6,
-                    elevation: 6,
+                    shadowOpacity: 0.25,
+                    shadowRadius: 10,
+                    shadowOffset: {
+                      width: 0,
+                      height: 5,
+                    },
+
+                    elevation: 10,
                   }}
                 >
-                  <Image
-                    source={{ uri: activeOrder.store_logo }}
+                  <View
                     style={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: 12,
+                      width: 38,
+                      height: 38,
+                      borderRadius: 19,
+                      overflow: 'hidden',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      backgroundColor: Colors.primaryLight,
                     }}
-                  />
+                  >
+                    {!storeLogoLoaded && (
+                      <Ionicons
+                        name="storefront"
+                        size={22}
+                        color={Colors.primary}
+                      />
+                    )}
+
+                    {activeOrder.store_logo && (
+                      <Image
+                        source={{
+                          uri: activeOrder.store_logo,
+                        }}
+                        onLoad={() => setStoreLogoLoaded(true)}
+                        onError={() => setStoreLogoLoaded(false)}
+                        style={{
+                          position: 'absolute',
+                          width: 38,
+                          height: 38,
+                          borderRadius: 19,
+                        }}
+                      />
+                    )}
+                  </View>
                 </View>
               </Marker>
 
@@ -423,27 +645,62 @@ export default function ActiveDeliveryContent() {
               /> */}
               {/* Driver */}
               {driverLocation && (
-                <Marker
-                  coordinate={{
-                    latitude: driverLocation.lat,
-                    longitude: driverLocation.lng,
+                <Marker.Animated
+                  coordinate={driverAnimatedCoordinate as any}
+                  anchor={{
+                    x: 0.5,
+                    y: 0.8,
                   }}
+                  flat
                 >
-                  <Animated.View
+                  <View
                     style={{
-                      transform: [{ rotate: `${driverLocation.heading}deg` }],
+                      alignItems: 'center',
+                      justifyContent: 'center',
                     }}
                   >
                     <Image
                       source={require('@/assets/images/3d-car.png')}
                       style={{
-                        width: 24,
-                        height: 24,
+                        width: scale(48),
+                        height: scale(48),
                         resizeMode: 'contain',
+                        transform: [
+                          {
+                            rotate: `${carRotation}deg`,
+                          },
+                        ],
                       }}
                     />
-                  </Animated.View>
-                </Marker>
+                  </View>
+                </Marker.Animated>
+                //  <Marker.Animated
+                //         coordinate={driverAnimatedCoordinate as any}
+                //         flat
+                //         anchor={{ x: 0.5, y: 0.5 }}
+                //       >
+                //         <View
+                //           style={{
+                //             width: 42,
+                //             height: 42,
+                //             justifyContent: 'center',
+                //             alignItems: 'center',
+                //           }}
+                //         >
+                //           <Ionicons
+                //             name="navigate"
+                //             size={38}
+                //             color={Colors.success}
+                //             style={{
+                //               transform: [
+                //                 {
+                //                   rotate: `${carRotation}deg`,
+                //                 },
+                //               ],
+                //             }}
+                //           />
+                //         </View>
+                //   </Marker.Animated>
               )}
 
               <Marker
@@ -454,57 +711,65 @@ export default function ActiveDeliveryContent() {
               >
                 <View
                   style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 28,
+                    backgroundColor: Colors.successExtraLight,
+
+                    justifyContent: 'center',
                     alignItems: 'center',
+
+                    borderWidth: 3,
+                    borderColor: Colors.success,
+
+                    shadowColor: '#000',
+                    shadowOpacity: 0.3,
+                    shadowRadius: 8,
+                    elevation: 8,
                   }}
                 >
-                  <View
-                    style={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 24,
-                      backgroundColor: Colors.border,
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <Ionicons name="home" size={22} color="#fff" />
-                  </View>
-
-                  <View
-                    style={{
-                      width: 4,
-                      height: 12,
-                      backgroundColor: Colors.backgroundTertiary,
-                    }}
-                  />
+                  <Ionicons name="location" size={26} color={Colors.success} />
                 </View>
               </Marker>
 
-              {/* <Polyline
-                coordinates={
-                  driverCoord ? [driverCoord, ...coordinates] : coordinates
-                }
-                strokeWidth={6}
-                strokeColor="#2563EB"
-                lineCap="round"
-                lineJoin="round"
-              /> */}
-              {vendorCoordinates && (
-                <Polyline
-                  coordinates={vendorCoordinates}
-                  strokeColor={Colors.primary}
-                  strokeWidth={5}
-                />
-              )}
+              {coordinates.length > 0 && (
+                <>
+                  <Polyline
+                    coordinates={coordinates}
+                    strokeColor="#FFFFFF"
+                    strokeWidth={10}
+                    lineCap="round"
+                    lineJoin="round"
+                  />
 
-              {customerCoordinates && (
-                <Polyline
-                  coordinates={customerCoordinates}
-                  strokeColor={Colors.success}
-                  strokeWidth={6}
-                />
+                  <Polyline
+                    coordinates={coordinates}
+                    strokeColor={Colors.primary}
+                    strokeWidth={6}
+                    lineCap="round"
+                    lineJoin="round"
+                  />
+                </>
               )}
             </MapView>
+
+            <TouchableOpacity
+              onPress={recenterDriver}
+              style={{
+                position: 'absolute',
+                bottom: 30,
+                right: 20,
+                width: 50,
+                height: 50,
+                borderRadius: 25,
+                backgroundColor: '#fff',
+                justifyContent: 'center',
+                alignItems: 'center',
+                elevation: scale(20),
+              }}
+            >
+              <Ionicons name="locate" size={24} color={Colors.primary} />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.statusContainer}>
@@ -560,9 +825,15 @@ export default function ActiveDeliveryContent() {
           </View>
 
           <View style={styles.card}>
-            <View style={styles.addressesContainerHeader}>
-              <StatusDot active={isCustomerActive} />
-              <Text style={styles.sectionLabel}>Customer Location</Text>
+            <View
+              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+            >
+              <View style={styles.addressesContainerHeader}>
+                <StatusDot active={isCustomerActive} />
+                <Text style={styles.sectionLabel}>Customer Location</Text>
+              </View>
+
+           
             </View>
 
             <View style={styles.addressesContainerRow}>
@@ -571,8 +842,7 @@ export default function ActiveDeliveryContent() {
                   styles.addressWrapper,
                   { backgroundColor: Colors.successExtraLight },
                 ]}
-              >
-                <Ionicons
+              ><Ionicons
                   name="location"
                   size={scale(20)}
                   color={Colors.success}
@@ -597,148 +867,22 @@ export default function ActiveDeliveryContent() {
                   {activeOrder.dropoff_location.postalCode}
                 </Text>
               </View>
+
+
+             
             </View>
 
-            {/* <Button variant="outline">View Route</Button> */}
-          </View>
 
-          {/* <View style={styles.card}>
-            <Text style={styles.sectionLabel}>Order Items</Text>
+             <View style={{  flexDirection: 'row', justifyContent: 'flex-end' }}>
+                <Button size='sm' onPress={handleChat} variant="inverted" leftIcon={<Ionicons name="chatbubble-ellipses" size={16} color={Colors.background} />}>
 
-            {activeOrder.items.map((item) => (
-              <View key={item.productName} style={styles.itemRow}>
-                <View style={styles.itemNameContainer}>
-                  <Text style={styles.itemName}>{item.productName}</Text>
-                  <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
-                </View>
+                  Chat with Customer
+                </Button>
 
-                <Text style={styles.itemPrice}>
-                  ₦{item.unitPrice.toLocaleString()}
-                </Text>
               </View>
-            ))}
-
-            <View style={styles.itemTotalPriceRow}>
-              <Text style={styles.totalLabel}>Total</Text>
-
-              <Text style={styles.totalPrice}>
-                ₦{activeOrder.total_amount.toLocaleString()}
-              </Text>
-            </View>
-          </View> */}
-
-          {/* 2. Linear Step Indicator Progress Bar */}
-          {/* <View style={styles.progressCard}>
-          <View style={styles.progressHeader}>
-            <Ionicons name="bicycle" size={24} color={Colors.success} />
-            <Text style={styles.progressTitle}>Delivery Progress</Text>
           </View>
-          <View style={{ paddingHorizontal: scale(16) }}>
-            {timelineSteps.map((step, index) => {
-              const completed = index < currentIndex;
-              const active = index === currentIndex;
-              const pending = index > currentIndex;
 
-              return (
-                <View key={step.key} style={styles.timelineItem}>
-                  <View style={styles.timelineIndicator}>
-                
-                    {completed ? (
-                      <View
-                        style={[
-                          styles.timelineCircle,
-                          { backgroundColor: Colors.success },
-                        ]}
-                      >
-                        <Ionicons name="checkmark" size={12} color="#FFF" />
-                      </View>
-                    ) : active ? (
-                      <View
-                        style={[
-                          styles.timelineCircle,
-                          {
-                            borderWidth: 2,
-                            borderColor: Colors.primary,
-                            backgroundColor: '#FFF',
-                          },
-                        ]}
-                      >
-                        <View
-                          style={[
-                            styles.activeDot,
-                            { backgroundColor: Colors.primary },
-                          ]}
-                        />
-                      </View>
-                    ) : (
-                      <View
-                        style={[
-                          styles.timelineCircle,
-                          { backgroundColor: Colors.border },
-                        ]}
-                      />
-                    )}
-
-                
-                    {index !== timelineSteps.length - 1 && (
-                      <View
-                        style={[
-                          styles.timelineLine,
-                          {
-                            backgroundColor:
-                              index < currentIndex
-                                ? Colors.success
-                                : Colors.border,
-                          },
-                        ]}
-                      />
-                    )}
-                  </View>
-
-                  <View style={styles.timelineContent}>
-                    <Text
-                      style={[
-                        styles.timelineTitle,
-                        completed
-                          ? { color: Colors.success }
-                          : active
-                            ? { color: Colors.primary }
-                            : { color: Colors.textMuted },
-                      ]}
-                    >
-                      {step.title}
-                    </Text>
-
-                    <Text style={styles.timelineSubtitle}>
-                      {step.description}
-                    </Text>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        </View> */}
-
-          <View style={styles.card}>
-            {/* <Text style={styles.orderNumber}>#{activeOrder.order_number}</Text> */}
-
-            {/* <View style={styles.divider} /> */}
-
-            {/* <View style={styles.heroBottom}>
-              <View style={styles.heroBottomPrice}>
-                <Text style={styles.totalAmount}>
-                  ₦{activeOrder.total_amount.toLocaleString()}
-                </Text>
-
-                <View style={styles.itemCount}>
-                  <Text style={styles.itemCountText}>
-                    Qty: {activeOrder.items.length} Items
-                  </Text>
-                </View>
-              </View>
-            </View> */}
-
-            <View style={styles.metaGrid}>
+          <View style={styles.card}><View style={styles.metaGrid}>
               <View style={styles.metaItem}>
                 <Text style={styles.metaLabel}>Created</Text>
                 <Text style={styles.metaValue}>
@@ -767,46 +911,6 @@ export default function ActiveDeliveryContent() {
               </View>
             </View>
           </View>
-
-          {/* <View style={styles.detailsCard}>
-          <View style={styles.customerHeaderRow}>
-            <View>
-              <Text style={styles.metaLabelText}>Customer</Text>
-              <Text style={styles.customerNameText}>Chioma Okafor</Text>
-            </View>
-            <TouchableOpacity
-              style={[styles.phoneButton, { backgroundColor: Colors.success }]}
-            >
-              <Ionicons name="call" size={scale(20)} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.addressesContainerRow}>
-            <View
-              style={[
-                styles.addressBlock,
-                { backgroundColor: Colors.backgroundSecondary ?? '#F8F9FA' },
-              ]}
-            >
-              <Text style={styles.addressTypeLabel}>Pickup</Text>
-              <Text style={styles.addressValueText} numberOfLines={2}>
-                Terra Kulture, Victoria Island
-              </Text>
-            </View>
-
-            <View
-              style={[
-                styles.addressBlock,
-                { backgroundColor: Colors.backgroundSecondary ?? '#F8F9FA' },
-              ]}
-            >
-              <Text style={styles.addressTypeLabel}>Drop-off</Text>
-              <Text style={styles.addressValueText} numberOfLines={2}>
-                Plot 22, Ahmadu Bello Way, VI
-              </Text>
-            </View>
-          </View>
-        </View> */}
 
           <View style={styles.footer}>
             {isPickupActive ? (
@@ -1193,14 +1297,16 @@ const createStyles = (Colors: any) =>
     },
 
     mapContainer: {
-      height: scale(220),
+      height: scale(360),
       borderRadius: scale(20),
+      elevation: scale(2),
       width: '100%',
       position: 'relative',
       overflow: 'hidden',
       borderWidth: 1,
       borderColor: '#E2E8F0',
       backgroundColor: '#EBF8FF',
+      // overflow: 'visible',
     },
     mockMapBackground: {
       flex: 1,

@@ -50,10 +50,14 @@ export function useDriverSocket(
   const socketRef = useRef<Socket | null>(null);
   const hasInitialized = useRef(false);
 
-  const locationRef = useRef<{ latitude: number; longitude: number } | null>(
-    null,
-  );
-  const lastSentRef = useRef<number>(0);
+  const { location } = useLocation();
+
+  const lastSentRef = useRef(0);
+
+  const lastLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
   const setSocket = useDriverJobsStore((s) => s.setSocket);
   const setActiveOrder = useDriverJobsStore((s) => s.setActiveOrder);
@@ -95,6 +99,11 @@ export function useDriverSocket(
       query: { driverId },
       auth: { token },
       transports: ['websocket'],
+
+      reconnection: true,
+      reconnectionAttempts: Infinity,
+      reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
     });
 
     socketRef.current = socket;
@@ -112,6 +121,16 @@ export function useDriverSocket(
 
     socket.on('connect', () => {
       driverSocketLog('connected', { socketId: socket.id, driverId });
+
+      if (location) {
+        socket.emit('driver-location', {
+          driverId,
+          orderId: activeOrderId,
+          lat: location.latitude,
+          lng: location.longitude,
+          heading: location.heading,
+        });
+      }
 
       driverSocketLog('emit subscribe-assigned-orders', { driverId });
       socket.emit('subscribe-assigned-orders', { driverId }, (ack: unknown) => {
@@ -132,9 +151,9 @@ export function useDriverSocket(
     });
 
     socket.io.on('reconnect', () => {
-      driverSocketLog('reconnected');
-
-      socket.emit('subscribe-assigned-orders', { driverId });
+      socket.emit('subscribe-assigned-orders', {
+        driverId,
+      });
     });
 
     socket.on('new-order-request', (order) => {
@@ -185,6 +204,8 @@ export function useDriverSocket(
     ready,
     token,
     driverId,
+    location,
+    activeOrderId,
     setSocket,
     setActiveOrder,
     addOrder,
@@ -193,70 +214,63 @@ export function useDriverSocket(
   ]);
 
   /**
-   * LOCATION SOURCE
-   */
-  const { location } = useLocation();
-
-  useEffect(() => {
-    if (!location) return;
-
-    locationRef.current = {
-      latitude: location.latitude,
-      longitude: location.longitude,
-    };
-  }, [location]);
-
-  /**
    * LOCATION EMITTER (STABLE + SAFE)
    */
   useEffect(() => {
-    // Don't start emitting until we have an activeOrderId
+    if (!location) return;
+
     if (!activeOrderId) return;
 
-    const interval = setInterval(() => {
-      const socket = socketRef.current;
-      const loc = locationRef.current;
+    const socket = socketRef.current;
 
-      if (!socket?.connected) return;
-      if (!driverId) return;
-      if (!loc) return;
+    if (!socket?.connected) return;
 
-      const now = Date.now();
+    if (!driverId) return;
 
-      // throttle (important)
-      if (now - lastSentRef.current < 2000) return;
-      lastSentRef.current = now;
+    const now = Date.now();
 
-      driverSocketLog('emitting driver-location', {
+    if (now - lastSentRef.current < 1000) {
+      return;
+    }
+
+    lastSentRef.current = now;
+
+    const previous = lastLocationRef.current;
+
+    if (previous) {
+      const moved =
+        Math.abs(previous.latitude - location.latitude) +
+        Math.abs(previous.longitude - location.longitude);
+
+      if (moved < 0.00002) {
+        return;
+      }
+    }
+
+    lastLocationRef.current = {
+      latitude: location.latitude,
+      longitude: location.longitude,
+    };
+
+    driverSocketLog('emit driver-location', {
+      driverId,
+      orderId: activeOrderId,
+      latitude: location.latitude,
+      longitude: location.longitude,
+    });
+
+    socket.emit(
+      'driver-location',
+      {
         driverId,
         orderId: activeOrderId,
-        lat: loc.latitude,
-        lng: loc.longitude,
-      });
-
-      console.log('📨 DRIVER LOCATION:', {
-        driverId,
-        lat: loc.latitude,
-        lng: loc.longitude,
-        orderId: activeOrderId,
-        heading: 0,
-      });
-
-      socket.emit(
-        'driver-location',
-        {
-          driverId,
-          lat: loc.latitude,
-          lng: loc.longitude,
-          orderId: activeOrderId,
-          heading: 0,
-        },
-        (ack: any) => {
-          console.log('📨 LOCATION ACK:', ack);
-        },
-      );
-    }, 2000);
-
-    return () => clearInterval(interval);
-  }, [driverId, activeOrderId]);
+        lat: location.latitude,
+        lng: location.longitude,
+        heading: location.heading,
+      },
+      (ack: unknown) => {
+        driverSocketLog('driver-location ack', ack);
+      },
+    );
+  }, [location, activeOrderId, driverId]);
 }

@@ -13,7 +13,9 @@
       "bundleIdentifier": "com.albacorre.criderider",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
-        "googleMapsApiKey": "YOUR_IOS_API_KEY"
+        // "googleMapsApiKey": "YOUR_IOS_API_KEY"
+
+          "googleMapsApiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c"
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,

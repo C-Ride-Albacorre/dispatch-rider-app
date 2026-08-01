@@ -11,10 +11,8 @@ import ProfileFrame from '@/features/profile/components/profile-frame';
 import Reviews from '@/features/profile/components/reviews';
 import DriverStats from '@/features/profile/components/stats';
 import { useTheme } from '@/hooks/use-theme';
-import { useAuthStore } from '@/store/auth-store';
-import { normalize, scale } from '@/utils/scaling';
+import {  scale } from '@/utils/scaling';
 
-import AppModal from '@/components/layout/app-modal';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';

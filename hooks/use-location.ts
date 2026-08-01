@@ -1,9 +1,10 @@
 import * as Location from 'expo-location';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-type Coordinates = {
+export type Coordinates = {
   latitude: number;
   longitude: number;
+  heading: number;
 };
 
 export type LocationPermissionStatus =
@@ -14,70 +15,79 @@ export type LocationPermissionStatus =
 
 export function useLocation() {
   const [location, setLocation] = useState<Coordinates | null>(null);
+
   const [loading, setLoading] = useState(true);
+
   const [permissionStatus, setPermissionStatus] =
     useState<LocationPermissionStatus>('checking');
+
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
-  async function fetchLocation() {
-    setLoading(true);
-    try {
-      const current = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.High,
-      });
-      setLocation({
-        latitude: current.coords.latitude,
-        longitude: current.coords.longitude,
-      });
-    } catch (error) {
-      console.log('Location error', error);
-    } finally {
-      setLoading(false);
-    }
-  }
+  const subscription = useRef<Location.LocationSubscription | null>(null);
 
-  // On mount: check existing permission status without triggering the system prompt
-  useEffect(() => {
-    async function checkPermission() {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status === 'granted') {
-          setPermissionStatus('granted');
-          fetchLocation();
-        } else if (status === 'denied') {
-          setPermissionStatus('denied');
-          setLoading(false);
-        } else {
-          // undetermined — show in-app explanation modal first
-          setPermissionStatus('undetermined');
-          setShowPermissionModal(true);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.log('Permission check error', error);
-        setPermissionStatus('undetermined');
-        setShowPermissionModal(true);
-        setLoading(false);
-      }
-    }
+  const startTracking = useCallback(async () => {
+    if (subscription.current) return;
 
-    checkPermission();
+    subscription.current = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.BestForNavigation,
+        timeInterval: 1000,
+        distanceInterval: 5,
+      },
+      (position) => {
+        setLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          heading: position.coords.heading ?? 0,
+        });
+      },
+    );
+
+    setLoading(false);
   }, []);
 
-  // Called when user taps "Allow" in the in-app modal
+  useEffect(() => {
+    async function initialise() {
+      const { status } = await Location.getForegroundPermissionsAsync();
+
+      if (status === 'granted') {
+        setPermissionStatus('granted');
+        startTracking();
+        return;
+      }
+
+      if (status === 'denied') {
+        setPermissionStatus('denied');
+        setLoading(false);
+        return;
+      }
+
+      setPermissionStatus('undetermined');
+      setShowPermissionModal(true);
+      setLoading(false);
+    }
+
+    initialise();
+
+    return () => {
+      subscription.current?.remove();
+      subscription.current = null;
+    };
+  }, [startTracking]);
+
   const requestPermission = useCallback(async () => {
     setShowPermissionModal(false);
+
     const { status } = await Location.requestForegroundPermissionsAsync();
+
     if (status === 'granted') {
       setPermissionStatus('granted');
-      fetchLocation();
+      startTracking();
     } else {
       setPermissionStatus('denied');
-      setLoading(false);
     }
-  }, []);
+  }, [startTracking]);
 
-  // Called when user taps "Not Now" in the in-app modal
   const dismissPermissionModal = useCallback(() => {
     setShowPermissionModal(false);
     setPermissionStatus('denied');

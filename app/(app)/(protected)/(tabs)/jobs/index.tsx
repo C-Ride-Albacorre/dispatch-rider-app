@@ -62,7 +62,7 @@ export default function Jobs() {
 
   const scrollHandler = useScrollHeader();
 
-  const { Colors } = useTheme();
+  const { Colors, isDark } = useTheme();
 
   const styles = createStyles(Colors);
 
@@ -94,6 +94,10 @@ export default function Jobs() {
   const apiJobs = data?.data ?? [];
 
   const socketJobs = useDriverJobsStore((s) => s.incomingOrders);
+
+
+  // console.log('API Jobs:', apiJobs);
+  console.log('Socket Jobs:', socketJobs);
 
   /**
    * Normalize job structure
@@ -272,11 +276,12 @@ export default function Jobs() {
                 width: '100%',
               }}
               onPress={() => router.push('/(app)/(protected)/(tabs)/active')}
+              rightIcon={<Ionicons name="chevron-forward-outline" size={16}  color={isDark ? Colors.text : Colors.background} />}
               // onPress={() => {
               //   router.push('/active-order');
               // }}
             >
-              View Active Order
+              View Active Job
             </Button>
           </View>
         </View>

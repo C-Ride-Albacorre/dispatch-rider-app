@@ -1,3 +1,4 @@
+import NotificationBanner from '@/components/layout/notification-banner';
 import NotificationPermissionModal from '@/components/layout/notification-permission-modal';
 import {
   HEADER_HEIGHT,
@@ -9,6 +10,7 @@ import AppHeader from '@/features/dashboard/components/app-header';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useDriverSocket } from '@/hooks/use-driver-socket';
 import { useMapSocket } from '@/hooks/use-map-socket';
+import { useNotificationListeners } from '@/hooks/use-notification-listeners';
 import { useTheme } from '@/hooks/use-theme';
 import { initializeNotifications } from '@/services/notifications/initializeNotifications';
 import {
@@ -52,11 +54,16 @@ export default function TabsLayout() {
     undefined,
   );
 
+  useNotificationListeners();
+
   useEffect(() => {
     void (async () => {
       const persisted = await getActiveOrder();
 
-      console.log('[TabsLayout] Restored persisted order from SecureStore:', persisted);
+      console.log(
+        '[TabsLayout] Restored persisted order from SecureStore:',
+        persisted,
+      );
 
       if (persisted?.order_id) {
         setRestoredOrderId(persisted.order_id);
@@ -64,14 +71,10 @@ export default function TabsLayout() {
     })();
   }, []);
 
-
-
-
   const activeOrderId =
     useDriverJobsStore((s) => s.activeOrder?.order_id) ?? restoredOrderId;
 
-
-    console.log(' [RestoredOrderId] activeOrderId:', restoredOrderId);
+  console.log(' [RestoredOrderId] activeOrderId:', restoredOrderId);
 
   // Fetch a tracking snapshot to pre-seed the map before the first socket event
   const { data: trackingSnapshot } = useOrderTracking(activeOrderId);
@@ -177,6 +180,8 @@ export default function TabsLayout() {
           },
         ]}
       >
+
+        <NotificationBanner />
         {/* ── Shared animated header ─────────────────────────────────────── */}
         {showHeader && (
           <Animated.View

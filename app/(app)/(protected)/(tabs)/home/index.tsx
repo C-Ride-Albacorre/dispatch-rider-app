@@ -6,7 +6,6 @@ import { Fonts } from '@/constants/theme';
 import ActiveDelivery from '@/features/home/components/active-delivery';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
-import RecentDeliveries from '@/features/home/components/recent-deliveries';
 import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';

@@ -1,10 +1,7 @@
 import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ActiveLayout() {
-  const insets = useSafeAreaInsets();
-
   const { Colors } = useTheme();
   return (
     <Stack

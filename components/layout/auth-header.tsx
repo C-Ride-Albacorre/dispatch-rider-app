@@ -1,3 +1,6 @@
+
+
+
 import { Colors, Fonts } from '@/constants/theme';
 import { scale } from '@/utils/scaling';
 import { Image, StyleSheet, Text, View } from 'react-native';

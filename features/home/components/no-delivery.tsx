@@ -29,9 +29,9 @@ export default function NoDelivery() {
        
         
 
-    leftIcon={<Ionicons name="search-outline" size={16}  color={isDark ? Colors.text : Colors.background} />}
+        rightIcon={<Ionicons name="chevron-forward-outline" size={16}  color={isDark ? Colors.text : Colors.background} />}
       >
-        Search for Deliveries
+        Browse Jobs
       </Button>
     </View>
   );

@@ -88,7 +88,7 @@ useEffect(() => {
 
 
         <View style={styles.divider} />
-
+        
         <TextInput
        style={styles.input}
     placeholder={placeholder}

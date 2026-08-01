@@ -75,3 +75,11 @@ export async function deliveryJobsService({
     throw error;
   }
 }
+
+
+
+export async function getChatService(orderId: string) {
+  const response = await api.get(`/chat/orders/${orderId}/messages`);
+
+  return response.data;
+}

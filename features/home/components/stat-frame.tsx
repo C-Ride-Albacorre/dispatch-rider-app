@@ -112,7 +112,7 @@ export default function StatFrame({
                 />
               ) : (
                 <Text>
-                  {stats?.rating ?? '0.0'}
+                  {stats?.rating.toFixed(1) ?? '0.0'}
                   <Ionicons name="star" size={14} color="gold" />
                 </Text>
               )}

@@ -41,6 +41,7 @@ export default function AppModal({
         style={styles.overlay}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        enabled={false}
       >
         {/* BACKDROP */}
         <TouchableWithoutFeedback

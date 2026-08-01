@@ -5,9 +5,11 @@ import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts } from '@/constants/theme';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
+import { useNotificationStore } from '@/store/notification-store';
+import { handleNotificationNavigation } from '@/utils/notification-navigation';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -18,14 +20,9 @@ import {
   View,
 } from 'react-native';
 
-
-
 export default function AppHeader() {
   const { Colors } = useTheme();
   const styles = createHeaderStyles(Colors);
-  // const [driverStatus, setDriverStatus] = useState<'ONLINE' | 'OFFLINE'>(
-  //   'OFFLINE',
-  // );
   const { data, isPending } = useDashboardStats();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -34,9 +31,9 @@ export default function AppHeader() {
 
   const driverInfo = data?.personalInfo;
 
-  // useEffect(() => {
-  //   setDriverStatus(status);
-  // }, [status]);
+  const unreadCount = useNotificationStore((s) => s.unreadCount);
+  const notifications = useNotificationStore((s) => s.notifications);
+  const markAllAsRead = useNotificationStore((s) => s.markAllAsRead);
 
   const driverStatus: DriverStatus =
     (data?.stats?.status as DriverStatus) ?? 'OFFLINE';
@@ -117,7 +114,7 @@ export default function AppHeader() {
         {/* Notification bell */}
         <IconButton
           variant="outline"
-          notificationCount={3}
+          notificationCount={unreadCount}
           size="md"
           onPress={() => setIsModalOpen(true)}
         >
@@ -135,21 +132,98 @@ export default function AppHeader() {
         />
       </View>
 
-      <AppModal visible={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <View style={styles.alertBox}>
-          <View style={styles.header}>
-            {/* This is your notification dot */}
-            <View style={styles.dot} />
-            <Text style={styles.title}>Update Available</Text>
-          </View>
-          <Text style={styles.message}>A new version of the app is ready.</Text>
-          <TouchableOpacity
-            onPress={() => setIsModalOpen(false)}
-            style={styles.button}
+      <AppModal
+        visible={isModalOpen}
+        onClose={() => {
+          markAllAsRead();
+          setIsModalOpen(false);
+        }}
+      >
+        <IconButton
+          variant="outline"
+          size="sm"
+          style={styles.button}
+          onPress={() => setIsModalOpen(false)}
+        >
+          <Ionicons
+            name="close-outline"
+            size={20}
+            color={Colors.textSecondary}
+          />
+        </IconButton>
+
+        {notifications.length === 0 ? (
+          <View
+            style={{
+              padding: 20,
+              alignItems: 'center',
+            }}
           >
-            <Text style={styles.buttonText}>Dismiss</Text>
-          </TouchableOpacity>
-        </View>
+            <Text
+              style={{
+                fontFamily: Fonts.brandMedium,
+                color: Colors.textSecondary,
+              }}
+            >
+              No notifications yet.
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.alertBox}>
+            <View style={styles.header}>
+              <View style={styles.dot} />
+              <Text style={styles.title}>Update Available</Text>
+            </View>
+
+            {notifications.map((item) => (
+              <TouchableOpacity
+                key={item.messageId}
+                activeOpacity={0.8}
+                style={{
+                  paddingVertical: 14,
+                  borderBottomWidth: StyleSheet.hairlineWidth,
+                  borderBottomColor: Colors.border,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: scale(12),
+                }}
+                onPress={() => {
+                  markAllAsRead();
+                  setIsModalOpen(false);
+
+                  handleNotificationNavigation(item);
+                }}
+              >
+                <Image
+                  source={require('@/assets/images/icon.png')}
+                  style={{
+                    width: scale(40),
+                    height: scale(40),
+                    borderRadius: scale(20),
+                  }}
+                />
+                <View>
+                  <Text
+                    style={{
+                      fontFamily: Fonts.brandSemiBold,
+                      color: Colors.text,
+                      marginBottom: 4,
+                    }}
+                  >
+                    {item.notification?.title}
+                  </Text>
+                  <Text
+                    style={{
+                      color: Colors.textSecondary,
+                    }}
+                  >
+                    {item.notification?.body}
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </AppModal>
     </View>
   );

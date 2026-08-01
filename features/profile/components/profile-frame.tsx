@@ -24,7 +24,7 @@ export default function ProfileFrame({
   };
   isLoading?: boolean;
 }) {
-  const { Colors, isDark } = useTheme();
+  const { Colors} = useTheme();
 
   const styles = createStyles(Colors);
 
@@ -110,7 +110,7 @@ export default function ProfileFrame({
                 <Ionicons name="star" size={scale(10)} color={Colors.primary} />
               </View>
 
-              <Text style={styles.profileRating}>{stats?.rating}</Text>
+              <Text style={styles.profileRating}>{stats?.rating?.toFixed(1)}</Text>
 
               <View style={styles.dot}></View>
 

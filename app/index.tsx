@@ -1,5 +1,5 @@
 import { scale } from '@/utils/scaling';
-
+import messaging from '@react-native-firebase/messaging';
 import { router } from 'expo-router';
 
 import { useEffect, useRef } from 'react';
@@ -18,6 +18,10 @@ export default function Home() {
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
+
+
+
+
 
   useEffect(() => {
     Animated.sequence([

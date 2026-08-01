@@ -37,7 +37,7 @@ export default function DriverPerformance({
         <View style={styles.metricItem}>
           <View style={styles.metricHeader}>
             <Text style={styles.metricTitle}>Overall Rating</Text>
-            <Text style={styles.metricValue}>{stats?.rating}/5.0</Text>
+            <Text style={styles.metricValue}>{stats?.rating.toFixed(1)}/5.0</Text>
           </View>
 
           <View style={styles.metricProgressBarContainer}>
