@@ -51,7 +51,7 @@ export default function ConfirmRequest({
         });
 
         // JUST NAVIGATE
-        router.push('/(app)/(protected)/(tabs)/active');
+        router.replace('/(app)/(protected)/(tabs)/active');
       },
 
       onError: (error: any) => {

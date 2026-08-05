@@ -1,10 +1,5 @@
 import { useEffect, useRef } from 'react';
-import {
-  Animated,
-  Pressable,
-  StyleSheet,
-  Text,
-} from 'react-native';
+import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
 import { useNotificationStore } from '@/store/notification-store';
@@ -12,9 +7,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Fonts } from '@/constants/theme';
 import { normalize, scale } from '@/utils/scaling';
 import { handleNotificationNavigation } from '@/utils/notification-navigation';
+import { Image, View } from 'react-native';
 
 export default function NotificationBanner() {
   const { Colors } = useTheme();
+
+  const styles = createStyles(Colors);
+
   const insets = useSafeAreaInsets();
 
   const banner = useNotificationStore((s) => s.banner);
@@ -78,64 +77,86 @@ export default function NotificationBanner() {
       ]}
     >
       <Pressable
-      onPress={() => {
-    clearBanner();
+        onPress={() => {
+          clearBanner();
 
-    handleNotificationNavigation(banner);
-}}
+          handleNotificationNavigation(banner);
+        }}
+        style={{
+          paddingVertical: scale(14),
+
+          flexDirection: 'row',
+          gap: scale(12),
+        }}
       >
-        <Text
-          style={[
-            styles.title,
-            {
-              color: Colors.text,
-            },
-          ]}
-        >
-          {banner.notification?.title}
-        </Text>
+        <Image
+          source={require('@/assets/images/icon.png')}
+          style={{
+            width: scale(32),
+            height: scale(32),
+            borderRadius: scale(16),
+          }}
+        />
 
-        <Text
-          style={[
-            styles.body,
-            {
-              color: Colors.textSecondary,
-            },
-          ]}
-        >
-          {banner.notification?.body}
-        </Text>
+        <View>
+          <Text
+            style={[
+              styles.title,
+              {
+                color: Colors.text,
+              },
+            ]}
+          >
+            {banner.notification?.title?.toLowerCase()}
+          </Text>
+
+          <Text
+            style={[
+              styles.body,
+              {
+                color: Colors.textSecondary,
+              },
+            ]}
+          >
+            {banner.notification?.body}
+          </Text>
+        </View>
       </Pressable>
     </Animated.View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      position: 'absolute',
 
-    left: scale(16),
-    right: scale(16),
+      left: scale(16),
+      right: scale(16),
 
-    zIndex: 9999,
+      zIndex: 9999,
 
-    borderRadius: scale(16),
+      borderRadius: scale(16),
 
-    borderWidth: 1,
+      borderWidth: 1,
 
-    padding: scale(16),
+      padding: scale(8),
 
-    elevation: scale(10),
-  },
+      elevation: scale(10),
+    },
 
-  title: {
-    fontFamily: Fonts.brandSemiBold,
-    fontSize: normalize(16),
-    marginBottom: scale(4),
-  },
+    title: {
+      fontFamily: Fonts.brandSemiBold,
+      color: Colors.text,
+      marginBottom: scale(2),
+      maxWidth: scale(240),
+      textTransform: 'capitalize',
+      fontSize: normalize(14),
+    },
 
-  body: {
-    fontFamily: Fonts.brandRegular,
-    fontSize: normalize(14),
-  },
-});
+    body: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: normalize(12),
+      maxWidth: scale(240),
+    },
+  });

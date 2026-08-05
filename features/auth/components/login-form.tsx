@@ -35,6 +35,7 @@ type ModalType = 'verification' | 'onboarding' | null;
 type AppRoutes =
   | '/(app)/(auth)/login'
   | '/(app)/(auth)/register'
+  | '/(app)/(auth)/reset'
   | '/(app)/(protected)/(tabs)/home'
   | '/(app)/(protected)/onboarding'
   | '/(app)/(verify)/email'
@@ -144,9 +145,6 @@ export default function LoginForm() {
 
         setButtonText('Continue Onboarding');
 
-        /**
-         * USER HAS NOT STARTED ANY STEP
-         */
         if (response.onboardingStatus === 'NOT_STARTED') {
           const nextStep = 1;
 
@@ -156,16 +154,6 @@ export default function LoginForm() {
 
           setNextSteps(onBoardingSteps);
         } else {
-          /**
-           * USER HAS COMPLETED A STEP ALREADY
-           *
-           * onboardingStep = completed step
-           *
-           * Example:
-           * onboardingStep = 1
-           * means user completed step 1
-           * so next screen should be step 2
-           */
           const completedStep = Number(response.onboardingStep || 0);
 
           const nextStep = completedStep + 1;
@@ -281,7 +269,7 @@ export default function LoginForm() {
               )}
             />
 
-            {/* <View style={styles.forgotPasswordContainer}>
+            <View style={styles.forgotPasswordContainer}>
               <Link href={'/forget-password'} asChild>
                 <TouchableOpacity>
                   <Text style={styles.forgotPasswordText}>
@@ -289,7 +277,7 @@ export default function LoginForm() {
                   </Text>
                 </TouchableOpacity>
               </Link>
-            </View> */}
+            </View>
 
             <Button
               size="lg"

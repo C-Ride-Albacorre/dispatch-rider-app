@@ -1,4 +1,5 @@
 import AuthPageHeader from '@/components/layout/auth-header';
+import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
 import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
@@ -29,6 +30,9 @@ export default function ForgetPassword() {
   const router = useRouter();
 
   const [activeTab, setActiveTab] = useState<'email' | 'phone'>('email');
+
+
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const [successModalVisible, setSuccessModalVisible] =
     useState<boolean>(false);
@@ -66,6 +70,11 @@ export default function ForgetPassword() {
 
       const response = await forgetPasswordAction(payload);
 
+      if (!response.success) {
+        setErrorMessage(response.message || 'Failed to send reset code');
+        throw new Error(response.message || 'Failed to send reset code');
+      }
+
       if (response.success) {
         setSuccessData({
           identifier: response.identifier,
@@ -76,33 +85,30 @@ export default function ForgetPassword() {
       }
     } catch (error) {
       console.error(error);
+
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (successData?.identifier && successData?.method) {
-    return;
-  }
-
   return (
     <>
-      {/* {successModalVisible && successData && (
+      {successModalVisible && successData && (
         <SuccessModal
           title={`Check your ${
             successData?.method === 'email' ? 'inbox' : 'messages'
           }`}
-          description={`We have sent a code to your ${
+          description={`We have sent a 6-digit code to your ${
             successData?.method === 'email' ? 'email' : 'phone'
           } (${successData?.identifier}). Please proceed to verify your  ${
             successData?.method === 'email' ? 'email' : 'phone'
           } `}
-          buttonText={`Verify ${successData?.method === 'email' ? 'Email' : 'Phone'}  `}
-          path={successData.method === 'email' ? '/(app)/(auth)/reset-verify/email' : '/(app)/(auth)/reset-verify/phone'}
+          buttonText={`Verify account`}
+          path="/(app)/(auth)/reset"
           showSuccessModal={successModalVisible}
           setShowSuccessModal={setSuccessModalVisible}
         />
-      )} */}
+      )}
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
@@ -132,6 +138,13 @@ export default function ForgetPassword() {
               we will send you a code to reset your password.
             </Text>
           </View>
+
+          {errorMessage && (
+            <ErrorMessage message={errorMessage} />
+        
+
+     
+          )}
 
           <View style={styles.tabContainer}>
             <TouchableOpacity
@@ -217,13 +230,9 @@ export default function ForgetPassword() {
             />
           )}
 
-          {isLoading ? (
-            <ActivityIndicator />
-          ) : (
-            <Button disabled={isLoading} onPress={handleSubmit(onSubmit)}>
-              {isLoading ? 'Submitting...' : 'Submit'}
-            </Button>
-          )}
+          <Button disabled={isLoading} onPress={handleSubmit(onSubmit)}>
+            {isLoading ? 'Submitting...' : 'Submit'}
+          </Button>
         </ScrollView>
       </KeyboardAvoidingView>
     </>

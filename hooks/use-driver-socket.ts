@@ -5,7 +5,7 @@ import { useAuthStore } from '@/store/auth-store';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { useLocation } from './use-location';
 
-type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
+type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY' | 'UNKNOWN';
 const DEBUG_DRIVER_SOCKET = true;
 
 type SocketPayload = Record<string, any> | null | undefined;
@@ -159,7 +159,14 @@ export function useDriverSocket(
     socket.on('new-order-request', (order) => {
       driverSocketLog('new-order-request', {
         orderId: order?.order_id ?? order?.orderId ?? null,
+        driverStatus: status,
       });
+
+      // Don't accept jobs if status is OFFLINE or UNKNOWN
+      // if (status === 'OFFLINE' || status === 'UNKNOWN') {
+      //   driverSocketLog('rejecting order: driver status is', status);
+      //   return;
+      // }
 
       addOrder(order);
     });
@@ -180,6 +187,12 @@ export function useDriverSocket(
 
     socket.on('active-order', (payload) => {
       driverSocketLog('active-order payload', payload);
+
+      // Don't accept active orders if status is OFFLINE or UNKNOWN
+      // if (status === 'OFFLINE' || status === 'UNKNOWN') {
+      //   driverSocketLog('rejecting active order: driver status is', status);
+      //   return;
+      // }
 
       const order = extractOrder(payload);
       driverSocketLog('active-order extracted', {

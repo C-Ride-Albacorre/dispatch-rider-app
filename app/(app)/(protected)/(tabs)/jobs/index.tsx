@@ -24,6 +24,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DriverStatus } from '../home';
+import { Image } from 'react-native';
 
 export type DriverOrder = {
   order_id: string;
@@ -94,7 +95,6 @@ export default function Jobs() {
   const apiJobs = data?.data ?? [];
 
   const socketJobs = useDriverJobsStore((s) => s.incomingOrders);
-
 
   // console.log('API Jobs:', apiJobs);
   console.log('Socket Jobs:', socketJobs);
@@ -227,6 +227,44 @@ export default function Jobs() {
     );
   }
 
+
+  
+  if (driverStatus === 'OFFLINE') {
+    return (
+   <View
+          style={[
+            styles.container,
+            {
+              justifyContent: 'center',
+              alignItems: 'center',
+            },
+          ]}
+        >
+          <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
+            <View style={styles.illustrationContainer}>
+                <Image
+                  source={require('@/assets/images/offline.png')}
+                  style={{ width: 150, height: 150 }}
+                />
+              </View>
+
+            <View style={{ gap: scale(8), marginBottom: scale(16) }}>
+              <Text style={styles.title}>You are currently offline</Text>
+
+              <Text style={styles.subtitle}>
+                You won't be able to accept new jobs until you go online.
+              </Text>
+            </View>
+
+         
+          </View>
+        </View>
+    );
+  }
+
+
+
+
   // BUSY state
   if (isBusy) {
     return (
@@ -276,7 +314,13 @@ export default function Jobs() {
                 width: '100%',
               }}
               onPress={() => router.push('/(app)/(protected)/(tabs)/active')}
-              rightIcon={<Ionicons name="chevron-forward-outline" size={16}  color={isDark ? Colors.text : Colors.background} />}
+              rightIcon={
+                <Ionicons
+                  name="chevron-forward-outline"
+                  size={16}
+                  color={isDark ? Colors.text : Colors.background}
+                />
+              }
               // onPress={() => {
               //   router.push('/active-order');
               // }}
@@ -345,6 +389,11 @@ const createStyles = (Colors: any) =>
       paddingVertical: scale(24),
       backgroundColor: Colors.background,
       gap: scale(16),
+    },
+
+        illustrationContainer: {
+      alignItems: 'center',
+      marginBottom: scale(30),
     },
 
     iconWrapper: {

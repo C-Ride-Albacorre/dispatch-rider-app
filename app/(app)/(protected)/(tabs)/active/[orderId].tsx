@@ -1,4 +1,4 @@
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -6,26 +6,28 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
+  Platform,
   StyleSheet,
-  ScrollView,
   Text,
   View,
-  Platform,
 } from 'react-native';
 
-import { useRef, useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { useChatStore } from '@/store/chat-store';
+
+import { useAuthStore } from '@/store/auth-store';
 
 import { useChat } from '@/hooks/use-chat-socket';
 
 import { ChatBubble } from '@/features/chat/components/chat-bubble';
 
+import { Fonts } from '@/constants/theme';
 import { ChatInput } from '@/features/chat/components/chat-input';
+import { ConnectionStatus } from '@/features/chat/components/connection-status';
+import TypingDot from '@/features/chat/components/typing-dot';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
-import { Fonts } from '@/constants/theme';
-import TypingDot from '@/features/chat/components/typing-dot';
 
 export default function ChatScreen() {
   const { Colors } = useTheme();
@@ -42,11 +44,25 @@ export default function ChatScreen() {
 
   const messages = useChatStore((state) => state.messages);
 
+  const isConnected = useChatStore((state) => state.isConnected);
+
   console.log(' ChatScreen orderId:', orderId, 'messages:', messages);
 
   const typingUsers = useChatStore((state) => state.typingUsers);
 
-  const { sendMessage, sendImage, typing } = useChat(orderId);
+  const { sendMessage, sendImage, typing, markRead } = useChat(orderId);
+
+  const driverId = useAuthStore((state) => state.driverId);
+
+  // Mark incoming messages as read when displayed
+  useEffect(() => {
+    messages.forEach((message) => {
+      // Only mark messages from other people (not the driver)
+      if (!message.isRead && message.senderId !== driverId) {
+        markRead(message.id);
+      }
+    });
+  }, [messages, markRead, driverId]);
 
   useEffect(() => {
     if (messages.length) {
@@ -76,12 +92,18 @@ export default function ChatScreen() {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
         <SafeAreaView edges={['top']} style={styles.wrapperContainer}>
+          <View style={styles.connectionStatusContainer}>
+            <ConnectionStatus isConnected={isConnected} />
+          </View>
+
           <View style={styles.container}>
             <FlatList
               ref={flatListRef}
               data={messages}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <ChatBubble message={item} />}
+              renderItem={({ item }) => (
+                <ChatBubble orderId={orderId} message={item} />
+              )}
               contentContainerStyle={styles.list}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
@@ -126,17 +148,22 @@ const createStyles = (Colors: any) =>
       backgroundColor: Colors.background,
     },
 
-    
-
     wrapperContainer: {
       flex: 1,
       backgroundColor: Colors.backgroundSecondary,
+      flexDirection: 'column',
     },
 
+    connectionStatusContainer: {
+      paddingHorizontal: scale(16),
+      paddingVertical: scale(8),
+      backgroundColor: Colors.background,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
 
-    container:{
-
-       flex: 1,
+    container: {
+      flex: 1,
       position: 'relative',
     },
 
@@ -158,9 +185,9 @@ const createStyles = (Colors: any) =>
       alignItems: 'center',
       paddingHorizontal: scale(16),
       paddingBottom: scale(10),
-      
+
       position: 'absolute',
-   bottom: scale(70), 
+      bottom: scale(70),
       left: 0,
       right: 0,
     },

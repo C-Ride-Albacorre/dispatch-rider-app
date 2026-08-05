@@ -1,5 +1,5 @@
 {
-  "name": "c-ride-dispatch-rider-app",
+  "name": "C-Ride Driver",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {

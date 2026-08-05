@@ -19,12 +19,27 @@ export function handleNotificationNavigation(
 
   switch (type) {
     case 'delivery_request':
+    case 'job':
       if (!orderId) {
         return;
       }
 
       router.push({
         pathname: '/jobs',
+        params: {
+          orderId,
+        },
+      });
+
+      break;
+
+    case 'chat':
+      if (!orderId) {
+        return;
+      }
+
+      router.push({
+        pathname: '/(app)/(protected)/(tabs)/active/[orderId]',
         params: {
           orderId,
         },

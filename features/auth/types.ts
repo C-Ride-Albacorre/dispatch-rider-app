@@ -29,3 +29,9 @@ export interface RegisterResponse {
     role: string;
   };
 }
+
+
+export interface ResetPasswordRequest {
+  token: string;
+  newPassword: string;
+}

@@ -60,10 +60,6 @@ export default function ConfirmDelivery({
       },
       {
         onSuccess: () => {
-          setActiveOrder(null);
-          clearTracking();
-          void clearActiveOrder();
-
           setShowConfirmDeliveryModal(false);
 
           Toast.show({
@@ -71,7 +67,15 @@ export default function ConfirmDelivery({
             text1: 'Delivery confirmed successfully',
           });
 
-          router.replace('/(app)/(protected)/(tabs)/jobs');
+          // Clear state after navigation starts
+          setTimeout(() => {
+            setActiveOrder(null);
+            clearTracking();
+            void clearActiveOrder();
+          }, 100);
+
+          // Navigate to jobs tab
+          router.replace('/jobs');
         },
 
         onError: (error: any) => {

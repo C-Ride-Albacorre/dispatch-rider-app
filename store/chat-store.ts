@@ -14,6 +14,10 @@ type ChatState = {
 
   messages: ChatMessage[];
 
+  activeActionMessageId: string | null;
+
+setActiveActionMessage: (id: string | null) => void;
+
   setMessages: (messages: ChatMessage[]) => void;
 
   addMessage: (message: ChatMessage) => void;
@@ -45,6 +49,13 @@ export const useChatStore = create<ChatState>((set) => ({
     set({
       isConnected: connected,
     }),
+
+    activeActionMessageId: null,
+
+setActiveActionMessage: (id) =>
+  set({
+    activeActionMessageId: id,
+  }),
 
   messages: [],
 
@@ -78,10 +89,17 @@ export const useChatStore = create<ChatState>((set) => ({
       ),
     })),
 
-  deleteMessage: (messageId) =>
-    set((state) => ({
-      messages: state.messages.filter((item) => item.id !== messageId),
-    })),
+deleteMessage: (messageId) =>
+  set((state) => ({
+    messages: state.messages.map((message) =>
+      message.id === messageId
+        ? {
+            ...message,
+            deletedAt: new Date().toISOString(),
+          }
+        : message,
+    ),
+  })),
 
   clearMessages: () =>
     set({

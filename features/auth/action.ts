@@ -6,15 +6,25 @@ import {
   saveOnboardingStatus,
   saveOnboardingStep,
   saveRefreshToken,
+  saveResetToken,
   saveVerificationEmail,
+  saveVerificationIdentifier,
+  saveVerificationMethod,
   saveVerificationPhone,
   saveVerificationToken,
 } from '@/utils/token-storage';
 
 import { useAuthStore } from '@/store/auth-store';
 import { ForgetPasswordPayload } from './schema';
-import { forgotPassword, loginDriver, registerDriver } from './service';
-import { LoginPayload, RegisterPayload } from './types';
+import {
+  forgotPassword,
+  loginDriver,
+  registerDriver,
+  resetPassword,
+  verifyReset,
+  VerifyResetRequest,
+} from './service';
+import { LoginPayload, RegisterPayload, ResetPasswordRequest } from './types';
 
 export const registerAction = async (payload: RegisterPayload) => {
   const parsedPayload = {
@@ -24,11 +34,7 @@ export const registerAction = async (payload: RegisterPayload) => {
     phoneNumber: payload.phoneNumber.trim(),
   };
 
-
   console.log(' Register payload:', parsedPayload);
-
-
-  
 
   try {
     const result = await registerDriver(parsedPayload);
@@ -200,9 +206,33 @@ export const loginAction = async (payload: LoginPayload) => {
 
 export const forgetPasswordAction = async (payload: ForgetPasswordPayload) => {
   try {
-    const result = await forgotPassword(payload);
+    const parsedPayload = {
+      identifier: (payload.email || payload.phoneNumber) as string,
+      client: 'mobile',
+    };
+    const result = await forgotPassword(parsedPayload);
 
     console.log('Forgot password response:', result);
+
+    if (!result.data.identifier || !result.data.method) {
+      Toast.show({
+        type: 'error',
+        text1: 'Verification Failed',
+        text2: 'Account with this identifier does not exist.',
+      });
+
+      return {
+        success: false,
+        message:
+          'Verification failed. Account with this identifier does not exist.',
+      };
+    }
+
+    if (result.data.identifier && result.data.method) {
+      await saveVerificationIdentifier(result.data.identifier);
+
+      await saveVerificationMethod(result.data.method);
+    }
 
     Toast.show({
       type: 'success',
@@ -226,6 +256,83 @@ export const forgetPasswordAction = async (payload: ForgetPasswordPayload) => {
     return {
       success: false,
       message: error?.response?.data?.message || 'Forgot password failed',
+    };
+  }
+};
+
+export const VerifyResetAction = async (payload: VerifyResetRequest) => {
+  try {
+    const data = await verifyReset(payload);
+
+    console.log('Verify data response:', data);
+
+    if (data?.status === 'error' || data?.statusCode >= 400) {
+      return {
+        success: false,
+        expired: data?.message?.toLowerCase().includes('expired') || false,
+        invalid: data?.message?.toLowerCase().includes('invalid') || false,
+        message: data?.message || 'Verification failed',
+      };
+    }
+
+    // HANDLE FAILED SUCCESS RESPONSE
+    if (!data.data.success) {
+      Toast.show({
+        type: 'error',
+        text1: 'Verification Failed',
+        text2: data.data.message || 'Verification failed',
+      });
+
+      return {
+        success: false,
+        message: data.data.message || 'Verification failed',
+      };
+    }
+
+    await saveResetToken(data.data.resetToken);
+
+    Toast.show({
+      type: 'success',
+      text1: 'Verification Successful',
+      text2: data.data.message,
+    });
+
+    return {
+      success: true,
+      data,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || 'Verification failed',
+    };
+  }
+};
+
+export const ResetPasswordAction = async (payload: ResetPasswordRequest) => {
+  try {
+    const data = await resetPassword(payload);
+
+    if (data.status === 'error' || data.statusCode >= 400) {
+      return {
+        success: false,
+        message: data.message || 'Password reset failed',
+      };
+    }
+
+    Toast.show({
+      type: 'success',
+      text1: 'Success',
+      text2: 'Password reset successfully',
+    });
+
+    return {
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message ?? 'Password reset failed',
     };
   }
 };

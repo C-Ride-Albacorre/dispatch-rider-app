@@ -1,10 +1,14 @@
-import { create } from 'zustand';
 import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
+import { create } from 'zustand';
 
 type RemoteMessage = FirebaseMessagingTypes.RemoteMessage;
 
+export type NotificationItem = RemoteMessage & {
+  viewedAt?: number;
+};
+
 type NotificationStore = {
-  notifications: RemoteMessage[];
+  notifications: NotificationItem[];
   unreadCount: number;
 
   banner: RemoteMessage | null;
@@ -14,6 +18,8 @@ type NotificationStore = {
   showBanner: (notification: RemoteMessage) => void;
 
   clearBanner: () => void;
+
+  markAsViewed: (messageId: string | undefined) => void;
 
   markAllAsRead: () => void;
 
@@ -49,6 +55,16 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set({
       banner: null,
     }),
+
+  markAsViewed: (messageId) => {
+    if (!messageId) return;
+
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.messageId === messageId ? { ...n, viewedAt: Date.now() } : n,
+      ),
+    }));
+  },
 
   markAllAsRead: () =>
     set({

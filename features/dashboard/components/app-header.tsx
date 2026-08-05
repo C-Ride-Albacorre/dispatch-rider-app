@@ -1,24 +1,15 @@
 import { DriverStatus } from '@/app/(app)/(protected)/(tabs)/home';
-import AppModal from '@/components/layout/app-modal';
+import NotificationListModal from '@/components/layout/notification-list-modal';
 import Avatar from '@/components/ui/avatar';
 import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts } from '@/constants/theme';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { useNotificationStore } from '@/store/notification-store';
-import { handleNotificationNavigation } from '@/utils/notification-navigation';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 
 export default function AppHeader() {
   const { Colors } = useTheme();
@@ -132,99 +123,13 @@ export default function AppHeader() {
         />
       </View>
 
-      <AppModal
+      <NotificationListModal
         visible={isModalOpen}
         onClose={() => {
           markAllAsRead();
           setIsModalOpen(false);
         }}
-      >
-        <IconButton
-          variant="outline"
-          size="sm"
-          style={styles.button}
-          onPress={() => setIsModalOpen(false)}
-        >
-          <Ionicons
-            name="close-outline"
-            size={20}
-            color={Colors.textSecondary}
-          />
-        </IconButton>
-
-        {notifications.length === 0 ? (
-          <View
-            style={{
-              padding: 20,
-              alignItems: 'center',
-            }}
-          >
-            <Text
-              style={{
-                fontFamily: Fonts.brandMedium,
-                color: Colors.textSecondary,
-              }}
-            >
-              No notifications yet.
-            </Text>
-          </View>
-        ) : (
-          <View style={styles.alertBox}>
-            <View style={styles.header}>
-              <View style={styles.dot} />
-              <Text style={styles.title}>Update Available</Text>
-            </View>
-
-            {notifications.map((item) => (
-              <TouchableOpacity
-                key={item.messageId}
-                activeOpacity={0.8}
-                style={{
-                  paddingVertical: 14,
-                  borderBottomWidth: StyleSheet.hairlineWidth,
-                  borderBottomColor: Colors.border,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: scale(12),
-                }}
-                onPress={() => {
-                  markAllAsRead();
-                  setIsModalOpen(false);
-
-                  handleNotificationNavigation(item);
-                }}
-              >
-                <Image
-                  source={require('@/assets/images/icon.png')}
-                  style={{
-                    width: scale(40),
-                    height: scale(40),
-                    borderRadius: scale(20),
-                  }}
-                />
-                <View>
-                  <Text
-                    style={{
-                      fontFamily: Fonts.brandSemiBold,
-                      color: Colors.text,
-                      marginBottom: 4,
-                    }}
-                  >
-                    {item.notification?.title}
-                  </Text>
-                  <Text
-                    style={{
-                      color: Colors.textSecondary,
-                    }}
-                  >
-                    {item.notification?.body}
-                  </Text>
-                </View>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </AppModal>
+      />
     </View>
   );
 }
@@ -276,27 +181,28 @@ const createHeaderStyles = (Colors: any) =>
     alertBox: {
       width: scale(280),
       backgroundColor: Colors.background,
-      padding: scale(20),
+
       borderRadius: scale(15),
     },
     header: {
       flexDirection: 'row',
       alignItems: 'center',
       marginBottom: scale(10),
+      gap: scale(8),
     },
     dot: {
       width: scale(8),
       height: scale(8),
       borderRadius: scale(5),
       backgroundColor: '#FF3B30',
-      marginRight: scale(8),
-      position: 'absolute',
-      top: scale(-6),
-      right: scale(-10),
+      marginRight: scale(4),
+      // position: 'absolute',
+      // top: scale(-2),
+      // right: scale(-10),
     },
     title: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(18),
+      fontSize: normalize(16),
       color: Colors.text,
     },
     message: { color: Colors.textSecondary, marginBottom: scale(20) },
@@ -304,6 +210,6 @@ const createHeaderStyles = (Colors: any) =>
     buttonText: {
       color: Colors.primary,
       fontFamily: Fonts.brandMedium,
-      fontSize: normalize(14),
+      fontSize: normalize(12),
     },
   });

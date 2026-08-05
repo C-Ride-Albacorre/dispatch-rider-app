@@ -6,8 +6,11 @@ import { useEffect } from 'react';
 
 import { useAuthStore } from '@/store/auth-store';
 import { requiresOnboarding } from '@/utils/onboarding-status';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function ProtectedLayout() {
+const { Colors} = useTheme()
+
   const { authStatus, onboardingStatus, onboardingStep } = useAuthStore();
   const segments = useSegments();
 
@@ -34,8 +37,8 @@ export default function ProtectedLayout() {
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: 'white',
-          paddingTop: insets.top,
+          backgroundColor: Colors.background,
+          // paddingTop: insets.top,
           paddingBottom: insets.bottom,
           paddingLeft: insets.left,
           paddingRight: insets.right,

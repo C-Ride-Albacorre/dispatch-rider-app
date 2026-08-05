@@ -101,7 +101,7 @@ export function useChat(orderId: string) {
       /**
        * Join order room
        */
-socket.emit('join-chat', orderId);
+      socket.emit('join-chat', orderId);
     });
 
     socket.on('disconnect', (reason) => {
@@ -247,39 +247,63 @@ socket.emit('join-chat', orderId);
 
   /**
    * Upload image
+   * WebSocket first with confirmation
+   * REST fallback
    */
   const sendImage = useCallback(
     async (uri: string) => {
+      const socket = socketRef.current;
+
       try {
-        await uploadChatImageService({
+        // Upload image and get URL from server
+        const response = await uploadChatImageService({
           orderId,
           uri,
         });
+
+        // Emit via socket if connected
+        if (socket && socket.connected) {
+          const payload = {
+            orderId,
+            message: response.imageUrl || response.url || uri,
+            type: 'IMAGE',
+          };
+
+          socket.emit('send-message', payload, (ack: any) => {
+            console.log('IMAGE SENT ACK:', ack);
+            addMessage(ack?.message || response);
+          });
+
+          return;
+        }
+
+        // Fallback: add message directly if socket not connected
+        addMessage(response);
       } catch (error) {
         console.log('IMAGE ERROR:', error);
       }
     },
-    [orderId],
+    [orderId, addMessage],
   );
 
   /**
    * Typing indicator
    */
-const typing = useCallback(
-  (isTyping: boolean) => {
-    console.log('EMIT typing', {
-      orderId,
-      isTyping,
-      connected: socketRef.current?.connected,
-    });
+  const typing = useCallback(
+    (isTyping: boolean) => {
+      console.log('EMIT typing', {
+        orderId,
+        isTyping,
+        connected: socketRef.current?.connected,
+      });
 
-    socketRef.current?.emit('typing', {
-      orderId,
-      isTyping,
-    });
-  },
-  [orderId],
-);
+      socketRef.current?.emit('typing', {
+        orderId,
+        isTyping,
+      });
+    },
+    [orderId],
+  );
 
   /**
    * Mark read

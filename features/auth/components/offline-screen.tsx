@@ -54,9 +54,9 @@ export default function OfflineScreen({ onRetry }: Props) {
         continue receiving deliveries and route updates.
       </Text>
 
-      <Button style={styles.btn} onPress={handleRetry} disabled={loading}>
+      {/* <Button style={styles.btn} onPress={handleRetry} disabled={loading}>
         {loading ? <ActivityIndicator color="#FFFFFF" /> : 'Try Again'}
-      </Button>
+      </Button> */}
 
       <Text style={styles.footer}>Last checked: Just now</Text>
     </View>

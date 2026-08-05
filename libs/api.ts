@@ -35,6 +35,9 @@ const AUTH_EXCLUDED_ENDPOINTS = [
   '/auth/user/verify/phone',
   '/auth/driver/login',
   '/auth/driver/register',
+  '/auth/forgot-password',
+  '/auth/verify-otp',
+  '/auth/reset-password',
   '/auth/refresh',
   '/auth/logout',
 ];
@@ -84,11 +87,9 @@ api.interceptors.response.use(
     /**
      * Prevent refresh logic for excluded auth routes
      */
-    const requestUrl = originalRequest.url || '';
+const requestUrl = (originalRequest.url || '').split('?')[0];
 
-    const isExcluded = AUTH_EXCLUDED_ENDPOINTS.some((endpoint) =>
-      requestUrl.includes(endpoint),
-    );
+const isExcluded = AUTH_EXCLUDED_ENDPOINTS.includes(requestUrl);
 
     /**
      * IMPORTANT:

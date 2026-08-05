@@ -3,13 +3,13 @@ import {
   useScrollHeader,
 } from '@/components/layout/scroll-header-context';
 import Button from '@/components/ui/buttons/button';
-import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts } from '@/constants/theme';
 import ConfirmDeclineRequest from '@/features/active/confirm-decline-request';
 import ConfirmDelivery from '@/features/active/confirm-delivery';
 import ConfirmPickup from '@/features/active/confirm-pickup';
 import NoActiveJob from '@/features/active/no-active-job';
 import StatusDot from '@/features/active/status-dot';
+import { useActiveOrder } from '@/features/active/use-fetch';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
@@ -17,14 +17,13 @@ import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import polyline from '@mapbox/polyline';
 import { router } from 'expo-router';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, {
+  AnimatedRegion,
   Marker,
   Polyline,
   PROVIDER_GOOGLE,
-  AnimatedRegion,
 } from 'react-native-maps';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -56,14 +55,34 @@ export default function ActiveDeliveryContent() {
 
   const [isFollowingDriver, setIsFollowingDriver] = useState(true);
 
-  // const currentStatus = order?.status;
+  const [isWaitingForOrder, setIsWaitingForOrder] = useState(true);
 
   const activeOrder = useDriverJobsStore((s) => s.activeOrder);
+  const setActiveOrder = useDriverJobsStore((s) => s.setActiveOrder);
+
+  // Fetch active order from API
+  const { data: fetchedOrder, isLoading: isOrderLoading } = useActiveOrder();
   const driverLocation = useDriverJobsStore((s) => s.driverLocation);
   const etaToVendor = useDriverJobsStore((s) => s.etaToVendor);
   const etaToCustomer = useDriverJobsStore((s) => s.etaToCustomer);
   const polylineToVendor = useDriverJobsStore((s) => s.polylineToVendor);
   const polylineToCustomer = useDriverJobsStore((s) => s.polylineToCustomer);
+
+  console.log('DRIVER LOCATION FOR MARKER:', driverLocation);
+
+  // Sync fetched order to store and handle loading state
+  useEffect(() => {
+    if (fetchedOrder?.order_id) {
+      setActiveOrder(fetchedOrder);
+      setIsWaitingForOrder(false);
+      return;
+    }
+
+    if (!isOrderLoading) {
+      // If loading finished but no order, show no active job
+      setIsWaitingForOrder(false);
+    }
+  }, [fetchedOrder, isOrderLoading, setActiveOrder]);
 
   console.log(
     // 'ACTIVE ORDER :',
@@ -212,14 +231,18 @@ export default function ActiveDeliveryContent() {
     };
   }, [driverLocation]);
 
+  const hasFittedRoute = useRef(false);
+
   useEffect(() => {
     if (!isMapReady) return;
-
     if (coordinates.length < 2) return;
+    if (hasFittedRoute.current) return;
+
+    hasFittedRoute.current = true;
 
     mapRef.current?.fitToCoordinates(coordinates, {
       edgePadding: {
-        top: 160,
+        top: 180,
         right: 70,
         left: 70,
         bottom: 260,
@@ -250,14 +273,14 @@ export default function ActiveDeliveryContent() {
 
   const driverAnimatedCoordinate = useRef(
     new AnimatedRegion({
-      latitude: Number(
-        driverLocation?.lat ?? activeOrder?.pickup_location?.latitude ?? 0,
-      ),
-      longitude: Number(
-        driverLocation?.lng ?? activeOrder?.pickup_location?.longitude ?? 0,
-      ),
-      latitudeDelta: 0,
-      longitudeDelta: 0,
+      latitude:
+        Number(driverLocation?.lat) ||
+        Number(activeOrder?.pickup_location?.latitude),
+      longitude:
+        Number(driverLocation?.lng) ||
+        Number(activeOrder?.pickup_location?.longitude),
+      latitudeDelta: 0.001,
+      longitudeDelta: 0.001,
     }),
   ).current;
 
@@ -266,8 +289,8 @@ export default function ActiveDeliveryContent() {
 
     driverAnimatedCoordinate
       .timing({
-        latitude: driverLocation.lat,
-        longitude: driverLocation.lng,
+        latitude: Number(driverLocation.lat),
+        longitude: Number(driverLocation.lng),
         duration: 1000,
         useNativeDriver: false,
       } as any)
@@ -303,11 +326,68 @@ export default function ActiveDeliveryContent() {
   }, [isPickupActive, isCustomerActive, activeOrder?.order_status]);
 
   /**
-   * -----------------------------
-   * SAFE GUARD (NO NULL FLASH)
-   * -----------------------------
+   * INITIAL MAP REGION - MOVED BEFORE GUARD
+   */
+  const initialMapRegion = useMemo(() => {
+    const driverLat = Number(driverLocation?.lat);
+    const driverLng = Number(driverLocation?.lng);
+
+    const pickupLat = Number(activeOrder?.pickup_location?.latitude);
+    const pickupLng = Number(activeOrder?.pickup_location?.longitude);
+
+    const routePoint = coordinates[Math.floor(coordinates.length / 2)];
+
+    return {
+      latitude: Number.isFinite(driverLat)
+        ? driverLat
+        : (routePoint?.latitude ?? pickupLat ?? 0),
+
+      longitude: Number.isFinite(driverLng)
+        ? driverLng
+        : (routePoint?.longitude ?? pickupLng ?? 0),
+
+      latitudeDelta: 0.035,
+      longitudeDelta: 0.035,
+    };
+  }, [
+    driverLocation,
+    coordinates,
+    activeOrder?.pickup_location?.latitude,
+    activeOrder?.pickup_location?.longitude,
+  ]);
+
+  /**
+   * SAFE GUARD (WAIT FOR WEBSOCKET OR TIMEOUT)
    */
   if (!activeOrder?.order_id) {
+    if (isWaitingForOrder) {
+      return (
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: Colors.background,
+          }}
+        >
+          <Ionicons
+            name="hourglass-outline"
+            size={48}
+            color={Colors.textMuted}
+            style={{ marginBottom: 16 }}
+          />
+          <Text
+            style={{
+              fontSize: 16,
+              color: Colors.textMuted,
+              fontFamily: Fonts.brandMedium,
+            }}
+          >
+            Loading delivery details...
+          </Text>
+        </View>
+      );
+    }
     return <NoActiveJob />;
   }
 
@@ -341,49 +421,13 @@ export default function ActiveDeliveryContent() {
     setShowConfirmDeliveryModal(true);
   };
 
+  const handleChat = () => {
+    if (!activeOrder?.order_id) {
+      return;
+    }
 
-const handleChat = () => {
-  if (!activeOrder?.order_id) {
-    return;
-  }
-
-
-  router.push(
-    `/active/${activeOrder.order_id}`
-  );
-
-
-};
-
-
-
-  const initialMapRegion = useMemo(() => {
-    const driverLat = Number(driverLocation?.lat);
-    const driverLng = Number(driverLocation?.lng);
-
-    const pickupLat = Number(activeOrder?.pickup_location?.latitude);
-    const pickupLng = Number(activeOrder?.pickup_location?.longitude);
-
-    const routePoint = coordinates[Math.floor(coordinates.length / 2)];
-
-    return {
-      latitude: Number.isFinite(driverLat)
-        ? driverLat
-        : (routePoint?.latitude ?? pickupLat ?? 0),
-
-      longitude: Number.isFinite(driverLng)
-        ? driverLng
-        : (routePoint?.longitude ?? pickupLng ?? 0),
-
-      latitudeDelta: 0.035,
-      longitudeDelta: 0.035,
-    };
-  }, [
-    driverLocation,
-    coordinates,
-    activeOrder?.pickup_location?.latitude,
-    activeOrder?.pickup_location?.longitude,
-  ]);
+    router.push(`/active/${activeOrder.order_id}`);
+  };
 
   const mapStyle = [
     {
@@ -434,36 +478,60 @@ const handleChat = () => {
     },
   ];
 
-  const recenterDriver = () => {
-    if (!driverLocation) return;
+  const focusLocation = useMemo(() => {
+    if (driverLocation) {
+      return {
+        latitude: driverLocation.lat,
+        longitude: driverLocation.lng,
+      };
+    }
 
-    setIsFollowingDriver(true);
+    if (deliveryPhase === 'TO_VENDOR') {
+      return {
+        latitude: activeOrder.pickup_location.latitude,
+        longitude: activeOrder.pickup_location.longitude,
+      };
+    }
+
+    return {
+      latitude: activeOrder.dropoff_location.latitude,
+      longitude: activeOrder.dropoff_location.longitude,
+    };
+  }, [driverLocation, deliveryPhase, activeOrder]);
+
+  const recenterDriver = () => {
+    if (!focusLocation) return;
+
+    userInteracting.current = false;
 
     mapRef.current?.animateCamera(
       {
-        center: {
-          latitude: driverLocation.lat,
-          longitude: driverLocation.lng,
-        },
-        heading: carRotation,
-        pitch: 55,
+        center: focusLocation,
         zoom: 17,
+        heading: driverLocation ? carRotation : 0,
+        pitch: driverLocation ? 60 : 0,
       },
       {
         duration: 700,
       },
     );
   };
-
   console.log('Storeeeeeeeeee Logooooo:', activeOrder.store_logo);
 
-  if (!activeOrder) {
-    return (
-      <>
-        <NoActiveJob />
-      </>
-    );
-  }
+  const driverMarkerCoordinate = driverLocation
+    ? {
+        latitude: driverLocation.lat,
+        longitude: driverLocation.lng,
+      }
+    : deliveryPhase === 'TO_VENDOR'
+      ? {
+          latitude: activeOrder.pickup_location.latitude,
+          longitude: activeOrder.pickup_location.longitude,
+        }
+      : {
+          latitude: activeOrder.dropoff_location.latitude,
+          longitude: activeOrder.dropoff_location.longitude,
+        };
 
   return (
     <>
@@ -609,15 +677,7 @@ const handleChat = () => {
                       backgroundColor: Colors.primaryLight,
                     }}
                   >
-                    {!storeLogoLoaded && (
-                      <Ionicons
-                        name="storefront"
-                        size={22}
-                        color={Colors.primary}
-                      />
-                    )}
-
-                    {activeOrder.store_logo && (
+                    {activeOrder.store_logo ? (
                       <Image
                         source={{
                           uri: activeOrder.store_logo,
@@ -631,6 +691,8 @@ const handleChat = () => {
                           borderRadius: 19,
                         }}
                       />
+                    ) : (
+                      <Ionicons name="bag" size={20} color={Colors.primary} />
                     )}
                   </View>
                 </View>
@@ -646,91 +708,33 @@ const handleChat = () => {
               {/* Driver */}
               {driverLocation && (
                 <Marker.Animated
-                  coordinate={driverAnimatedCoordinate as any}
-                  anchor={{
-                    x: 0.5,
-                    y: 0.8,
-                  }}
+                  coordinate={driverMarkerCoordinate}
                   flat
+                  tracksViewChanges={false}
+                  anchor={{ x: 0.5, y: 0.5 }}
                 >
-                  <View
-                    style={{
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Image
-                      source={require('@/assets/images/3d-car.png')}
+                  <Marker coordinate={driverMarkerCoordinate}>
+                    <View
                       style={{
-                        width: scale(48),
-                        height: scale(48),
-                        resizeMode: 'contain',
-                        transform: [
-                          {
-                            rotate: `${carRotation}deg`,
-                          },
-                        ],
+                        width: scale(18),
+                        height: scale(18),
+                        borderRadius: scale(9),
+                        backgroundColor: Colors.success,
+                        borderWidth: 3,
+                        borderColor: '#fff',
                       }}
                     />
-                  </View>
+                  </Marker>
                 </Marker.Animated>
-                //  <Marker.Animated
-                //         coordinate={driverAnimatedCoordinate as any}
-                //         flat
-                //         anchor={{ x: 0.5, y: 0.5 }}
-                //       >
-                //         <View
-                //           style={{
-                //             width: 42,
-                //             height: 42,
-                //             justifyContent: 'center',
-                //             alignItems: 'center',
-                //           }}
-                //         >
-                //           <Ionicons
-                //             name="navigate"
-                //             size={38}
-                //             color={Colors.success}
-                //             style={{
-                //               transform: [
-                //                 {
-                //                   rotate: `${carRotation}deg`,
-                //                 },
-                //               ],
-                //             }}
-                //           />
-                //         </View>
-                //   </Marker.Animated>
               )}
 
-              <Marker
-                coordinate={{
-                  latitude: activeOrder.dropoff_location.latitude,
-                  longitude: activeOrder.dropoff_location.longitude,
-                }}
-              >
-                <View
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 28,
-                    backgroundColor: Colors.successExtraLight,
-
-                    justifyContent: 'center',
-                    alignItems: 'center',
-
-                    borderWidth: 3,
-                    borderColor: Colors.success,
-
-                    shadowColor: '#000',
-                    shadowOpacity: 0.3,
-                    shadowRadius: 8,
-                    elevation: 8,
-                  }}
-                >
-                  <Ionicons name="location" size={26} color={Colors.success} />
-                </View>
-              </Marker>
+<Marker
+  coordinate={{
+    latitude: activeOrder.dropoff_location.latitude,
+    longitude: activeOrder.dropoff_location.longitude,
+  }}
+  pinColor={Colors.success}
+/>
 
               {coordinates.length > 0 && (
                 <>
@@ -744,7 +748,7 @@ const handleChat = () => {
 
                   <Polyline
                     coordinates={coordinates}
-                    strokeColor={Colors.primary}
+                    strokeColor="#000000"
                     strokeWidth={6}
                     lineCap="round"
                     lineJoin="round"
@@ -832,8 +836,6 @@ const handleChat = () => {
                 <StatusDot active={isCustomerActive} />
                 <Text style={styles.sectionLabel}>Customer Location</Text>
               </View>
-
-           
             </View>
 
             <View style={styles.addressesContainerRow}>
@@ -842,7 +844,8 @@ const handleChat = () => {
                   styles.addressWrapper,
                   { backgroundColor: Colors.successExtraLight },
                 ]}
-              ><Ionicons
+              >
+                <Ionicons
                   name="location"
                   size={scale(20)}
                   color={Colors.success}
@@ -867,22 +870,28 @@ const handleChat = () => {
                   {activeOrder.dropoff_location.postalCode}
                 </Text>
               </View>
-
-
-             
             </View>
 
-
-             <View style={{  flexDirection: 'row', justifyContent: 'flex-end' }}>
-                <Button size='sm' onPress={handleChat} variant="inverted" leftIcon={<Ionicons name="chatbubble-ellipses" size={16} color={Colors.background} />}>
-
-                  Chat with Customer
-                </Button>
-
-              </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <Button
+                size="sm"
+                onPress={handleChat}
+                variant="inverted"
+                leftIcon={
+                  <Ionicons
+                    name="chatbubble-ellipses"
+                    size={16}
+                    color={Colors.background}
+                  />
+                }
+              >
+                Chat with Customer
+              </Button>
+            </View>
           </View>
 
-          <View style={styles.card}><View style={styles.metaGrid}>
+          <View style={styles.card}>
+            <View style={styles.metaGrid}>
               <View style={styles.metaItem}>
                 <Text style={styles.metaLabel}>Created</Text>
                 <Text style={styles.metaValue}>

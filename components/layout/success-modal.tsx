@@ -11,14 +11,15 @@ import { useRouter } from 'expo-router';
 import AppModal from '@/components/layout/app-modal';
 
 import Button from '@/components/ui/buttons/button';
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Fonts } from '@/constants/theme';
 
 type AppRoutes =
   | '/(app)/(auth)/login'
   | '/(app)/(auth)/register'
+  | '/(app)/(auth)/reset'
   | '/(app)/(protected)/(tabs)/home'
   | '/(app)/(protected)/onboarding'
   | '/(app)/(verify)/email'
@@ -182,7 +183,7 @@ const createStyles = (Colors: any) =>
 
     description: {
       fontSize: normalize(14),
-      lineHeight: scale(20),  
+      lineHeight: scale(20),
       fontFamily: Fonts.brandRegular,
       textAlign: 'center',
       marginBottom: scale(24),

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "c-ride-dispatch-rider-app",
-    "slug": "c-ride-dispatch-rider-app",
+    "name": "C-Ride Driver",
+    "slug": "c-ride-driver",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -10,12 +10,12 @@
 
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.albacorre.criderider",
+      "bundleIdentifier": "com.albacorre.cridedriver",
       "googleServicesFile": "./GoogleService-Info.plist",
       "config": {
         // "googleMapsApiKey": "YOUR_IOS_API_KEY"
 
-          "googleMapsApiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c"
+        "googleMapsApiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c"
       },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -24,7 +24,7 @@
     },
 
     "android": {
-      "package": "com.albacorre.criderider",
+      "package": "com.albacorre.cridedriver",
       "googleServicesFile": "./google-services.json",
       "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION"],
       "softwareKeyboardLayoutMode": "resize",

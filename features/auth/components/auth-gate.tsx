@@ -11,8 +11,11 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
   const onboardingStatus = useAuthStore((s) => s.onboardingStatus);
   const onboardingStep = useAuthStore((s) => s.onboardingStep);
 
+  const isHydrated = useAuthStore((s) => s.isHydrated);
+
   useEffect(() => {
-    if (!authStatus) return;
+  if (!isHydrated || !authStatus) return;
+
 
     const isPublic = segments.includes('(public)' as never);
     const isAuth = segments.includes('(auth)' as never);
@@ -55,6 +58,7 @@ export default function AuthGate({ children }: { children: React.ReactNode }) {
       }
     }
   }, [
+    isHydrated,
     authStatus,
     segments,
     verificationToken,

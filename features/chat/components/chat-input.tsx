@@ -7,6 +7,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/hooks/use-theme';
 import { scale } from '@/utils/scaling';
 import { Fonts } from '@/constants/theme';
+import { QuickSuggestions } from './quick-suggestions';
+import { ImagePreviewModal } from './image-preview-modal';
 
 type Props = {
   onSend: (text: string) => void;
@@ -27,6 +29,9 @@ export function ChatInput({
 
   const styles = createStyles(Colors);
   const [text, setText] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
+  const [isSendingImage, setIsSendingImage] = useState(false);
 
   const hasText = text.trim().length > 0;
 
@@ -47,7 +52,24 @@ export function ChatInput({
       return;
     }
 
-    onPickImage(result.assets[0].uri);
+    setPreviewImageUri(result.assets[0].uri);
+  };
+
+  const handleConfirmImage = () => {
+    if (previewImageUri) {
+      setIsSendingImage(true);
+      onPickImage(previewImageUri);
+      setPreviewImageUri(null);
+      setIsSendingImage(false);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleQuickSuggestion = (suggestion: string) => {
+    onSend(suggestion);
+    setText('');
+    onTyping(false);
+    setShowSuggestions(false);
   };
 
   const handleSend = () => {
@@ -60,58 +82,80 @@ export function ChatInput({
     setText('');
 
     onTyping(false);
+    setShowSuggestions(false);
   };
 
   return (
-    <View style={styles.container}>
- <Pressable
-  onPress={handlePickImage}
-  style={({ pressed }) => [
-    styles.imageButton,
-    pressed && { opacity: 0.75, transform: [{ scale: 0.95 }] },
-  ]}
->
-        <Ionicons name="image-outline" size={24} color={Colors.text} />
-      </Pressable>
+    <View style={styles.wrapper}>
+      {showSuggestions && (
+        <QuickSuggestions onSelect={handleQuickSuggestion} />
+      )}
+      
+      <View style={styles.container}>
+        <Pressable
+          onPress={handlePickImage}
+          style={({ pressed }) => [
+            styles.imageButton,
+            pressed && { opacity: 0.75, transform: [{ scale: 0.95 }] },
+          ]}
+        >
+          <Ionicons name="image-outline" size={24} color={Colors.text} />
+        </Pressable>
 
-      <TextInput
-        value={text}
-        onChangeText={(value) => {
-          setText(value);
+        <TextInput
+          value={text}
+          onChangeText={(value) => {
+            setText(value);
+            onTyping(value.length > 0);
+            if (value.length === 0) {
+              setShowSuggestions(true);
+            } else {
+              setShowSuggestions(false);
+            }
+          }}
+          placeholder="Type a message..."
+          style={styles.input}
+          multiline
+        />
 
-          onTyping(value.length > 0);
-        }}
-        placeholder="Type a message..."
-        style={styles.input}
-        multiline
+        <Pressable
+          disabled={!hasText}
+          onPress={handleSend}
+          style={({ pressed }) => [
+            styles.sendButton,
+            !hasText && styles.sendDisabled,
+            pressed && hasText && { transform: [{ scale: 0.95 }] },
+          ]}
+        >
+          <Ionicons
+            name="paper-plane"
+            size={18}
+            color={hasText ? Colors.text : Colors.textMuted}
+            style={{
+              marginLeft: 2,
+              marginTop: 1,
+              transform: [{ rotate: '-0deg' }],
+            }}
+          />
+        </Pressable>
+      </View>
+
+      <ImagePreviewModal
+        visible={previewImageUri !== null}
+        imageUri={previewImageUri}
+        onConfirm={handleConfirmImage}
+        onCancel={() => setPreviewImageUri(null)}
+        isLoading={isSendingImage}
       />
-
- <Pressable
-  disabled={!hasText}
-  onPress={handleSend}
-  style={({ pressed }) => [
-    styles.sendButton,
-    !hasText && styles.sendDisabled,
-    pressed && hasText && { transform: [{ scale: 0.95 }] },
-  ]}
->
-       <Ionicons
-  name="paper-plane"
-  size={18}
-  color={hasText ? "#fff" : Colors.textMuted}
-  style={{
-    marginLeft: 2,
-    marginTop: 1,
-    transform: [{ rotate: '-0deg' }],
-  }}
-/>
-      </Pressable>
     </View>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
+    wrapper: {
+      backgroundColor: Colors.background,
+    },
     container: {
       flexDirection: 'row',
       alignItems: 'flex-end',
@@ -178,29 +222,19 @@ const createStyles = (Colors: any) =>
 
       alignItems: 'center',
       justifyContent: 'center',
-
-      shadowColor: Colors.primary,
-      shadowOpacity: 0.35,
-      shadowRadius: 8,
-      shadowOffset: {
-        width: 0,
-        height: 4,
-      },
-
-      elevation: 6,
     },
 
-sendDisabled: {
-  backgroundColor: Colors.backgroundSecondary,
+    sendDisabled: {
+      backgroundColor: Colors.backgroundSecondary,
 
-  shadowOpacity: 0,
-  shadowRadius: 0,
+      shadowOpacity: 0,
+      shadowRadius: 0,
 
-  elevation: 0,
+      elevation: 0,
 
-  shadowOffset: {
-    width: 0,
-    height: 0,
-  },
-},
+      shadowOffset: {
+        width: 0,
+        height: 0,
+      },
+    },
   });

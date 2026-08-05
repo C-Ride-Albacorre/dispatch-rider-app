@@ -77,6 +77,35 @@ export const getVerificationPhone = async () => {
   return await getItem('verificationPhone');
 };
 
+export const saveVerificationIdentifier = async (identifier: string) => {
+  await setItem('verificationIdentifier', identifier);
+};
+
+export const getVerificationIdentifier = async () => {
+  return await getItem('verificationIdentifier');
+};
+
+export const saveVerificationMethod = async (method: string) => {
+  await setItem('verificationMethod', method);
+};
+
+export const getVerificationMethod = async () => {
+  return await getItem('verificationMethod');
+};
+
+
+export const saveResetToken = async (token: string) => {
+  await setItem('resetToken', token);
+};
+
+export const getResetToken = async () => {
+  return await getItem('resetToken');
+}
+
+export const clearResetToken = async () => {
+  await deleteItem('resetToken');
+}
+
 export const saveOnboardingStatus = async (status: string) => {
   await setItem('onboardingStatus', status);
 };
@@ -117,6 +146,9 @@ export const clearVerificationData = async () => {
   await deleteItem('verificationToken');
   await deleteItem('verificationEmail');
   await deleteItem('verificationPhone');
+  await deleteItem('verificationIdentifier');
+  await deleteItem('verificationMethod');
+  await deleteItem('resetToken');
 };
 
 export const saveNotificationPermissionDecision = async (
@@ -144,6 +176,9 @@ export const clearTokens = async () => {
   await deleteItem('verificationToken');
   await deleteItem('verificationEmail');
   await deleteItem('verificationPhone');
+  await deleteItem('verificationIdentifier');
+  await deleteItem('verificationMethod');
+await deleteItem('resetToken');
 
   await deleteItem('driverId');
   await deleteItem('activeOrder');
