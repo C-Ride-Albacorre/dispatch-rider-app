@@ -18,6 +18,7 @@ import {
 import { handleNotificationNavigation } from '@/utils/notification-navigation';
 import { normalize, scale } from '@/utils/scaling';
 import IconButton from '../ui/buttons/icon-button';
+import { is } from 'zod/v4/locales';
 
 type NotificationListModalProps = {
   visible: boolean;
@@ -54,7 +55,7 @@ export default function NotificationListModal({
       <Pressable
         style={[
           styles.notificationItem,
-          !isViewed && { backgroundColor: Colors.primaryLight + '20' },
+          !isViewed && { backgroundColor: Colors.primaryLight + '20' }, isViewed && { backgroundColor: Colors.backgroundTertiary + '70' },
         ]}
         onPress={() => handleNotificationPress(item)}
       >
@@ -68,8 +69,9 @@ export default function NotificationListModal({
           <View style={styles.titleRow}>
             <Text
               style={[
-                styles.notificationTitle,
-                !isViewed && { fontFamily: Fonts.brandSemiBold, textTransform: 'capitalize', maxWidth: scale(240) },
+                styles.notificationTitle, { textTransform: 'capitalize',},
+                !isViewed && { fontFamily: Fonts.brandSemiBold, maxWidth: scale(240) },
+                isViewed && { fontFamily: Fonts.brandMedium, maxWidth: scale(240) },
               ]}
               numberOfLines={1}
             >
@@ -289,7 +291,7 @@ const createStyles = (Colors: any) =>
     },
 
     notificationBody: {
-      fontSize: normalize(13),
+      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
       color: Colors.textSecondary,
       lineHeight: scale(18),

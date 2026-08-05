@@ -12,6 +12,10 @@ export default function EarningsLayout() {
         headerShown: false,
         contentStyle: {
           backgroundColor: Colors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
         },
         gestureEnabled: true,
 

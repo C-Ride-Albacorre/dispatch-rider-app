@@ -50,14 +50,18 @@ export default function ConfirmRequest({
           text1: 'Request accepted successfully',
         });
 
-        // JUST NAVIGATE
+        // Close the job details page first, then navigate
+        router.dismiss();
         router.replace('/(app)/(protected)/(tabs)/active');
       },
 
       onError: (error: any) => {
         Toast.show({
           type: 'error',
-          text1:  error?.response?.data?.message || error?.message || 'Failed to accept request',
+          text1:
+            error?.response?.data?.message ||
+            error?.message ||
+            'Failed to accept request',
         });
       },
     });

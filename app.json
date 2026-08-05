@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "C-Ride Driver",
-    "slug": "c-ride-driver",
+    "slug": "c-ride-dispatch-rider-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

@@ -728,13 +728,13 @@ export default function ActiveDeliveryContent() {
                 </Marker.Animated>
               )}
 
-<Marker
-  coordinate={{
-    latitude: activeOrder.dropoff_location.latitude,
-    longitude: activeOrder.dropoff_location.longitude,
-  }}
-  pinColor={Colors.success}
-/>
+              <Marker
+                coordinate={{
+                  latitude: activeOrder.dropoff_location.latitude,
+                  longitude: activeOrder.dropoff_location.longitude,
+                }}
+                pinColor={Colors.success}
+              />
 
               {coordinates.length > 0 && (
                 <>

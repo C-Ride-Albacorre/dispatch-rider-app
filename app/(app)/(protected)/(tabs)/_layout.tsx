@@ -71,13 +71,13 @@ export default function TabsLayout() {
     })();
   }, []);
 
-  const activeOrderId =
-    useDriverJobsStore((s) => s.activeOrder?.order_id) ?? restoredOrderId;
-
-  console.log(' [RestoredOrderId] activeOrderId:', restoredOrderId);
-
   // Fetch a tracking snapshot to pre-seed the map before the first socket event
-  const { data: trackingSnapshot } = useOrderTracking(activeOrderId);
+  const { data: trackingSnapshot } = useOrderTracking();
+
+  const activeOrderId =
+    useDriverJobsStore((s) => s.activeOrder?.order_id) ??
+    restoredOrderId ??
+    trackingSnapshot?.data?.order?.id;
 
   useEffect(() => {
     const d = trackingSnapshot?.data;
@@ -180,7 +180,6 @@ export default function TabsLayout() {
           },
         ]}
       >
-
         <NotificationBanner />
         {/* ── Shared animated header ─────────────────────────────────────── */}
         {showHeader && (

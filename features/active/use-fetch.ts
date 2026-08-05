@@ -20,11 +20,11 @@ export function useActiveOrder() {
   });
 }
 
-export function useOrderTracking(orderId: string | undefined | null) {
+export function useOrderTracking() {
   return useQuery({
-    queryKey: ['order-tracking', orderId],
-    queryFn: () => getOrderTrackingService(orderId!),
-    enabled: !!orderId,
+    queryKey: ['order-tracking'],
+    queryFn: () => getOrderTrackingService(),
+    enabled: false,
     retry: 1,
     staleTime: 5_000,
   });

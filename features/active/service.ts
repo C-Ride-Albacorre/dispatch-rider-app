@@ -6,8 +6,8 @@ export async function getActiveOrderService() {
   return response.data;
 }
 
-export async function getOrderTrackingService(orderId: string) {
-  const response = await api.get(`/driver/${orderId}/tracking`);
+export async function getOrderTrackingService() {
+  const response = await api.get(`/driver/tracking`);
 
   return response.data;
 }

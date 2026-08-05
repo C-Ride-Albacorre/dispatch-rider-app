@@ -89,9 +89,9 @@ export default function RenderJobCard({ item }: { item: any }) {
               </Text>
             </View>
           </View>
-          <Text style={[styles.jobPrice, { color: Colors.primary }]}>
+          {/* <Text style={[styles.jobPrice, { color: Colors.primary }]}>
             NGN {(item.total_amount || 0).toLocaleString()}
-          </Text>
+          </Text> */}
         </View>
 
         <View style={styles.divider} />
@@ -154,7 +154,7 @@ export default function RenderJobCard({ item }: { item: any }) {
             onPress={() => handleAcceptOrder(item.order_id, item.total_amount)}
             style={styles.btnPrimary}
           >
-            Accept • ₦{(item.total_amount || 0).toLocaleString()}
+            Accept • ₦{(item.deliveryFee || 0).toLocaleString()}
           </Button>
         </View>
       </TouchableOpacity>

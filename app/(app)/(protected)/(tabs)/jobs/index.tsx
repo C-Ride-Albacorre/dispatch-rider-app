@@ -20,11 +20,10 @@ import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DriverStatus } from '../home';
-import { Image } from 'react-native';
 
 export type DriverOrder = {
   order_id: string;
@@ -112,6 +111,8 @@ export default function Jobs() {
 
     total_amount: job.total_amount || job.totalAmount || 0,
 
+    deliveryFee: job.deliveryFee || job.delivery_fee || 0,
+
     store_lat: job.store_lat || job.pickup_location?.latitude,
 
     store_lng: job.store_lng || job.pickup_location?.longitude,
@@ -119,24 +120,26 @@ export default function Jobs() {
 
   /**
    * Merge API jobs + realtime socket jobs
+   * Socket jobs appear FIRST in the list
    */
-  const jobsMap = new Map<string, any>();
 
-  // API jobs
-  apiJobs.forEach((job: any) => {
-    const normalized = normalizeJob(job);
+  // Create a Set of socket job IDs for deduplication
+  const socketJobIds = new Set(
+    socketJobs.map((job: any) => normalizeJob(job).order_id),
+  );
 
-    jobsMap.set(normalized.order_id, normalized);
-  });
+  // Start with socket jobs (first priority)
+  const socketJobsNormalized = socketJobs.map((job: any) => normalizeJob(job));
 
-  // Socket jobs override API jobs
-  socketJobs.forEach((job: any) => {
-    const normalized = normalizeJob(job);
+  // Then add API jobs that aren't already in socket jobs
+  const apiJobsNotInSocket = apiJobs
+    .map((job: any) => normalizeJob(job))
+    .filter((job: any) => !socketJobIds.has(job.order_id));
 
-    jobsMap.set(normalized.order_id, normalized);
-  });
+  console.log(' Socket Jobs:', socketJobs);
+  console.log(' API Jobs Not in Socket:', apiJobsNotInSocket);
 
-  const jobs = Array.from(jobsMap.values());
+  const jobs = [...socketJobsNormalized, ...apiJobsNotInSocket];
 
   const renderListHeader = useCallback(
     () => <RenderJobHeader jobs={jobs} />,
@@ -227,43 +230,36 @@ export default function Jobs() {
     );
   }
 
-
-  
   if (driverStatus === 'OFFLINE') {
     return (
-   <View
-          style={[
-            styles.container,
-            {
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          ]}
-        >
-          <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
-            <View style={styles.illustrationContainer}>
-                <Image
-                  source={require('@/assets/images/offline.png')}
-                  style={{ width: 150, height: 150 }}
-                />
-              </View>
+      <View
+        style={[
+          styles.container,
+          {
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+        ]}
+      >
+        <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
+          <View style={styles.illustrationContainer}>
+            <Image
+              source={require('@/assets/images/offline.png')}
+              style={{ width: 150, height: 150 }}
+            />
+          </View>
 
-            <View style={{ gap: scale(8), marginBottom: scale(16) }}>
-              <Text style={styles.title}>You are currently offline</Text>
+          <View style={{ gap: scale(8), marginBottom: scale(16) }}>
+            <Text style={styles.title}>You are currently offline</Text>
 
-              <Text style={styles.subtitle}>
-                You won't be able to accept new jobs until you go online.
-              </Text>
-            </View>
-
-         
+            <Text style={styles.subtitle}>
+              You won't be able to accept new jobs until you go online.
+            </Text>
           </View>
         </View>
+      </View>
     );
   }
-
-
-
 
   // BUSY state
   if (isBusy) {
@@ -391,7 +387,7 @@ const createStyles = (Colors: any) =>
       gap: scale(16),
     },
 
-        illustrationContainer: {
+    illustrationContainer: {
       alignItems: 'center',
       marginBottom: scale(30),
     },
