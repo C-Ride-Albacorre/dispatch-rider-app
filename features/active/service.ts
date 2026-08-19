@@ -1,15 +1,19 @@
 import { api } from '@/libs/api';
 
-export async function getActiveOrderService() {
-  const response = await api.get('/driver/active-order');
+// export async function getActiveOrderService() {
+//   const response = await api.get('/driver/active-order');
 
-  return response.data;
-}
+//   return response.data;
+// }
 
 export async function getOrderTrackingService() {
   const response = await api.get(`/driver/tracking`);
 
+  
+  console.log('[getOrderTrackingService] response:', response.data);
+
   return response.data;
+
 }
 
 export async function declineJobsService({

@@ -1,5 +1,4 @@
 import { scale } from '@/utils/scaling';
-import messaging from '@react-native-firebase/messaging';
 import { router } from 'expo-router';
 
 import { useEffect, useRef } from 'react';
@@ -130,7 +129,7 @@ const createStyles = (Colors: any) =>
     },
 
     image: {
-      width: scale(128),
-      height: scale(128),
+      width: scale(120),
+      height: scale(120),
     },
   });

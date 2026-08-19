@@ -72,7 +72,7 @@ export default function ProfileScreen() {
             variant="red"
             onPress={() => setShowLogoutModal(true)}
           >
-            Sign Out
+            Sign out
           </Button>
         </View>
       </Animated.ScrollView>

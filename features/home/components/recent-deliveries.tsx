@@ -1,88 +1,121 @@
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
-import { Color } from 'expo-router';
+import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useRecentDeliveries } from '../use-fetch';
+import DeliveryDetailsModal from './delivery-details-modal';
 import NoRecentDelivery from './no-recent-delivery';
-
-const RECENT_DELIVERIES: any[] = [
-  // {
-  //   id: '1',
-  //   customerName: 'Ibrahim Musa',
-  //   rating: 4,
-  //   timeAgo: '18 mins ago',
-  //   amount: 'NGN 4,200',
-  //   tip: 'NGN 500',
-  // },
-
-  // {
-  //   id: '2',
-  //   customerName: 'Aisha Bello',
-  //   rating: 5,
-  //   timeAgo: '30 mins ago',
-  //   amount: 'NGN 3,800',
-  //   tip: 'NGN 300',
-  // },
-
-  // {
-  //   id: '3',
-  //   customerName: 'John Doe',
-  //   rating: 3,
-  //   timeAgo: '45 mins ago',
-  //   amount: 'NGN 2,500',
-  //   tip: 'NGN 200',
-  // },
-];
+import RenderRecentDeliveries from './render-recent-deliveries';
+import RecentDeliverySkeleton from './recent-delivery-skeleton';
 
 export default function RecentDeliveries() {
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
+
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+
+  const { data, isLoading, error } = useRecentDeliveries();
+
+  const recentDeliveries = data?.data ?? [];
+  /*
+   * Flatten all pages into one array.
+   */
+  // const recentDeliveries = data?.pages.flatMap((page) => page.data) ?? [];
+
+  // console.log('Recent Deliveries:', recentDeliveries);
+
+  // console.log('Pagination:', data?.pages);
+
+  // const renderItem = useCallback(({ item }: { item: RecentDelivery }) => {
+  //   return <RenderRecentDeliveries delivery={item} />;
+  // }, []);
+
+  // const renderEmptyComponent = useCallback(() => {
+  //   return <NoRecentDelivery />;
+  // }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Recent Deliveries</Text>
 
-   { RECENT_DELIVERIES.length > 0 ?   RECENT_DELIVERIES.map((delivery) => (
-        <View key={delivery.id} style={styles.deliveriesListItem}>
-          <View style={styles.deliveryItemIcon}>
-            <Ionicons
-              name="checkmark-circle-outline"
-              size={24}
-              color={Colors.success}
-            />
-          </View>
+      {error ? (
+        <Text
+          style={{
+            color: Colors.error,
+            textAlign: 'center',
+            fontFamily: Fonts.brandMedium,
+          }}
+        >
+          Error loading recent deliveries.
+        </Text>
+      ) : isLoading ? (
+        <RecentDeliverySkeleton count={3} />
+      ) : // <Animated.FlatList
+      //   data={recentDeliveries}
+      //   renderItem={renderItem}
+      //   keyExtractor={(item) => String(item.assignmentId)}
+      //   ItemSeparatorComponent={() => (
+      //     <View
+      //       style={{
+      //         height: scale(14),
+      //       }}
+      //     />
+      //   )}
+      //   ListEmptyComponent={renderEmptyComponent}
+      //   scrollEventThrottle={16}
+      //   showsVerticalScrollIndicator={false}
+      //   onScroll={scrollHandler}
 
-          <View style={styles.customerDetails}>
-            <Text style={styles.customerName}>{delivery.customerName}</Text>
+      //   onEndReached={() => {
+      //     if (hasNextPage && !isFetchingNextPage) {
+      //       fetchNextPage();
+      //     }
+      //   }}
 
-            <View style={styles.ratingContainer}>
-              <View style={styles.stars}>
-                {Array.from({ length: delivery.rating }).map((_, index) => (
-                  <Ionicons key={index} name="star" size={12} color="gold" />
-                ))}
+      //   onEndReachedThreshold={0.5}
 
-                {Array.from({ length: 5 - delivery.rating }).map((_, index) => (
-                  <Ionicons
-                    key={index}
-                    name="star-outline"
-                    size={12}
-                    color={Colors.textMuted}
-                  />
-                ))}
-              </View>
+      //   ListFooterComponent={
+      //     isFetchingNextPage ? (
+      //       <Text
+      //         style={{
+      //           color: Colors.textMuted,
+      //           textAlign: 'center',
+      //           paddingVertical: scale(16),
+      //           fontFamily: Fonts.brandMedium,
+      //         }}
+      //       >
+      //         Loading more deliveries...
+      //       </Text>
+      //     ) : null
+      //   }
+      // />
 
-              <Text style={styles.timeAgo}>{delivery.timeAgo}</Text>
-            </View>
-          </View>
+      recentDeliveries.length > 0 ? (
+        recentDeliveries.map((delivery) => (
+          <RenderRecentDeliveries
+            key={delivery.assignmentId}
+            delivery={delivery}
+            onPress={() => {
+              setSelectedOrderId(delivery.orderId);
+              setShowDetailsModal(true);
+            }}
+          />
+        ))
+      ) : (
+        <NoRecentDelivery />
+      )}
 
-          <View style={styles.deliveryFare}>
-            <Text style={styles.amount}>{delivery.amount}</Text>
-
-            <Text style={styles.tip}>+{delivery.tip} tip</Text>
-          </View>
-        </View>
-      )) :      <NoRecentDelivery />}
+      <DeliveryDetailsModal
+        visible={showDetailsModal}
+        orderId={selectedOrderId}
+        onClose={() => {
+          setShowDetailsModal(false);
+          setSelectedOrderId(null);
+        }}
+      />
     </View>
   );
 }
@@ -97,67 +130,5 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(16),
       fontFamily: Fonts.brandMedium,
       color: Colors.text,
-    },
-
-    deliveriesListItem: {
-      gap: scale(12),
-      backgroundColor: Colors.inputBackground,
-      borderRadius: scale(12),
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(16),
-    },
-
-    deliveryItemIcon: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(8),
-      backgroundColor: Colors.successExtraLight,
-    },
-
-    customerDetails: {
-      flex: 1,
-    },
-
-    customerName: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-    },
-
-    ratingContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(8),
-    },
-
-    stars: {
-      flexDirection: 'row',
-      gap: scale(4),
-    },
-
-    timeAgo: {
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
-    },
-
-    deliveryFare: {
-      alignItems: 'flex-end',
-    },
-
-    amount: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
-    },
-
-    tip: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.success,
     },
   });

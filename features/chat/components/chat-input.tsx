@@ -1,14 +1,14 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
-import { View, TextInput, Pressable, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Animated, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
-import { Ionicons } from '@expo/vector-icons';
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { scale } from '@/utils/scaling';
-import { Fonts } from '@/constants/theme';
-import { QuickSuggestions } from './quick-suggestions';
+import { Ionicons } from '@expo/vector-icons';
 import { ImagePreviewModal } from './image-preview-modal';
+import { QuickSuggestions } from './quick-suggestions';
 
 type Props = {
   onSend: (text: string) => void;
@@ -32,6 +32,7 @@ export function ChatInput({
   const [showSuggestions, setShowSuggestions] = useState(true);
   const [previewImageUri, setPreviewImageUri] = useState<string | null>(null);
   const [isSendingImage, setIsSendingImage] = useState(false);
+  const suggestionsOpacity = useRef(new Animated.Value(1)).current;
 
   const hasText = text.trim().length > 0;
 
@@ -72,6 +73,33 @@ export function ChatInput({
     setShowSuggestions(false);
   };
 
+  const handleTextChange = (value: string) => {
+    setText(value);
+
+    const typing = value.length > 0;
+    onTyping(typing);
+
+    if (typing && showSuggestions) {
+      setShowSuggestions(false);
+
+      Animated.timing(suggestionsOpacity, {
+        toValue: 0,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    }
+
+    if (!typing && !showSuggestions) {
+      setShowSuggestions(true);
+
+      Animated.timing(suggestionsOpacity, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }).start();
+    }
+  };
+
   const handleSend = () => {
     if (!text.trim()) {
       return;
@@ -87,10 +115,16 @@ export function ChatInput({
 
   return (
     <View style={styles.wrapper}>
-      {showSuggestions && (
+      <Animated.View
+        style={[
+          styles.suggestionsContainer,
+          { opacity: suggestionsOpacity },
+          { pointerEvents: showSuggestions ? 'auto' : 'none' },
+        ]}
+      >
         <QuickSuggestions onSelect={handleQuickSuggestion} />
-      )}
-      
+      </Animated.View>
+
       <View style={styles.container}>
         <Pressable
           onPress={handlePickImage}
@@ -104,15 +138,23 @@ export function ChatInput({
 
         <TextInput
           value={text}
-          onChangeText={(value) => {
-            setText(value);
-            onTyping(value.length > 0);
-            if (value.length === 0) {
-              setShowSuggestions(true);
-            } else {
-              setShowSuggestions(false);
-            }
-          }}
+          // onChangeText={(value) => {
+          //   setText(value);
+          //   onTyping(value.length > 0);
+          //   const hasText = value.length > 0;
+          //   const shouldShow = !hasText;
+
+          //   if (shouldShow !== showSuggestions) {
+          //     setShowSuggestions(shouldShow);
+          //     Animated.timing(suggestionsOpacity, {
+          //       toValue: shouldShow ? 1 : 0,
+          //       duration: 200,
+          //       useNativeDriver: true,
+          //     }).start();
+          //   }
+          // }}
+
+          onChangeText={handleTextChange}
           placeholder="Type a message..."
           style={styles.input}
           multiline
@@ -130,7 +172,7 @@ export function ChatInput({
           <Ionicons
             name="paper-plane"
             size={18}
-            color={hasText ? Colors.text : Colors.textMuted}
+            color={hasText ? '#000000' : Colors.textMuted}
             style={{
               marginLeft: 2,
               marginTop: 1,
@@ -155,6 +197,9 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     wrapper: {
       backgroundColor: Colors.background,
+    },
+    suggestionsContainer: {
+      overflow: 'hidden',
     },
     container: {
       flexDirection: 'row',
@@ -201,15 +246,16 @@ const createStyles = (Colors: any) =>
       borderRadius: scale(24),
 
       paddingHorizontal: scale(18),
-      paddingVertical: scale(12),
+      paddingTop: scale(12),
+      paddingBottom: scale(12),
 
       backgroundColor: Colors.backgroundSecondary,
-
       borderWidth: 1,
       borderColor: Colors.border,
 
       fontSize: scale(14),
       fontFamily: Fonts.brandRegular,
+      color: Colors.text,
     },
 
     sendButton: {

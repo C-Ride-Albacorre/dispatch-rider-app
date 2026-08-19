@@ -10,17 +10,18 @@ import { Fonts } from '@/constants/theme';
 import ResendOTP from '@/features/auth/components/resend-otp';
 
 import { verifyEmailAction } from '@/features/verify/action';
-import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 import { useTheme } from '@/hooks/use-theme';
 
 import { useAuthStore } from '@/store/auth-store';
 
 import { maskEmail } from '@/utils/mask';
 import { normalize, scale } from '@/utils/scaling';
+import { clearVerificationData } from '@/utils/token-storage';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { useEffect, useState } from 'react';
 
@@ -30,7 +31,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 
@@ -51,7 +51,6 @@ export default function VerifyEmailScreen() {
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [resending, setResending] = useState(false);
-  const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { Colors } = useTheme();
@@ -92,11 +91,17 @@ export default function VerifyEmailScreen() {
     console.log('Verification result:', result);
 
     if (!result.success) {
-      // expired token/code
-      // if (result.expired) {
-      //   setShowExpiredModal(true);
-      //   return;
-      // }
+      // expired token/code - navigate back to login and show toast
+      if (result.expired) {
+        await clearVerificationData();
+        Toast.show({
+          type: 'error',
+          text1: 'Session Expired',
+          text2: 'Please login again to continue',
+        });
+        router.replace('/(app)/(auth)/login');
+        return;
+      }
 
       // invalid otp
       if (result.invalid) {
@@ -137,11 +142,6 @@ export default function VerifyEmailScreen() {
         setShowSuccessModal={setShowSuccessModal}
       />
 
-      <ExpiredTokenModal
-        showExpiredModal={showExpiredModal}
-        setShowExpiredModal={setShowExpiredModal}
-      />
-
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -155,9 +155,9 @@ export default function VerifyEmailScreen() {
           <View>
             <IconButton
               variant="outlineSecondary"
-               onPress={() => router.push('/(app)/(auth)/register')}
+              onPress={() => router.push('/(app)/(auth)/register')}
             >
-              <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
+              <Ionicons name="arrow-back" size={20} style={styles.returnIcon} />
             </IconButton>
 
             <AuthPageHeader />
@@ -214,11 +214,11 @@ export default function VerifyEmailScreen() {
               setErrorMessage={setErrorMessage}
             />
 
-            <TouchableOpacity>
+            {/* <TouchableOpacity>
               <Link href="/(app)/(auth)/register" asChild>
                 <Text style={styles.resendText}>Change Email</Text>
               </Link>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -252,13 +252,13 @@ const createStyles = (Colors: any) =>
     },
 
     title: {
-      fontSize: normalize(26),
-      fontFamily: Fonts.brandBold,
+      fontSize: normalize(24),
+      fontFamily: Fonts.brandSemiBold,
       color: Colors.text,
     },
 
     subtitle: {
-      fontSize: normalize(16),
+      fontSize: normalize(13),
       fontFamily: Fonts.brandRegular,
       color: Colors.textSecondary,
       textAlign: 'center',

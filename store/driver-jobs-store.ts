@@ -191,18 +191,33 @@ export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
   incomingOrders: [],
 
   addOrder: (order) =>
-    set((state) => ({
-      incomingOrders: [
-        order,
-        ...state.incomingOrders.filter((o) => o.order_id !== order.order_id),
-      ],
-    })),
+    set((state) => {
+      // Normalize order ID (handle both order_id and orderId)
+      const orderId = order?.order_id ?? order?.orderId;
+
+      // Don't add if no ID found
+      if (!orderId) {
+        console.warn('[driver-jobs-store] Order has no id:', order);
+        return { incomingOrders: state.incomingOrders };
+      }
+
+      return {
+        incomingOrders: [
+          order,
+          ...state.incomingOrders.filter((o) => {
+            const oId = o?.order_id ?? o?.orderId;
+            return oId !== orderId;
+          }),
+        ],
+      };
+    }),
 
   removeOrder: (orderId) =>
     set((state) => ({
-      incomingOrders: state.incomingOrders.filter(
-        (o) => o.order_id !== orderId,
-      ),
+      incomingOrders: state.incomingOrders.filter((o) => {
+        const oId = o?.order_id ?? o?.orderId;
+        return oId !== orderId;
+      }),
     })),
 
   clearIncoming: () => set({ incomingOrders: [] }),

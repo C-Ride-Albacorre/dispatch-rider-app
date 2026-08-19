@@ -32,7 +32,7 @@ export function useLocation() {
       {
         accuracy: Location.Accuracy.BestForNavigation,
         timeInterval: 1000,
-        distanceInterval: 5,
+        distanceInterval: 2,
       },
       (position) => {
         setLocation({

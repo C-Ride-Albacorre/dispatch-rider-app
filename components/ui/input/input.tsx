@@ -108,7 +108,7 @@ const createStyles = (Colors: any) =>
   },
 
   label: {
-    fontSize: normalize(16),
+    fontSize: normalize(14),
 
     color: Colors.text,
 
@@ -138,10 +138,11 @@ input: {
   flex: 1,
   height: '100%',
   paddingVertical: 0,
-  fontSize: normalize(16),
+  fontSize: normalize(14),
   fontFamily: Fonts.brandRegular,
   color: Colors.text,
   textAlignVertical: 'center',
+  
 },
 
   iconLeft: {

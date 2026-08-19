@@ -39,7 +39,7 @@ const { Colors} = useTheme()
         contentStyle: {
           backgroundColor: Colors.background,
           // paddingTop: insets.top,
-          paddingBottom: insets.bottom,
+          // paddingBottom: insets.bottom,
           paddingLeft: insets.left,
           paddingRight: insets.right,
         },

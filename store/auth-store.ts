@@ -2,6 +2,9 @@ import { create } from 'zustand';
 
 import { BASE_URL } from '../config/base-api';
 
+import { getQueryClient } from '@/providers/react-query-provider';
+import { cleanupNotifications } from '@/services/notifications/initializeNotifications';
+import { unregisterDeviceToken } from '@/services/notifications/unregisterDeviceToken';
 import {
   clearTokens,
   getAccessToken,
@@ -13,9 +16,8 @@ import {
   getVerificationPhone,
   getVerificationToken,
 } from '@/utils/token-storage';
-import { unregisterDeviceToken } from '@/services/notifications/unregisterDeviceToken';
-import { cleanupNotifications } from '@/services/notifications/initializeNotifications';
 import { devtools } from 'zustand/middleware';
+import { useDriverJobsStore } from './driver-jobs-store';
 
 export type AuthStatus = 'UNAUTHENTICATED' | 'VERIFYING' | 'AUTHENTICATED';
 
@@ -79,6 +81,13 @@ export const useAuthStore = create<AuthState>()(
         const { refreshToken } = useAuthStore.getState();
 
         cleanupNotifications();
+
+        // Clear driver jobs store on logout
+        useDriverJobsStore.getState().clearActiveOrder();
+
+        // Clear React Query cache to prevent stale data after logout
+        const queryClient = getQueryClient();
+        queryClient.clear();
 
         try {
           await unregisterDeviceToken();

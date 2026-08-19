@@ -14,7 +14,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../global.css';
 import ReactQueryProvider from '../providers/react-query-provider';
 
-import { toastConfig } from '@/components/ui/input/custom-toast';
+
 
 import { restoreAuth, useAuthStore } from '@/store/auth-store';
 
@@ -26,6 +26,8 @@ import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
 import OfflineScreen from '@/features/auth/components/offline-screen';
 import messaging from '@react-native-firebase/messaging';
+import { toastConfig } from '@/components/ui/input/toast-config';
+import OfflineBanner from '@/components/layout/offline-banner';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -57,23 +59,35 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-  useEffect(() => {
-    async function checkConnection() {
-      const state = await NetInfo.fetch();
+useEffect(() => {
+  async function checkConnection() {
+    const state = await NetInfo.fetch();
 
-      setIsConnected(Boolean(state.isConnected && state.isInternetReachable));
-    }
+    setIsConnected(
+      Boolean(
+        state.isConnected &&
+        state.isInternetReachable
+      ),
+    );
+  }
 
-    checkConnection();
+  checkConnection();
 
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      setIsConnected(Boolean(state.isConnected && state.isInternetReachable));
-    });
+  const unsubscribe = NetInfo.addEventListener((state) => {
+    setIsConnected(
+      Boolean(
+        state.isConnected &&
+        state.isInternetReachable
+      ),
+    );
+  });
 
-    return unsubscribe;
-  }, []);
+  return unsubscribe;
+}, []);
 
-  const appReady = fontsLoaded && isHydrated && isConnected !== null;
+const appReady =
+  fontsLoaded &&
+  isHydrated;
 
   // Only restore auth if not on a verification route
   useEffect(() => {
@@ -114,32 +128,64 @@ export default function RootLayout() {
     authStatus: useAuthStore.getState().authStatus,
   });
 
-  if (!isConnected) {
-    return (
-      <OfflineScreen
-        onRetry={async () => {
-          const state = await NetInfo.fetch();
+  // if (!isConnected) {
+  //   return (
+  //     <OfflineScreen
+  //       onRetry={async () => {
+  //         const state = await NetInfo.fetch();
 
-          setIsConnected(
-            Boolean(state.isConnected && state.isInternetReachable),
-          );
-        }}
-      />
-    );
-  }
+  //         setIsConnected(
+  //           Boolean(state.isConnected && state.isInternetReachable),
+  //         );
+  //       }}
+  //     />
+  //   );
+  // }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ReactQueryProvider>
-        <AuthGate>
-          <Slot />
-        </AuthGate>
-        <ExpiredTokenModal
-          showExpiredModal={showExpiredModal}
-          setShowExpiredModal={setShowExpiredModal}
+  <GestureHandlerRootView style={{ flex: 1 }}>
+    <ReactQueryProvider>
+      <AuthGate>
+        <Slot />
+      </AuthGate>
+
+      <ExpiredTokenModal
+        showExpiredModal={showExpiredModal}
+        setShowExpiredModal={setShowExpiredModal}
+      />
+
+      {!isConnected && (
+        <OfflineBanner
+          onRetry={async () => {
+            const state = await NetInfo.fetch();
+
+            setIsConnected(
+              Boolean(
+                state.isConnected &&
+                state.isInternetReachable
+              ),
+            );
+          }}
         />
-      </ReactQueryProvider>
-      <Toast config={toastConfig} />
-    </GestureHandlerRootView>
-  );
+      )}
+    </ReactQueryProvider>
+
+    <Toast config={toastConfig} />
+  </GestureHandlerRootView>
+);
+
+  // return (
+  //   <GestureHandlerRootView style={{ flex: 1 }}>
+  //     <ReactQueryProvider>
+  //       <AuthGate>
+  //         <Slot />
+  //       </AuthGate>
+  //       <ExpiredTokenModal
+  //         showExpiredModal={showExpiredModal}
+  //         setShowExpiredModal={setShowExpiredModal}
+  //       />
+  //     </ReactQueryProvider>
+  //     <Toast config={toastConfig} />
+  //   </GestureHandlerRootView>
+  // );
 }

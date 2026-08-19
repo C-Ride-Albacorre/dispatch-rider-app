@@ -1,22 +1,22 @@
 import AuthPageHeader from '@/components/layout/auth-header';
 
 import Button from '@/components/ui/buttons/button';
-import IconButton from '@/components/ui/buttons/icon-button';
+import ReturnButton from '@/components/ui/buttons/return-button';
 
 import OtpInput from '@/components/ui/input/otp-input';
 
 import { Fonts } from '@/constants/theme';
 import ResendOTP from '@/features/auth/components/resend-otp';
 import { verifyPhoneAction } from '@/features/verify/action';
-import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 import { useTheme } from '@/hooks/use-theme';
 
 import { useAuthStore } from '@/store/auth-store';
 
 import { maskPhone } from '@/utils/mask';
 import { normalize, scale } from '@/utils/scaling';
+import { clearVerificationData } from '@/utils/token-storage';
 
-import Ionicons from '@expo/vector-icons/Ionicons';
+import Toast from 'react-native-toast-message';
 
 import { useRouter } from 'expo-router';
 
@@ -37,8 +37,6 @@ export default function VerifyPhoneScreen() {
   const [errorMessage, setErrorMessage] = useState('');
 
   const [loading, setLoading] = useState(false);
-
-  const [showExpiredModal, setShowExpiredModal] = useState(false);
 
   const router = useRouter();
 
@@ -76,11 +74,17 @@ export default function VerifyPhoneScreen() {
     setLoading(false);
 
     if (!result.success) {
-      // expired token/code
-      // if (result.expired) {
-      //   setShowExpiredModal(true);
-      //   return;
-      // }
+      // expired token/code - navigate back to login and show toast
+      if (result.expired) {
+        await clearVerificationData();
+        Toast.show({
+          type: 'error',
+          text1: 'Session Expired',
+          text2: 'Please login again to continue',
+        });
+        router.replace('/(app)/(auth)/login');
+        return;
+      }
 
       // invalid otp
       if (result.invalid) {
@@ -99,10 +103,6 @@ export default function VerifyPhoneScreen() {
 
   return (
     <>
-      <ExpiredTokenModal
-        showExpiredModal={showExpiredModal}
-        setShowExpiredModal={setShowExpiredModal}
-      />
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -114,12 +114,7 @@ export default function VerifyPhoneScreen() {
           scrollEnabled={true}
         >
           <View>
-            <IconButton
-              variant="outlineSecondary"
-              onPress={() => router.push('/(app)/(auth)/register')}
-            >
-              <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
-            </IconButton>
+            <ReturnButton />
 
             <AuthPageHeader />
           </View>
@@ -195,13 +190,13 @@ const createStyles = (Colors: any) =>
     },
 
     title: {
-      fontSize: normalize(26),
-      fontFamily: Fonts.brandBold,
+      fontSize: normalize(24),
+      fontFamily: Fonts.brandSemiBold,
       color: Colors.text,
     },
 
     subtitle: {
-      fontSize: normalize(16),
+      fontSize: normalize(13),
       fontFamily: Fonts.brandRegular,
       color: Colors.textSecondary,
       textAlign: 'center',

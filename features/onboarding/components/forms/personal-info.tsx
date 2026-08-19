@@ -106,6 +106,7 @@ export default function PersonalInfo({
               label="Full name"
               placeholder="Enter your full name"
               value={value}
+                required
               onChangeText={onChange}
               error={errors.fullName?.message}
             />
@@ -120,6 +121,7 @@ export default function PersonalInfo({
               label="Phone number"
               placeholder="Enter your phone number"
               value={value}
+                required
               onChangePhone={onChange}
               errorMessage={errors.phoneNumber?.message}
             />
@@ -134,6 +136,7 @@ export default function PersonalInfo({
               label="Email"
               placeholder="Enter your email address"
               value={value}
+                required
               onChangeText={onChange}
               error={errors.email?.message}
             />
@@ -147,6 +150,7 @@ export default function PersonalInfo({
             <Input
               label="Address"
               placeholder="Enter your address here"
+                required
               value={value}
               onChangeText={onChange}
               error={errors.address?.message}
@@ -175,6 +179,7 @@ export default function PersonalInfo({
           render={({ field: { value, onChange } }) => (
             <Select
               label="City"
+                required
               placeholder={
                 selectedState ? 'Select your city' : 'Select a state first'
               }
@@ -235,13 +240,13 @@ const createStyles = (Colors: any) =>
   },
 
   mainText: {
-    fontSize: normalize(20),
+    fontSize: normalize(16),
     fontFamily: Fonts.brandBold,
     color: Colors.text,
   },
 
   subText: {
-    fontSize: normalize(16),
+    fontSize: normalize(12),
     color: Colors.textSecondary,
     fontFamily: Fonts.brandRegular,
   },

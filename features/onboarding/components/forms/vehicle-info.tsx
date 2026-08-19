@@ -170,6 +170,7 @@ export default function VehicleInfo({
               placeholder="e.g., Honda, Toyota"
               value={value}
               onChangeText={onChange}
+                  required
               error={errors.vehicleMake?.message}
             />
           )}
@@ -184,6 +185,7 @@ export default function VehicleInfo({
               placeholder="e.g., Civic, Camry"
               value={value}
               onChangeText={onChange}
+                  required
               error={errors.vehicleModel?.message}
             />
           )}
@@ -198,6 +200,7 @@ export default function VehicleInfo({
               placeholder="Select year"
               value={value}
               onChange={onChange}
+                  required
               options={Array.from({ length: 25 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 return {
@@ -219,6 +222,7 @@ export default function VehicleInfo({
               placeholder="Enter your license plate number"
               value={value}
               onChangeText={onChange}
+              required
               error={errors.licensePlate?.message}
             />
           )}
@@ -282,13 +286,13 @@ const createStyles = (Colors: any) =>
   },
 
   mainText: {
-    fontSize: normalize(20),
+    fontSize: normalize(16),
     fontFamily: Fonts.brandBold,
     color: Colors.text,
   },
 
   subText: {
-    fontSize: normalize(16),
+    fontSize: normalize(12),
     color: Colors.textSecondary,
     fontFamily: Fonts.brandRegular,
   },
@@ -308,7 +312,7 @@ const createStyles = (Colors: any) =>
   },
 
   vehicleTypeLabel: {
-    fontSize: normalize(16),
+    fontSize: normalize(14),
     fontFamily: Fonts.brandMedium,
     color: Colors.text,
   },
@@ -333,14 +337,14 @@ const createStyles = (Colors: any) =>
   },
 
   largeMainText: {
-    fontSize: normalize(24),
+    fontSize: normalize(20),
     fontFamily: Fonts.brandSemiBold,
     color: Colors.text,
     textAlign: 'center',
   },
 
   largeSubText: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
 
@@ -366,13 +370,13 @@ const createStyles = (Colors: any) =>
   },
 
   evTextContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    // flexDirection: 'row',
+    // justifyContent: 'space-between',
     gap: scale(8),
   },
 
   evIconContainer: {
-    
+    width:  scale(90),
     flexDirection: 'row',
     alignItems: 'center',
     gap: scale(2),

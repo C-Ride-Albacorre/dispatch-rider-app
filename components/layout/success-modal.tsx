@@ -28,6 +28,18 @@ type AppRoutes =
   | `/(app)/(protected)/onboarding?step=${number}&resumeStep=${number}`
   | `/(app)/(protected)/(tabs)/home`;
 
+type SuccessModalProps = {
+  title: string;
+  description?: string;
+  path?: AppRoutes;
+  buttonText?: string;
+  showSuccessModal: boolean;
+  nextSteps?: string[];
+  setShowSuccessModal: (value: boolean) => void;
+  requireVerification?: boolean;
+  onContinue?: () => void | Promise<void>;
+};
+
 export default function SuccessModal({
   title,
   description,
@@ -37,16 +49,8 @@ export default function SuccessModal({
   nextSteps,
   setShowSuccessModal,
   requireVerification = false,
-}: {
-  title: string;
-  description?: string;
-  path?: AppRoutes;
-  buttonText?: string;
-  showSuccessModal: boolean;
-  nextSteps?: string[];
-  setShowSuccessModal: (value: boolean) => void;
-  requireVerification?: boolean;
-}) {
+  onContinue,
+}: SuccessModalProps) {
   const router = useRouter();
 
   const scaleAnim = useRef(new Animated.Value(0.85)).current;
@@ -100,27 +104,22 @@ export default function SuccessModal({
         ]}
       >
         {/* SUCCESS ANIMATION */}
-        {requireVerification ? (
-          <LottieView
-            source={require('@/assets/lottie/alert.json')}
-            autoPlay
-            loop={false}
-            renderMode="HARDWARE"
-            style={styles.animation}
-          />
-        ) : (
-          <LottieView
-            source={require('@/assets/lottie/success.json')}
-            autoPlay
-            loop={false}
-            renderMode="HARDWARE"
-            style={styles.animation}
-          />
-        )}
+        <LottieView
+          source={
+            requireVerification
+              ? require('@/assets/lottie/alert.json')
+              : require('@/assets/lottie/success.json')
+          }
+          autoPlay
+          loop={false}
+          style={styles.animation}
+        />
 
-        <Text style={styles.title}>{title}</Text>
+        <View>
+          <Text style={styles.title}>{title}</Text>
 
-        {description && <Text style={styles.description}>{description}</Text>}
+          {description && <Text style={styles.description}>{description}</Text>}
+        </View>
 
         {nextSteps && nextSteps.length > 0 && (
           <View style={styles.stepsContainer}>
@@ -142,14 +141,20 @@ export default function SuccessModal({
         {path && (
           <Animated.View style={styles.buttonContainer}>
             <Button
-              onPress={() => {
-                setShowSuccessModal(false);
+              onPress={async () => {
+                try {
+                  if (onContinue) {
+                    await onContinue();
+                    return;
+                  }
 
-                router.push(path);
+                  setShowSuccessModal(false);
+
+                  router.replace(path);
+                } catch (error) {
+                  console.log('Modal continue error:', error);
+                }
               }}
-              rightIcon={
-                <Ionicons name="arrow-forward" size={20} color={Colors.text} />
-              }
             >
               {buttonText || 'Continue'}
             </Button>
@@ -170,11 +175,11 @@ const createStyles = (Colors: any) =>
       width: scale(170),
       height: scale(170),
       alignSelf: 'center',
+      backgroundColor: 'transparent',
     },
 
     title: {
-      fontSize: normalize(24),
-      fontWeight: '600',
+      fontSize: normalize(20),
       textAlign: 'center',
       fontFamily: Fonts.brandSemiBold,
       marginBottom: scale(18),
@@ -182,7 +187,7 @@ const createStyles = (Colors: any) =>
     },
 
     description: {
-      fontSize: normalize(14),
+      fontSize: normalize(12),
       lineHeight: scale(20),
       fontFamily: Fonts.brandRegular,
       textAlign: 'center',
@@ -205,7 +210,8 @@ const createStyles = (Colors: any) =>
     },
 
     stepText: {
-      fontSize: normalize(15),
+      fontSize: normalize(12),
+      fontFamily: Fonts.brandRegular,
       lineHeight: scale(24),
       color: Colors.text,
     },

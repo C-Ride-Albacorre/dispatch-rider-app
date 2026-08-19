@@ -2,29 +2,28 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   declineJobsService,
   deliveryJobsService,
-  getActiveOrderService,
   getOrderTrackingService,
   pickupJobsService,
 } from './service';
 
-export function useActiveOrder() {
-  return useQuery({
-    queryKey: ['active-order'],
-    queryFn: async () => {
-      const res = await getActiveOrderService();
+// export function useActiveOrder() {
+//   return useQuery({
+//     queryKey: ['active-order'],
+//     queryFn: async () => {
+//       const res = await getActiveOrderService();
 
-      return res?.data ?? res?.order ?? res ?? null;
-    },
-    retry: 1,
-    staleTime: 10_000,
-  });
-}
+//       return res?.data ?? res?.order ?? res ?? null;
+//     },
+//     retry: 1,
+//     staleTime: 10_000,
+//   });
+// }
 
 export function useOrderTracking() {
   return useQuery({
     queryKey: ['order-tracking'],
     queryFn: () => getOrderTrackingService(),
-    enabled: false,
+    enabled: true,
     retry: 1,
     staleTime: 5_000,
   });

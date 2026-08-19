@@ -19,8 +19,8 @@ import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Image, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DriverStatus } from '../home';
@@ -83,13 +83,39 @@ export default function Jobs() {
   } = useLocation();
 
   // Only fetch jobs when NOT busy
-  const { data, isLoading, error } = useAvailableJobs(
+  const { data, isLoading, error, refetch } = useAvailableJobs(
     location?.latitude,
     location?.longitude,
     {
       enabled: !isBusy,
     },
   );
+
+  // Pull-to-refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
+  // Track previous status to detect offline -> online transition
+  const previousStatusRef = useRef(driverStatus);
+
+  // Handle pull-to-refresh
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
+
+  // Refetch jobs when driver comes back online
+  useEffect(() => {
+    if (previousStatusRef.current === 'OFFLINE' && driverStatus !== 'OFFLINE') {
+      console.log('[JOBS] 🟢 Driver back online, refetching jobs...');
+      refetch();
+    }
+    previousStatusRef.current = driverStatus;
+  }, [driverStatus, refetch]);
 
   const apiJobs = data?.data ?? [];
 
@@ -372,6 +398,14 @@ export default function Jobs() {
         ItemSeparatorComponent={() => <View style={{ height: scale(14) }} />}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={!isLoading && renderEmptyState}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
+            progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
+          />
+        }
       />
     </>
   );
@@ -405,9 +439,10 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
       textAlign: 'center',
+      color: Colors.text,
     },
     subtitle: {
-      fontSize: normalize(14),
+      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
       textAlign: 'center',
       color: Colors.textMuted,

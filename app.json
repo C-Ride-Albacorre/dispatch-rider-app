@@ -12,11 +12,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.albacorre.cridedriver",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "config": {
-        // "googleMapsApiKey": "YOUR_IOS_API_KEY"
-
-        "googleMapsApiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c"
-      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "Your location is required to find nearby delivery jobs."
@@ -45,7 +40,22 @@
     },
 
     "plugins": [
-      "expo-router",
+      "expo-router", [
+    "expo-build-properties",
+    {
+      "ios": {
+        "useFrameworks": "static"
+      }
+    }
+  ],
+      [
+        "react-native-maps",
+        {
+          "iosGoogleMapsApiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c",
+          "androidGoogleMapsApiKey": "AIzaSyDBBCUyMRBvksxBixGhPA2hUXWG6Zq2E7c"
+        }
+      ],
+
       [
         "expo-splash-screen",
         {

@@ -40,7 +40,17 @@ const AUTH_EXCLUDED_ENDPOINTS = [
   '/auth/reset-password',
   '/auth/refresh',
   '/auth/logout',
+  '/notification/device/unregister-token',
 ];
+
+/**
+ * ENDPOINTS THAT SHOULD NOT SHOW ERROR TOAST
+ *
+ * Why?
+ * These endpoints can return errors for legitimate reasons
+ * (e.g., no active delivery) and shouldn't show error notifications
+ */
+const SILENT_ERROR_ENDPOINTS = ['/driver/tracking', '/driver/history'];
 
 export const api = axios.create({
   baseURL: BASE_URL,
@@ -87,9 +97,9 @@ api.interceptors.response.use(
     /**
      * Prevent refresh logic for excluded auth routes
      */
-const requestUrl = (originalRequest.url || '').split('?')[0];
+    const requestUrl = (originalRequest.url || '').split('?')[0];
 
-const isExcluded = AUTH_EXCLUDED_ENDPOINTS.includes(requestUrl);
+    const isExcluded = AUTH_EXCLUDED_ENDPOINTS.includes(requestUrl);
 
     /**
      * IMPORTANT:
@@ -112,10 +122,11 @@ const isExcluded = AUTH_EXCLUDED_ENDPOINTS.includes(requestUrl);
         const refreshToken = await getRefreshToken();
 
         /**
-         * No refresh token
+         * No refresh token available
+         * Just reject without attempting logout
          */
         if (!refreshToken) {
-          throw new Error('No refresh token');
+          return Promise.reject(error);
         }
 
         /**
@@ -185,11 +196,18 @@ const isExcluded = AUTH_EXCLUDED_ENDPOINTS.includes(requestUrl);
     const message =
       error?.response?.data?.message || error.message || 'Something went wrong';
 
-    Toast.show({
-      type: 'error',
-      text1: 'Error',
-      text2: message,
-    });
+    // Don't show error toast for endpoints that legitimately return errors
+    const shouldSilenceError = SILENT_ERROR_ENDPOINTS.some((endpoint) =>
+      requestUrl.includes(endpoint),
+    );
+
+    if (!shouldSilenceError) {
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: message,
+      });
+    }
 
     return Promise.reject(error);
   },

@@ -1,6 +1,7 @@
 import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
+import ReturnButton from '@/components/ui/buttons/return-button';
 import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
 import { ResetPasswordAction } from '@/features/auth/action';
@@ -16,7 +17,7 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  View
+  View,
 } from 'react-native';
 
 export default function ResetPassword() {
@@ -101,9 +102,7 @@ export default function ResetPassword() {
           scrollEnabled={true}
         >
           <View>
-            <Link style={styles.returnBtn} href="/(app)/(auth)/login">
-              <Ionicons name="arrow-back" size={24} />
-            </Link>
+            <ReturnButton />
 
             <AuthPageHeader />
           </View>

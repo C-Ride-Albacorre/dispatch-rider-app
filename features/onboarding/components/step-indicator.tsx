@@ -92,12 +92,12 @@ const createStyles = (Colors: any) =>
     alignItems: 'center',
   },
   stepCount: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontFamily: Fonts.brandMedium,
     color: Colors.text,
   },
   percentText: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
     color: Colors.success,
   },
@@ -155,7 +155,7 @@ const createStyles = (Colors: any) =>
   },
 
   stepLabel: {
-    fontSize: normalize(12),
+    fontSize: normalize(10),
     fontFamily: Fonts.brandRegular,
     color: '#9ca3af',
     textAlign: 'center',

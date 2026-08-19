@@ -1,14 +1,17 @@
+import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function VerifyLayout() {
   const insets = useSafeAreaInsets();
+
+  const { Colors } = useTheme();
   return (
     <Stack
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: 'white',
+          backgroundColor: Colors.background,
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
           paddingLeft: insets.left,

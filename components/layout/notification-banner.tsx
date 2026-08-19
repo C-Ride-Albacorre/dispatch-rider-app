@@ -86,14 +86,15 @@ export default function NotificationBanner() {
           paddingVertical: scale(14),
 
           flexDirection: 'row',
+          alignItems: 'center',
           gap: scale(12),
         }}
       >
         <Image
           source={require('@/assets/images/icon.png')}
           style={{
-            width: scale(32),
-            height: scale(32),
+            width: scale(24),
+            height: scale(24),
             borderRadius: scale(16),
           }}
         />
@@ -132,6 +133,7 @@ const createStyles = (Colors: any) =>
       position: 'absolute',
 
       left: scale(16),
+
       right: scale(16),
 
       zIndex: 9999,
@@ -140,7 +142,7 @@ const createStyles = (Colors: any) =>
 
       borderWidth: 1,
 
-      padding: scale(8),
+      paddingHorizontal: scale(8),
 
       elevation: scale(10),
     },
@@ -151,12 +153,12 @@ const createStyles = (Colors: any) =>
       marginBottom: scale(2),
       maxWidth: scale(240),
       textTransform: 'capitalize',
-      fontSize: normalize(14),
+      fontSize: normalize(13),
     },
 
     body: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(12),
+      fontSize: normalize(11),
       maxWidth: scale(240),
     },
   });

@@ -58,7 +58,7 @@ export default function ConfirmLogout({
             onPress={handleLogout}
             style={styles.logoutButton}
           >
-            Yes, Sign Out
+            Yes, sign out
           </Button>
 
           <Button

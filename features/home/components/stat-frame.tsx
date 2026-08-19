@@ -1,9 +1,8 @@
-import { Colors, Fonts } from '@/constants/theme';
+import {  Fonts } from '@/constants/theme';
 import AppFrame from '@/features/dashboard/components/app-frame';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 

@@ -13,6 +13,7 @@ import {
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '@/hooks/use-theme';
+import { Color } from 'expo-router';
 
 type Option = {
   label: string;
@@ -62,7 +63,8 @@ export default function Select({
 
       {/* SELECT BOX */}
       <TouchableOpacity
-        activeOpacity={0.8}
+     activeOpacity={0.8}
+  disabled={disabled}
         onPress={() => !disabled && setOpen(true)}
         style={[
           styles.inputContainer,
@@ -70,11 +72,25 @@ export default function Select({
           disabled && styles.disabledContainer,
         ]}
       >
-        <Text style={[styles.text, !selectedLabel && styles.placeholder]}>
-          {selectedLabel || placeholder}
-        </Text>
+        <Text
+    style={[
+      styles.text,
+      !selectedLabel && styles.placeholder,
+      disabled && styles.disabledText,
+    ]}
+  >
+    {selectedLabel || placeholder}
+  </Text>
 
-        <Ionicons name="chevron-down" size={20} color={Colors.textSecondary} />
+      <Ionicons
+    name="chevron-down"
+    size={20}
+    color={
+      disabled
+        ? Colors.textSecondary + '66'
+        : Colors.textSecondary
+    }
+  />
       </TouchableOpacity>
 
       {/* ERROR */}
@@ -133,95 +149,106 @@ const createStyles = (Colors: any) =>
       gap: scale(6),
     },
 
-  labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(2),
-  },
+    labelContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(2),
+    },
 
-  label: {
-    fontSize: normalize(16),
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-  },
+    label: {
+      fontSize: normalize(14),
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+    },
 
-  disabledContainer: {
-    backgroundColor: '#F3F4F6',
-  },
+ disabledContainer: {
+  backgroundColor: Colors.inputBackground ,
+  opacity: 0.6,
+},
 
-  required: {
-    color: '#EF4444',
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandBold,
-  },
+disabledText: {
+  color: Colors.textSecondary,
+},
+    required: {
+      color: Colors.error,
+      fontSize: normalize(14),
+      fontFamily: Fonts.brandBold,
+    },
 
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
 
-    backgroundColor: Colors.inputBackground,
-    borderRadius: scale(12),
+      backgroundColor: Colors.inputBackground,
+      borderRadius: scale(12),
 
-    paddingHorizontal: scale(12),
-    minHeight: scale(56),
+      paddingHorizontal: scale(12),
+      minHeight: scale(56),
 
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
+      fontFamily: Fonts.brandRegular,
 
-  text: {
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandRegular,
-    color: Colors.text,
-  },
+      fontSize: normalize(14),
 
-  placeholder: {
-    color: '#999',
-  },
+      borderWidth: 1,
+      borderColor: 'transparent',
+    },
 
-  errorContainer: {
-    borderColor: '#EF4444',
-    backgroundColor: '#FEF2F2',
-  },
+    text: {
+      fontSize: normalize(14),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.text,
+    },
 
-  errorText: {
-    fontSize: normalize(13),
-    color: '#EF4444',
-    fontFamily: Fonts.brandMedium,
-    marginLeft: scale(4),
-  },
+    placeholder: {
+      color: '#999',
+         fontSize: normalize(14),
+    },
 
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    padding: scale(20),
-  },
+    errorContainer: {
+      borderColor: Colors.error,
+      backgroundColor: Colors.errorLight,
+    },
 
-  dropdown: {
-    backgroundColor: '#fff',
-    borderRadius: scale(12),
-    maxHeight: 300,
-    paddingVertical: scale(8),
-  },
+    errorText: {
+      fontSize: normalize(12),
+      color: Colors.error,
+      fontFamily: Fonts.brandMedium,
+      marginLeft: scale(4),
+    },
 
-  option: {
-    padding: scale(14),
-  },
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.3)',
+      justifyContent: 'center',
+      padding: scale(20),
+    },
 
-  selectedOption: {
-    backgroundColor: Colors.inputBackground,
-  },
+    dropdown: {
+      backgroundColor: Colors.background,
+      borderRadius: scale(12),
+      maxHeight: 300,
+      paddingVertical: scale(8),
+    },
 
-  optionText: {
-    fontSize: normalize(15),
-    fontFamily: Fonts.brandRegular,
-    color: Colors.text,
-  },
+    option: {
+      padding: scale(14),
+      backgroundColor: Colors.background,
+    },
 
-  selectedOptionText: {
-    fontFamily: Fonts.brandMedium,
-    color: Colors.primary,
-  },
-});
+    selectedOption: {
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    optionText: {
+      fontSize: normalize(14),
+      fontFamily: Fonts.brandRegular,
+      color: Colors.text,
+    },
+
+    selectedOptionText: {
+      fontFamily: Fonts.brandMedium,
+      color: Colors.primary,
+         fontSize: normalize(14),
+    },
+  });

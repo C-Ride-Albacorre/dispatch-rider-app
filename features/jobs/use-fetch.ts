@@ -11,11 +11,28 @@ export function useAvailableJobs(
     enabled?: boolean;
   },
 ) {
+  const enabled =
+    lat !== undefined && lng !== undefined && options?.enabled !== false;
+
   return useQuery({
-    queryKey: ['available-jobs', lat, lng],
+    queryKey: ['available-jobs'],
+
     queryFn: () => getAvailableJobsService(lat!, lng!),
-    enabled: !!lat && !!lng && options?.enabled !== false,
-    refetchInterval: 30000,
+
+    enabled,
+
+    // No continuous polling - rely on socket events for real-time updates
+    // Only refetch on manual trigger (pull-to-refresh, status change, etc)
+    refetchInterval: false,
+
+    // Don't refetch simply because the component mounts again
+    refetchOnMount: false,
+
+    // Don't refetch when the app/window gets focus
+    refetchOnWindowFocus: false,
+
+    // Don't automatically refetch when network reconnects
+    refetchOnReconnect: false,
   });
 }
 
@@ -42,8 +59,7 @@ export function useAcceptJob() {
         queryKey: ['available-job-details'],
       });
 
-
-       queryClient.invalidateQueries({
+      queryClient.invalidateQueries({
         queryKey: ['dashboard-stats'],
       });
     },

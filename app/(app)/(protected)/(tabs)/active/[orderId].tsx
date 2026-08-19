@@ -1,6 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   ActivityIndicator,
@@ -34,6 +34,8 @@ export default function ChatScreen() {
 
   const styles = createStyles(Colors);
 
+  const insets = useSafeAreaInsets();
+
   const { orderId: rawOrderId } = useLocalSearchParams<{
     orderId: string | string[];
   }>();
@@ -64,15 +66,15 @@ export default function ChatScreen() {
     });
   }, [messages, markRead, driverId]);
 
-  useEffect(() => {
-    if (messages.length) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({
-          animated: true,
-        });
-      }, 100);
-    }
-  }, [messages.length]);
+  // useEffect(() => {
+  //   if (messages.length) {
+  //     setTimeout(() => {
+  //       flatListRef.current?.scrollToEnd({
+  //         animated: true,
+  //       });
+  //     }, 100);
+  //   }
+  // }, [messages.length]);
 
   if (!orderId) {
     return <ActivityIndicator />;
@@ -88,10 +90,10 @@ export default function ChatScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <SafeAreaView edges={['top']} style={styles.wrapperContainer}>
+        <SafeAreaView edges={['top']} style={[styles.wrapperContainer, { paddingTop: insets.top + scale(16) }]}>
           <View style={styles.connectionStatusContainer}>
             <ConnectionStatus isConnected={isConnected} />
           </View>
@@ -107,9 +109,9 @@ export default function ChatScreen() {
               contentContainerStyle={styles.list}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
-              onContentSizeChange={() =>
-                flatListRef.current?.scrollToEnd({ animated: false })
-              }
+              // onContentSizeChange={() =>
+              //   flatListRef.current?.scrollToEnd({ animated: false })
+              // }
             />
             {typingUsers.length > 0 && (
               <View style={styles.typingWrapper}>
@@ -146,6 +148,7 @@ const createStyles = (Colors: any) =>
     keyboardSafeArea: {
       flex: 1,
       backgroundColor: Colors.background,
+     
     },
 
     wrapperContainer: {
@@ -187,7 +190,7 @@ const createStyles = (Colors: any) =>
       paddingBottom: scale(10),
 
       position: 'absolute',
-      bottom: scale(70),
+      bottom: scale(100),
       left: 0,
       right: 0,
     },

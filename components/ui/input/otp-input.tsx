@@ -275,7 +275,7 @@ const createStyles = (Colors: any) =>
     cellError: {
       borderColor: Colors.error,
 
-      backgroundColor: '#FEF2F2',
+      backgroundColor: Colors.errorLight,
     },
 
     cellFilled: {

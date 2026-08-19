@@ -22,6 +22,9 @@ import {
   View,
 } from 'react-native';
 import { LoginPayload, LoginSchema } from '../schema';
+import Toast from 'react-native-toast-message';
+import { saveAuthenticatedAuth } from '@/utils/save-authenticated-auth';
+import { saveVerificationAuth } from '@/utils/save-verification-auth';
 
 const onBoardingSteps = [
   'Set up your profile',
@@ -62,6 +65,10 @@ export default function LoginForm() {
 
   const [nextSteps, setNextSteps] = useState<string[]>([]);
 
+  const [pendingLogin, setPendingLogin] = useState<
+  Awaited<ReturnType<typeof loginAction>> | null
+>(null);
+
   const router = useRouter();
 
   const { Colors } = useTheme();
@@ -81,68 +88,74 @@ export default function LoginForm() {
     },
   });
 
+
   const onSubmit = async (data: LoginPayload) => {
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
+    setErrorMessage('');
 
-      const response = await loginAction(data);
+    const response = await loginAction(data);
 
-      console.log(response);
+    console.log('Login result:', response);
 
-      /**
-       * =========================
-       * UNVERIFIED FLOW
-       * =========================
-       */
-      if (response.unverified) {
-        setValue('password', '');
+    if (!response.success) {
+      setValue('password', '');
+      setErrorMessage(response.message || 'Login failed');
+      return;
+    }
 
-        setModalType('verification');
+    /**
+     * =========================
+     * VERIFICATION MODAL
+     * =========================
+     */
+    if (response.flow === 'verification') {
+      setValue('password', '');
 
-        setModalTitle('Verification Required');
+      setPendingLogin(response);
 
-        setButtonText('Proceed to Verification');
+      setModalType('verification');
+      setModalTitle('Verification Required');
+      setButtonText('Proceed to Verification');
 
-        /**
-         * BOTH NOT VERIFIED
-         */
-        if (!response.isPhoneVerified && !response.isEmailVerified) {
-          setRedirectPath('/(app)/(verify)/phone');
+      if (response.verificationMethod === 'email') {
+        setRedirectPath('/(app)/(verify)/email');
 
-          setNextSteps([
-            'Verify your phone number first',
-            'Then verify your email address',
-          ]);
-        } else if (response.isPhoneVerified && !response.isEmailVerified) {
-          /**
-           * ONLY EMAIL LEFT
-           */
-          setRedirectPath('/(app)/(verify)/email');
+        setNextSteps([
+          'Phone verified successfully',
+          'Verify your email address to continue',
+        ]);
+      } else {
+        setRedirectPath('/(app)/(verify)/phone');
 
-          setNextSteps([
-            'Phone verified successfully',
-            'Verify your email address to continue',
-          ]);
-        }
-
-        setShowModal(true);
-
-        return;
+        setNextSteps([
+          'Verify your phone number first',
+          'Then verify your email address',
+        ]);
       }
 
+      setShowModal(true);
+
+      return;
+    }
+
+    /**
+     * =========================
+     * AUTHENTICATED
+     * =========================
+     */
+    if (response.flow === 'authenticated') {
+      setPendingLogin(response);
+
       /**
-       * =========================
-       * ONBOARDING FLOW
-       * =========================
+       * ALWAYS show onboarding modal first.
        */
       if (
         response.onboardingStatus === 'NOT_STARTED' ||
         response.onboardingStatus === 'IN_PROGRESS'
       ) {
         setModalType('onboarding');
-
         setModalTitle('Complete Onboarding');
-
         setButtonText('Continue Onboarding');
 
         if (response.onboardingStatus === 'NOT_STARTED') {
@@ -154,7 +167,9 @@ export default function LoginForm() {
 
           setNextSteps(onBoardingSteps);
         } else {
-          const completedStep = Number(response.onboardingStep || 0);
+          const completedStep = Number(
+            response.onboardingStep || 0,
+          );
 
           const nextStep = completedStep + 1;
 
@@ -171,45 +186,205 @@ export default function LoginForm() {
       }
 
       /**
-       *  =========================
-       *  VERIFICATION REQUIRED (EDGE CASE)
-       *  =========================
-       */
-
-      if (!response.success) {
-        setValue('password', '');
-
-        setErrorMessage(response.message || 'Login failed');
-
-        return;
-      }
-
-      /**
        * =========================
-       * FULLY VERIFIED USER
+       * NO ONBOARDING REQUIRED
        * =========================
        */
-      if (response.status === 'UNDER_REVIEW') {
-        setShowModal(true);
-        setModalType('verification');
-        setModalTitle('Account Under Review');
-        // setButtonText('Go to Dashboard');
-        // setRedirectPath('/(app)/(protected)/(tabs)/home');
-        setNextSteps([
-          'Your account is currently under review',
-          'We will notify you once the verification is complete',
-        ]);
-      } else {
-        router.replace('/(app)/(protected)/(tabs)/home');
-      }
-    } catch (error) {
-      console.log(error);
+      await saveAuthenticatedAuth(response);
 
-      setErrorMessage('Something went wrong');
-    } finally {
-      setLoading(false);
+      Toast.show({
+        type: 'success',
+        text1: 'Login Successful',
+      });
+
+      router.replace(
+        '/(app)/(protected)/(tabs)/home',
+      );
     }
-  };
+  } catch (error) {
+    console.log(error);
+    setErrorMessage('Something went wrong');
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+
+const handleModalContinue = async () => {
+  if (!pendingLogin) {
+    return;
+  }
+
+  /**
+   * =========================
+   * VERIFICATION
+   * =========================
+   */
+  if (
+    pendingLogin.success &&
+    pendingLogin.flow === 'verification'
+  ) {
+    await saveVerificationAuth({
+      verificationToken:
+        pendingLogin.verificationToken,
+
+      verificationEmail:
+        pendingLogin.verificationEmail ,
+
+      verificationPhone:
+        pendingLogin.verificationPhone,
+
+      isEmailVerified:
+        pendingLogin.isEmailVerified,
+
+      isPhoneVerified:
+        pendingLogin.isPhoneVerified,
+    });
+  }
+
+  /**
+   * =========================
+   * ONBOARDING
+   * =========================
+   */
+  if (
+    pendingLogin.success &&
+    pendingLogin.flow === 'authenticated'
+  ) {
+    await saveAuthenticatedAuth({
+      accessToken: pendingLogin.accessToken,
+      refreshToken: pendingLogin.refreshToken,
+
+      onboardingStatus:
+        pendingLogin.onboardingStatus,
+
+      onboardingStep:
+        pendingLogin.onboardingStep,
+
+      driverId: pendingLogin.driverId,
+    });
+
+    Toast.show({
+      type: 'success',
+      text1: 'Login Successful',
+    });
+  }
+
+  setShowModal(false);
+  setPendingLogin(null);
+
+  router.replace(redirectPath);
+};
+
+
+
+
+  // const onSubmit = async (data: LoginPayload) => {
+  //   try {
+  //     setLoading(true);
+
+  //     const response = await loginAction(data);
+
+  //     console.log(response);
+
+  //     if (response.unverified) {
+  //       setValue('password', '');
+
+  //       setModalType('verification');
+
+  //       setModalTitle('Verification Required');
+
+  //       setButtonText('Proceed to Verification');
+
+  //       if (!response.isPhoneVerified && !response.isEmailVerified) {
+  //         setRedirectPath('/(app)/(verify)/phone');
+
+  //         setNextSteps([
+  //           'Verify your phone number first',
+  //           'Then verify your email address',
+  //         ]);
+  //       } else if (response.isPhoneVerified && !response.isEmailVerified) {
+       
+  //         setRedirectPath('/(app)/(verify)/email');
+
+  //         setNextSteps([
+  //           'Phone verified successfully',
+  //           'Verify your email address to continue',
+  //         ]);
+  //       }
+
+  //       setShowModal(true);
+
+  //       return;
+  //     }
+
+  //     if (
+  //       response.onboardingStatus === 'NOT_STARTED' ||
+  //       response.onboardingStatus === 'IN_PROGRESS'
+  //     ) {
+  //       setModalType('onboarding');
+
+  //       setModalTitle('Complete Onboarding');
+
+  //       setButtonText('Continue Onboarding');
+
+  //       if (response.onboardingStatus === 'NOT_STARTED') {
+  //         const nextStep = 1;
+
+  //         setRedirectPath(
+  //           `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=0`,
+  //         );
+
+  //         setNextSteps(onBoardingSteps);
+  //       } else {
+  //         const completedStep = Number(response.onboardingStep || 0);
+
+  //         const nextStep = completedStep + 1;
+
+  //         setRedirectPath(
+  //           `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=${completedStep}`,
+  //         );
+
+  //         setNextSteps(onBoardingSteps.slice(completedStep));
+  //       }
+
+  //       setShowModal(true);
+
+  //       return;
+  //     }
+
+
+  //     if (!response.success) {
+  //       setValue('password', '');
+
+  //       setErrorMessage(response.message || 'Login failed');
+
+  //       return;
+  //     }
+
+   
+  //     if (response.status === 'UNDER_REVIEW') {
+  //       setShowModal(true);
+  //       setModalType('verification');
+  //       setModalTitle('Account Under Review');
+  //       setNextSteps([
+  //         'Your account is currently under review',
+  //         'We will notify you once the verification is complete',
+  //       ]);
+  //     } else {
+  //       router.replace('/(app)/(protected)/(tabs)/home');
+  //     }
+  //   } catch (error) {
+  //     console.log(error);
+
+  //     setErrorMessage('Something went wrong');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <>
@@ -309,6 +484,8 @@ export default function LoginForm() {
         nextSteps={nextSteps}
         setShowSuccessModal={setShowModal}
         requireVerification={modalType === 'verification'}
+          onContinue={handleModalContinue}
+
       />
     </>
   );

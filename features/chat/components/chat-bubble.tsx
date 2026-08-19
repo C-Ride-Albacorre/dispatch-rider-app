@@ -158,7 +158,7 @@ export function ChatBubble({ message, orderId }: Props) {
               <Ionicons
                 name={message.isRead ? 'checkmark-done' : 'checkmark'}
                 size={14}
-                color={message.isRead ? '#4FC3F7' : Colors.textSecondary}
+                color={Colors.text}
               />
             )}
           </View>
@@ -249,10 +249,12 @@ const createStyles = (Colors: any) =>
 
     mineText: {
       color: Colors.text,
+      fontFamily: Fonts.brandMedium,
     },
 
     theirText: {
       color: Colors.text,
+      fontFamily: Fonts.brandMedium,
     },
 
     time: {
@@ -262,17 +264,21 @@ const createStyles = (Colors: any) =>
     },
 
     mineTime: {
-      color: Colors.textSecondary,
+      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+       fontSize: normalize(10),
     },
 
     theirTime: {
       color: Colors.textSecondary,
+        fontFamily: Fonts.brandMedium,
+       fontSize: normalize(10),
     },
 
     deleted: {
       fontStyle: 'italic',
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandRegular,
+      fontSize: normalize(10),
+      fontFamily: Fonts.brandMedium,
       color: Colors.textSecondary,
     },
 
@@ -367,9 +373,10 @@ const createStyles = (Colors: any) =>
     },
 
     edited: {
-      fontSize: 10,
+      fontSize: normalize(10),
       color: Colors.textMuted,
-      marginLeft: 5,
+      fontFamily: Fonts.brandRegular,
+      marginLeft: scale(5),
     },
 
     actions: {

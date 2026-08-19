@@ -67,6 +67,7 @@ export default function OrderDetailSheet() {
 
   const styles = createStyles(Colors);
 
+
   const handleAccept = () => {
     setShowConfirmRequestModal(true);
     setSelectedOrderId(order.id);
@@ -82,7 +83,7 @@ export default function OrderDetailSheet() {
         // selectedOrder={selectedOrder}
       />
 
-      <View style={{ flex: 1, backgroundColor: Colors.background }}>
+      <View style={{ flex: 1, backgroundColor: Colors.background, paddingVertical: insets.top  }}>
         {/* Fixed Header Row Elements */}
         <View style={styles.headerContainer}>
           <View>
@@ -376,7 +377,6 @@ const createStyles = (Colors: any) =>
       width: scale(32),
       height: scale(32),
       borderRadius: scale(8),
-      marginRight: scale(10),
     },
 
     iconWrapper: {

@@ -9,16 +9,25 @@ import ConfirmDelivery from '@/features/active/confirm-delivery';
 import ConfirmPickup from '@/features/active/confirm-pickup';
 import NoActiveJob from '@/features/active/no-active-job';
 import StatusDot from '@/features/active/status-dot';
-import { useActiveOrder } from '@/features/active/use-fetch';
+import { useOrderTracking } from '@/features/active/use-fetch';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
+import { trimPolyline } from '@/utils/trim-polyline';
 import { Ionicons } from '@expo/vector-icons';
 import polyline from '@mapbox/polyline';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import MapView, {
   AnimatedRegion,
   Marker,
@@ -28,8 +37,13 @@ import MapView, {
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const LOCATION_ANIMATION_DURATION = 450;
+
+const CAMERA_ANIMATION_DURATION = 350;
+
 export default function ActiveDeliveryContent() {
-  const { Colors } = useTheme();
+  const { Colors, isDark } = useTheme();
+
   const styles = createStyles(Colors);
 
   const insets = useSafeAreaInsets();
@@ -61,7 +75,12 @@ export default function ActiveDeliveryContent() {
   const setActiveOrder = useDriverJobsStore((s) => s.setActiveOrder);
 
   // Fetch active order from API
-  const { data: fetchedOrder, isLoading: isOrderLoading } = useActiveOrder();
+  const {
+    data: fetchedOrder,
+    isLoading: isOrderLoading,
+    refetch,
+    isFetching,
+  } = useOrderTracking();
   const driverLocation = useDriverJobsStore((s) => s.driverLocation);
   const etaToVendor = useDriverJobsStore((s) => s.etaToVendor);
   const etaToCustomer = useDriverJobsStore((s) => s.etaToCustomer);
@@ -83,6 +102,18 @@ export default function ActiveDeliveryContent() {
       setIsWaitingForOrder(false);
     }
   }, [fetchedOrder, isOrderLoading, setActiveOrder]);
+
+  // Preload store logo image
+  useEffect(() => {
+    if (activeOrder?.store_logo) {
+      Image.prefetch(activeOrder.store_logo)
+        .then(() => setStoreLogoLoaded(true))
+        .catch(() => {
+          // Fallback to bag icon if image fails
+          setStoreLogoLoaded(false);
+        });
+    }
+  }, [activeOrder?.store_logo]);
 
   console.log(
     // 'ACTIVE ORDER :',
@@ -159,7 +190,7 @@ export default function ActiveDeliveryContent() {
   const activePolyline =
     deliveryPhase === 'TO_VENDOR' ? polylineToVendor : polylineToCustomer;
 
-  const coordinates = useMemo(() => {
+  const fullCoordinates = useMemo(() => {
     if (!activePolyline) return [];
 
     try {
@@ -173,11 +204,52 @@ export default function ActiveDeliveryContent() {
         .filter(
           (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
         );
-    } catch (e) {
-      console.log('❌ polyline decode error:', e);
+    } catch (error) {
+      console.log('❌ polyline decode error:', error);
       return [];
     }
   }, [activePolyline]);
+
+  const routeProgressRef = useRef(0);
+
+  useEffect(() => {
+    routeProgressRef.current = 0;
+  }, [activePolyline, deliveryPhase]);
+
+  const coordinates = useMemo(() => {
+    if (fullCoordinates.length < 2) {
+      return fullCoordinates;
+    }
+
+    if (!driverLocation) {
+      return fullCoordinates;
+    }
+
+    const result = trimPolyline(
+      fullCoordinates,
+      {
+        latitude: driverLocation.lat,
+        longitude: driverLocation.lng,
+      },
+      routeProgressRef.current,
+    );
+
+    if (!result.coordinates.length) {
+      return fullCoordinates;
+    }
+
+    /**
+     * Only move forward.
+     *
+     * This prevents GPS noise from making the route jump
+     * backwards when the driver's location fluctuates slightly.
+     */
+    if (result.index >= routeProgressRef.current) {
+      routeProgressRef.current = result.index;
+    }
+
+    return result.coordinates;
+  }, [fullCoordinates, driverLocation]);
 
   /**
    * -----------------------------
@@ -266,7 +338,7 @@ export default function ActiveDeliveryContent() {
         zoom: 17,
       },
       {
-        duration: 800,
+        duration: CAMERA_ANIMATION_DURATION,
       },
     );
   }, [driverLocation, carRotation, isMapReady]);
@@ -291,7 +363,7 @@ export default function ActiveDeliveryContent() {
       .timing({
         latitude: Number(driverLocation.lat),
         longitude: Number(driverLocation.lng),
-        duration: 1000,
+        duration: LOCATION_ANIMATION_DURATION,
         useNativeDriver: false,
       } as any)
       .start();
@@ -355,6 +427,23 @@ export default function ActiveDeliveryContent() {
     activeOrder?.pickup_location?.latitude,
     activeOrder?.pickup_location?.longitude,
   ]);
+
+  const focusLocation = driverLocation
+    ? {
+        latitude: driverLocation.lat,
+        longitude: driverLocation.lng,
+      }
+    : activeOrder
+      ? deliveryPhase === 'TO_VENDOR'
+        ? {
+            latitude: activeOrder.pickup_location.latitude,
+            longitude: activeOrder.pickup_location.longitude,
+          }
+        : {
+            latitude: activeOrder.dropoff_location.latitude,
+            longitude: activeOrder.dropoff_location.longitude,
+          }
+      : null;
 
   /**
    * SAFE GUARD (WAIT FOR WEBSOCKET OR TIMEOUT)
@@ -429,75 +518,56 @@ export default function ActiveDeliveryContent() {
     router.push(`/active/${activeOrder.order_id}`);
   };
 
-  const mapStyle = [
-    {
-      featureType: 'poi',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'transit',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'administrative',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'landscape',
-      stylers: [{ saturation: -80 }],
-    },
-    {
-      featureType: 'road',
-      elementType: 'labels',
-      stylers: [{ visibility: 'off' }],
-    },
-    {
-      featureType: 'poi.business',
-      stylers: [
-        {
-          visibility: 'off',
-        },
-      ],
-    },
-    {
-      featureType: 'road.highway',
-      elementType: 'geometry',
-      stylers: [
-        {
-          color: '#d7dbe0',
-        },
-      ],
-    },
-    {
-      featureType: 'water',
-      stylers: [
-        {
-          color: '#c9e8ff',
-        },
-      ],
-    },
-  ];
+  // const mapStyle = [
+  //   {
+  //     featureType: 'poi',
+  //     stylers: [{ visibility: 'off' }],
+  //   },
+  //   {
+  //     featureType: 'transit',
+  //     stylers: [{ visibility: 'off' }],
+  //   },
+  //   {
+  //     featureType: 'administrative',
+  //     stylers: [{ visibility: 'off' }],
+  //   },
+  //   {
+  //     featureType: 'landscape',
+  //     stylers: [{ saturation: -80 }],
+  //   },
+  //   {
+  //     featureType: 'road',
+  //     elementType: 'labels',
+  //     stylers: [{ visibility: 'off' }],
+  //   },
+  //   {
+  //     featureType: 'poi.business',
+  //     stylers: [
+  //       {
+  //         visibility: 'off',
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     featureType: 'road.highway',
+  //     elementType: 'geometry',
+  //     stylers: [
+  //       {
+  //         color: '#d7dbe0',
+  //       },
+  //     ],
+  //   },
+  //   {
+  //     featureType: 'water',
+  //     stylers: [
+  //       {
+  //         color: '#c9e8ff',
+  //       },
+  //     ],
+  //   },
+  // ];
 
-  const focusLocation = useMemo(() => {
-    if (driverLocation) {
-      return {
-        latitude: driverLocation.lat,
-        longitude: driverLocation.lng,
-      };
-    }
-
-    if (deliveryPhase === 'TO_VENDOR') {
-      return {
-        latitude: activeOrder.pickup_location.latitude,
-        longitude: activeOrder.pickup_location.longitude,
-      };
-    }
-
-    return {
-      latitude: activeOrder.dropoff_location.latitude,
-      longitude: activeOrder.dropoff_location.longitude,
-    };
-  }, [driverLocation, deliveryPhase, activeOrder]);
+  const mapStyle: any[] = [];
 
   const recenterDriver = () => {
     if (!focusLocation) return;
@@ -539,6 +609,14 @@ export default function ActiveDeliveryContent() {
         onScroll={scrollHandler}
         scrollEventThrottle={16}
         contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={refetch}
+            tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
+            progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
+          />
+        }
       >
         <View style={styles.container}>
           {/* 1. Map Canvas Section */}
@@ -547,18 +625,15 @@ export default function ActiveDeliveryContent() {
             <View
               style={{
                 position: 'absolute',
-                top: 20,
-                left: 20,
-                right: 20,
+                top: scale(20),
+                left: scale(20),
+                right: scale(20),
 
-                backgroundColor: 'rgba(255,255,255,0.96)',
-                borderWidth: 1,
-                borderColor: 'rgba(0,0,0,0.05)',
+                backgroundColor: Colors.background,
 
-                borderRadius: 18,
+                borderRadius: scale(18),
 
-                padding: 16,
-
+                padding: scale(16),
                 flexDirection: 'row',
                 alignItems: 'center',
 
@@ -572,9 +647,9 @@ export default function ActiveDeliveryContent() {
             >
               <View
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
+                  width: scale(44),
+                  height: scale(44),
+                  borderRadius: scale(22),
                   backgroundColor: `${Colors.primary}15`,
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -587,11 +662,12 @@ export default function ActiveDeliveryContent() {
                 />
               </View>
 
-              <View style={{ marginLeft: 12 }}>
+              <View style={{ marginLeft: scale(12) }}>
                 <Text
                   style={{
-                    fontWeight: '700',
-                    fontSize: 16,
+                    fontFamily: Fonts.brandSemiBold,
+                    fontSize: normalize(13),
+                    color: Colors.text,
                   }}
                 >
                   {etaText}
@@ -599,8 +675,10 @@ export default function ActiveDeliveryContent() {
 
                 <Text
                   style={{
-                    color: '#6B7280',
-                    marginTop: 2,
+                    color: Colors.textMuted,
+                    marginTop: scale(2),
+                    fontSize: normalize(11),
+                    fontFamily: Fonts.brandMedium,
                   }}
                 >
                   {trackingMessage}
@@ -610,11 +688,12 @@ export default function ActiveDeliveryContent() {
             <MapView
               initialRegion={initialMapRegion}
               ref={mapRef}
+              mapType="standard"
               provider={PROVIDER_GOOGLE}
               style={[
                 StyleSheet.absoluteFill,
                 {
-                  borderRadius: 24,
+                  borderRadius: scale(24),
                 },
               ]}
               mapPadding={{
@@ -643,56 +722,57 @@ export default function ActiveDeliveryContent() {
               >
                 <View
                   style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 32,
+                    width: 50,
+                    height: 50,
+                    borderRadius: 25,
 
                     backgroundColor: '#FFFFFF',
 
                     justifyContent: 'center',
                     alignItems: 'center',
 
-                    borderWidth: 3,
+                    borderWidth: 2,
                     borderColor: Colors.primary,
 
-                    shadowColor: '#000',
-                    shadowOpacity: 0.25,
-                    shadowRadius: 10,
-                    shadowOffset: {
-                      width: 0,
-                      height: 5,
-                    },
-
-                    elevation: 10,
+                    // Only add shadows on Android, iOS handles differently
+                    ...Platform.select({
+                      android: {
+                        elevation: 8,
+                      },
+                      ios: {
+                        shadowColor: 'transparent',
+                        shadowOpacity: 0,
+                      },
+                    }),
                   }}
                 >
                   <View
                     style={{
-                      width: 38,
-                      height: 38,
-                      borderRadius: 19,
+                      width: 30,
+                      height: 30,
+                      borderRadius: 15,
                       overflow: 'hidden',
                       justifyContent: 'center',
                       alignItems: 'center',
                       backgroundColor: Colors.primaryLight,
                     }}
                   >
-                    {activeOrder.store_logo ? (
+                    {activeOrder.store_logo && storeLogoLoaded ? (
                       <Image
                         source={{
                           uri: activeOrder.store_logo,
+                          cache: 'force-cache',
                         }}
                         onLoad={() => setStoreLogoLoaded(true)}
                         onError={() => setStoreLogoLoaded(false)}
                         style={{
-                          position: 'absolute',
-                          width: 38,
-                          height: 38,
-                          borderRadius: 19,
+                          width: 30,
+                          height: 30,
+                          borderRadius: 15,
                         }}
                       />
                     ) : (
-                      <Ionicons name="bag" size={20} color={Colors.primary} />
+                      <Ionicons name="bag" size={16} color={Colors.primary} />
                     )}
                   </View>
                 </View>
@@ -713,18 +793,28 @@ export default function ActiveDeliveryContent() {
                   tracksViewChanges={false}
                   anchor={{ x: 0.5, y: 0.5 }}
                 >
-                  <Marker coordinate={driverMarkerCoordinate}>
-                    <View
-                      style={{
-                        width: scale(18),
-                        height: scale(18),
-                        borderRadius: scale(9),
-                        backgroundColor: Colors.success,
-                        borderWidth: 3,
-                        borderColor: '#fff',
-                      }}
-                    />
-                  </Marker>
+                  <View
+                    style={{
+                      width: scale(22),
+                      height: scale(22),
+                      borderRadius: scale(11),
+                      backgroundColor: Colors.success,
+                      borderWidth: 3,
+                      borderColor: '#fff',
+                      ...Platform.select({
+                        ios: {
+                          elevation: 5,
+                          // shadowColor: '#000',
+                          // shadowOpacity: 0.3,
+                          // shadowRadius: 3,
+                          // shadowOffset: { width: 0, height: 1 },
+                        },
+                        android: {
+                          elevation: 5,
+                        },
+                      }),
+                    }}
+                  />
                 </Marker.Animated>
               )}
 
@@ -852,7 +942,7 @@ export default function ActiveDeliveryContent() {
                 />
               </View>
 
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.address}>
                   {activeOrder.dropoff_location.address}
                 </Text>
@@ -876,12 +966,12 @@ export default function ActiveDeliveryContent() {
               <Button
                 size="sm"
                 onPress={handleChat}
-                variant="inverted"
+                // variant="primary"
                 leftIcon={
                   <Ionicons
                     name="chatbubble-ellipses"
                     size={16}
-                    color={Colors.background}
+                    color="#000000"
                   />
                 }
               >
@@ -1108,6 +1198,7 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(16),
       fontFamily: Fonts.brandSemiBold,
       textTransform: 'capitalize',
+      color: Colors.text,
     },
 
     address: {
@@ -1117,6 +1208,7 @@ const createStyles = (Colors: any) =>
       lineHeight: scale(20),
       fontFamily: Fonts.brandMedium,
       textTransform: 'capitalize',
+      flexWrap: 'wrap',
     },
 
     city: {
@@ -1255,6 +1347,7 @@ const createStyles = (Colors: any) =>
     metaValue: {
       fontSize: normalize(14),
       fontFamily: Fonts.brandSemiBold,
+      color: Colors.text,
     },
 
     statusBadge: {

@@ -1,17 +1,26 @@
 
+import { useTheme } from '@/hooks/use-theme';
+
 import { Stack } from 'expo-router';
+import { use } from 'react';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 export default function OnboardingLayout() {
+
+
+  const { Colors } = useTheme();
+
+  const insets = useSafeAreaInsets()
 
   return (
     <Stack
       screenOptions={{
         headerShown: false,
         contentStyle: {
-          backgroundColor: 'white',
-          // paddingTop: insets.top,
-          // paddingBottom: insets.bottom,
+          backgroundColor: Colors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
           // paddingLeft: insets.left,
           // paddingRight: insets.right,
         },

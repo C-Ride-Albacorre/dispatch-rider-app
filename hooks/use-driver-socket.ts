@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import Toast from 'react-native-toast-message';
 import { io, Socket } from 'socket.io-client';
 
 import { useAuthStore } from '@/store/auth-store';
@@ -9,6 +10,29 @@ type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY' | 'UNKNOWN';
 const DEBUG_DRIVER_SOCKET = true;
 
 type SocketPayload = Record<string, any> | null | undefined;
+
+function distanceInMeters(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+) {
+  const R = 6371000;
+
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.latitude * Math.PI) / 180;
+
+  const dLat =
+    ((b.latitude - a.latitude) * Math.PI) / 180;
+
+  const dLng =
+    ((b.longitude - a.longitude) * Math.PI) / 180;
+
+  const x =
+    dLng * Math.cos((lat1 + lat2) / 2);
+
+  const y = dLat;
+
+  return Math.sqrt(x * x + y * y) * R;
+}
 
 function unwrapSocketPayload(payload: unknown): SocketPayload {
   const first = Array.isArray(payload) ? payload[0] : payload;
@@ -146,7 +170,11 @@ export function useDriverSocket(
         if (!order) return;
 
         setActiveOrder(order);
-        clearIncoming();
+        // Only clear incoming orders if we have an active order (user accepted a job)
+        // Don't clear on every reconnect as it causes race conditions
+        if (order?.order_id) {
+          clearIncoming();
+        }
       });
     });
 
@@ -157,10 +185,19 @@ export function useDriverSocket(
     });
 
     socket.on('new-order-request', (order) => {
+      const orderId = order?.order_id ?? order?.orderId;
+
       driverSocketLog('new-order-request', {
-        orderId: order?.order_id ?? order?.orderId ?? null,
+        orderId,
+        hasOrderId: !!orderId,
         driverStatus: status,
+        orderData: order,
       });
+
+      if (!orderId) {
+        console.warn('[driver-socket] Received order without ID:', order);
+        return;
+      }
 
       // Don't accept jobs if status is OFFLINE or UNKNOWN
       // if (status === 'OFFLINE' || status === 'UNKNOWN') {
@@ -178,8 +215,15 @@ export function useDriverSocket(
     socket.on('remove-order', (data) => {
       const { orderId, assignedDriverId } = data;
 
+      driverSocketLog('remove-order', {
+        orderId,
+        assignedDriverId,
+        currentDriverId: driverId,
+      });
+
       removeOrder(orderId);
 
+      // Only clear incoming if this job was assigned to current driver
       if (assignedDriverId === driverId) {
         clearIncoming();
       }
@@ -206,6 +250,38 @@ export function useDriverSocket(
       clearIncoming();
     });
 
+    socket.on('driver-arrived', (data) => {
+      driverSocketLog('driver-arrived', data);
+
+      const { leg } = data;
+
+      if (leg === 'to-vendor') {
+        console.log('[VENDOR ARRIVAL] 🏪 Driver arrived at vendor:', {
+          timestamp: new Date().toISOString(),
+          fullResponse: data,
+          leg,
+        });
+        Toast.show({
+          type: 'success',
+          text1: 'Driver Arrived',
+          text2: 'Driver has arrived at the vendor',
+          // duration: 3000,
+        });
+      } else if (leg === 'to-customer') {
+        console.log('[CUSTOMER ARRIVAL] 📍 Driver arrived at customer:', {
+          timestamp: new Date().toISOString(),
+          fullResponse: data,
+          leg,
+        });
+        Toast.show({
+          type: 'success',
+          text1: 'Driver Arrived',
+          text2: 'Driver has arrived at your location',
+          // duration: 3000,
+        });
+      }
+    });
+
     return () => {
       driverSocketLog('cleanup -> disconnect socket');
       socket.disconnect();
@@ -217,7 +293,6 @@ export function useDriverSocket(
     ready,
     token,
     driverId,
-    location,
     activeOrderId,
     setSocket,
     setActiveOrder,
@@ -250,16 +325,19 @@ export function useDriverSocket(
 
     const previous = lastLocationRef.current;
 
-    if (previous) {
-      const moved =
-        Math.abs(previous.latitude - location.latitude) +
-        Math.abs(previous.longitude - location.longitude);
+   if (previous) {
+  const moved = distanceInMeters(
+    previous,
+    {
+      latitude: location.latitude,
+      longitude: location.longitude,
+    },
+  );
 
-      if (moved < 0.00002) {
-        return;
-      }
-    }
-
+  if (moved < 5) {
+    return;
+  }
+}
     lastLocationRef.current = {
       latitude: location.latitude,
       longitude: location.longitude,

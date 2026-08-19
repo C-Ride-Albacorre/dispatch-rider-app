@@ -106,14 +106,14 @@ const createStyles = (Colors: any) =>
     },
 
     title: {
-      fontSize: scale(26),
+      fontSize: scale(24),
       fontFamily: Fonts.brandBold,
       color: Colors.text,
       textAlign: 'center',
     },
 
     subtitle: {
-      fontSize: scale(16),
+      fontSize: scale(12),
       fontFamily: Fonts.brandRegular,
       color: Colors.textSecondary,
       textAlign: 'center',

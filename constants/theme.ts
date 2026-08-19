@@ -120,38 +120,42 @@ export const LightColors = {
 };
 
 export const DarkColors = {
+
   // Brand
-  primary: '#E0B84D',
-  primaryLight: '#E0B84D33',
+  primary: '#E2B93B',
+  primaryLight: '#E2B93B33',
 
   // Backgrounds
   background: '#0F1115',
   backgroundSecondary: '#161A20',
-  backgroundTertiary: '#1E242D',
+  backgroundTertiary: '#1D222A',
 
   // Text
   text: '#F5F5F5',
-  textSecondary: '#B0B3B8',
-  textMuted: '#7D8590',
+  textSecondary: '#B8BCC4',
+  textMuted: '#858B96',
 
   // UI
-  border: '#2A2F3A',
-  inputBackground: '#1A1F27',
+  border: '#292E37',
+  inputBackground: '#191E26',
   card: '#151922',
 
   // Status
-  success: '#10B981',
-  successLight: '#064E3B',
-  successExtraLight: '#022C22',
+  success: '#34D399',
+  successLight: '#063B2D',
+  successExtraLight: '#062A22',
 
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
+  error: '#F87171',
+  errorLight: '#3B1719',
+  errorExtraLight: '#291113',
 
   warning: '#FBBF24',
-  warningLight: '#78350F',
+  warningLight: '#3A2C0A',
+  warningExtraLight: '#292007',
 
   info: '#38BDF8',
   infoLight: '#082F49',
+  infoExtraLight: '#061F30',
 
   // Misc
   shadow: 'rgba(0,0,0,0.5)',

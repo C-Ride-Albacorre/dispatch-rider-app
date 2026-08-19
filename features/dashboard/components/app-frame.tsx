@@ -39,8 +39,8 @@ const createStyles = (Colors: any) =>
       height: scale(120),
       borderRadius: scale(999),
       backgroundColor: Colors.primaryLight,
-      top: scale(-40),
-      right: scale(-30),
+      top: scale(-50),
+      right: scale(-20),
     },
 
     bubbleBottom: {
@@ -49,7 +49,7 @@ const createStyles = (Colors: any) =>
       height: scale(80),
       borderRadius: scale(999),
       backgroundColor: Colors.successExtraLight,
-      bottom: scale(-30),
-      right: scale(20),
+      bottom: scale(-50),
+      right: scale(30),
     },
   });

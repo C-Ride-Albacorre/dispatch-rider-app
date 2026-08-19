@@ -18,7 +18,7 @@ import {
   DriverInfo,
   useDriverJobsStore,
 } from '@/store/driver-jobs-store';
-import { normalize } from '@/utils/scaling';
+import { normalize, scale } from '@/utils/scaling';
 import {
   getActiveOrder,
   getNotificationPermissionDecision,
@@ -73,6 +73,8 @@ export default function TabsLayout() {
 
   // Fetch a tracking snapshot to pre-seed the map before the first socket event
   const { data: trackingSnapshot } = useOrderTracking();
+
+  console.log(' [TabsLayout] trackingSnapshot:', trackingSnapshot);
 
   const activeOrderId =
     useDriverJobsStore((s) => s.activeOrder?.order_id) ??
@@ -203,10 +205,10 @@ export default function TabsLayout() {
             tabBarHideOnKeyboard: true,
             tabBarLabelStyle: {
               fontFamily: Fonts.brandMedium,
-              fontSize: normalize(12),
+              fontSize: normalize(11),
             },
             tabBarIconStyle: {
-              marginTop: 4,
+              marginTop: scale(4),
             },
 
             tabBarActiveTintColor: Colors.primary,

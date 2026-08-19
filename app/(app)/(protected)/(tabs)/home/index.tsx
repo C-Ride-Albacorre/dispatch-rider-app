@@ -6,6 +6,7 @@ import { Fonts } from '@/constants/theme';
 import ActiveDelivery from '@/features/home/components/active-delivery';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
+import RecentDeliveries from '@/features/home/components/recent-deliveries';
 import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
@@ -15,7 +16,7 @@ import {
 } from '@/store/driver-jobs-store';
 import { scale } from '@/utils/scaling';
 import { useMemo } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { RefreshControl, StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,7 +25,7 @@ export type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
 export default function Dashboard() {
   const insets = useSafeAreaInsets();
 
-  const { data, isLoading } = useDashboardStats();
+  const { data, isLoading, isFetching, refetch } = useDashboardStats();
 
   const stats = data?.stats;
 
@@ -41,7 +42,7 @@ export default function Dashboard() {
 
   const etaToCustomer = useDriverJobsStore((s) => s.etaToCustomer);
 
-  const { Colors } = useTheme();
+  const { Colors,isDark } = useTheme();
 
   const styles = createStyles(Colors);
 
@@ -92,6 +93,15 @@ export default function Dashboard() {
       onScroll={scrollHandler}
       scrollEventThrottle={16}
       contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
+      refreshControl={
+        <RefreshControl
+         refreshing={isFetching}
+         onRefresh={refetch}
+
+           tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
+                     progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
+        />
+      }
     >
       <View style={styles.container}>
         <HomeHeader driverStatus={driverStatus} driverInfo={driverInfo} />
@@ -111,7 +121,7 @@ export default function Dashboard() {
           />
         )}
 
-        {/* <RecentDeliveries /> */}
+        <RecentDeliveries />
       </View>
 
       {/* <Footer /> */}

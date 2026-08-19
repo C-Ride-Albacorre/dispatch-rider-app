@@ -2,10 +2,16 @@
 
 
 import { Colors, Fonts } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import { scale } from '@/utils/scaling';
+import { create } from 'axios';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 export default function AuthPageHeader() {
+
+  const {Colors} = useTheme()
+
+  const styles = createStyles(Colors);
   return (
     <View style={styles.container}>
       <Image
@@ -18,7 +24,7 @@ export default function AuthPageHeader() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (Colors: any) => StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',

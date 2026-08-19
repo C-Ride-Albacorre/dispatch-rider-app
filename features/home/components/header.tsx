@@ -1,7 +1,6 @@
 import Avatar from '@/components/ui/avatar';
 import { Colors, Fonts } from '@/constants/theme';
 import { normalize, scale } from '@/utils/scaling';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -52,7 +51,7 @@ export default function HomeHeader({
     onSuccess: () => {
       Toast.show({
         type: `${newStatus ? 'success' : 'info'}`,
-        text1: `You are now ${newStatus ? 'Online' : 'Offline'}`,
+        text1: `You are now ${newStatus ? 'online' : 'offline'}`,
         text1Style: { fontFamily: Fonts.brandMedium },
       });
     },

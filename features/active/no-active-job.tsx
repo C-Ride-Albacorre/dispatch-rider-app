@@ -82,9 +82,10 @@ const createStyles = (Colors: any) =>
       fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
       textAlign: 'center',
+      color: Colors.text,
     },
     subtitle: {
-      fontSize: normalize(14),
+      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
       textAlign: 'center',
       color: Colors.textMuted,

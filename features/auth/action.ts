@@ -77,6 +77,7 @@ export const loginAction = async (payload: LoginPayload) => {
     ...payload,
     email: payload.email.toLowerCase().trim(),
   };
+
   try {
     const result = await loginDriver(parsedPayload);
 
@@ -84,49 +85,51 @@ export const loginAction = async (payload: LoginPayload) => {
 
     /**
      * =========================
-     * UNVERIFIED FLOW
+     * UNVERIFIED
      * =========================
      */
-
     if (result.data.status === 'UNVERIFIED') {
-      await saveVerificationToken(result.data.verificationToken);
+      const {
+        verificationToken,
+        identifier,
+        email,
+        phoneNumber,
+        isEmailVerified,
+        isPhoneVerified,
+        message,
+      } = result.data;
 
-      if (result.data.isPhoneVerified && !result.data.isEmailVerified) {
-        await saveVerificationEmail(result.data.identifier);
+      if (isPhoneVerified && !isEmailVerified) {
+        return {
+          success: true as const,
+          flow: 'verification' as const,
+          verificationMethod: 'email' as const,
 
-        useAuthStore.getState().setAuth({
-          verificationToken: result.data.verificationToken,
-          verificationEmail: result.data.identifier,
+          verificationToken,
+          verificationEmail: identifier,
 
-          isEmailVerified: result.data.isEmailVerified,
-          isPhoneVerified: result.data.isPhoneVerified,
-          authStatus: 'VERIFYING',
-        });
-      } else {
-        await saveVerificationEmail(result.data.email);
+          isEmailVerified,
+          isPhoneVerified,
 
-        await saveVerificationPhone(result.data.phoneNumber);
-
-        useAuthStore.getState().setAuth({
-          verificationToken: result.data.verificationToken,
-          verificationEmail: result.data.email,
-          verificationPhone: result.data.phoneNumber,
-
-          isEmailVerified: result.data.isEmailVerified,
-          isPhoneVerified: result.data.isPhoneVerified,
-
-          authStatus: 'VERIFYING',
-        });
+          message:
+            message || 'Please verify your email address',
+        };
       }
 
       return {
-        success: true,
-        unverified: true,
-        status: result.data.status,
-        isPhoneVerified: result.data.isPhoneVerified,
-        isEmailVerified: result.data.isEmailVerified,
+        success: true as const,
+        flow: 'verification' as const,
+        verificationMethod: 'phone' as const,
 
-        message: result.data.message || 'Account verification required',
+        verificationToken,
+        verificationEmail: email,
+        verificationPhone: phoneNumber,
+
+
+        isEmailVerified,
+        isPhoneVerified,
+
+        message: message || 'Verification required',
       };
     }
 
@@ -136,73 +139,163 @@ export const loginAction = async (payload: LoginPayload) => {
      * =========================
      */
     if (result.data.status === 'error') {
-      Toast.show({
-        type: 'error',
-        text1: 'Login Failed',
-        text2: result.data.message,
-      });
-
       return {
-        success: false,
+        success: false as const,
+        flow: 'error' as const,
         message: result.data.message || 'Login failed',
       };
-    } else {
-      /**
-       * =========================
-       * VERIFIED FLOW
-       * =========================
-       */
-      await saveAccessToken(result.data.accessToken);
-
-      await saveRefreshToken(result.data.refreshToken);
-
-      await saveOnboardingStatus(result.data.onboardingStatus);
-
-      await saveOnboardingStep(result.data.onboardingStep);
-
-      await saveDriverId(result.data.user.id);
-
-      useAuthStore.getState().setAuth({
-        accessToken: result.data.accessToken,
-        refreshToken: result.data.refreshToken,
-
-        onboardingStatus: result.data.onboardingStatus,
-
-        onboardingStep: result.data.onboardingStep,
-
-        driverId: result.data.user.id,
-
-        authStatus: 'AUTHENTICATED',
-      });
-
-      Toast.show({
-        type: 'success',
-        text1: 'Login Successful',
-      });
-
-      return {
-        success: true,
-        status: result.data.status,
-        onboardingStatus: result.data.onboardingStatus,
-        onboardingStep: result.data.onboardingStep,
-        driverId: result.data.user.id,
-        message: result.data.message || 'Login successful',
-      };
     }
+
+    /**
+     * =========================
+     * AUTHENTICATED
+     * =========================
+     */
+    return {
+      success: true as const,
+      flow: 'authenticated' as const,
+
+      accessToken: result.data.accessToken,
+      refreshToken: result.data.refreshToken,
+
+      onboardingStatus: result.data.onboardingStatus,
+      onboardingStep: result.data.onboardingStep,
+
+      driverId: result.data.user.id,
+
+      status: result.data.status,
+
+      message: result.data.message || 'Login successful',
+    };
   } catch (error: any) {
     console.log('FULL ERROR');
     console.log(JSON.stringify(error, null, 2));
 
-    console.log('response', error?.response);
-    console.log('data', error?.response?.data);
-    console.log('message', error?.message);
-    console.log('code', error?.code);
     return {
-      success: false,
-      message: error?.response?.data?.message || 'Login failed',
+      success: false as const,
+      flow: 'error' as const,
+      message:
+        error?.response?.data?.message || 'Login failed',
     };
   }
 };
+
+// export const loginAction = async (payload: LoginPayload) => {
+//   const parsedPayload = {
+//     ...payload,
+//     email: payload.email.toLowerCase().trim(),
+//   };
+//   try {
+//     const result = await loginDriver(parsedPayload);
+
+//     console.log('Login response:', result);
+
+//     if (result.data.status === 'UNVERIFIED') {
+//       await saveVerificationToken(result.data.verificationToken);
+
+//       if (result.data.isPhoneVerified && !result.data.isEmailVerified) {
+//         await saveVerificationEmail(result.data.identifier);
+
+//         useAuthStore.getState().setAuth({
+//           verificationToken: result.data.verificationToken,
+//           verificationEmail: result.data.identifier,
+
+//           isEmailVerified: result.data.isEmailVerified,
+//           isPhoneVerified: result.data.isPhoneVerified,
+//           authStatus: 'VERIFYING',
+//         });
+//       } else {
+//         await saveVerificationEmail(result.data.email);
+
+//         await saveVerificationPhone(result.data.phoneNumber);
+
+//         useAuthStore.getState().setAuth({
+//           verificationToken: result.data.verificationToken,
+//           verificationEmail: result.data.email,
+//           verificationPhone: result.data.phoneNumber,
+
+//           isEmailVerified: result.data.isEmailVerified,
+//           isPhoneVerified: result.data.isPhoneVerified,
+
+//           authStatus: 'VERIFYING',
+//         });
+//       }
+
+//       return {
+//         success: true,
+//         unverified: true,
+//         status: result.data.status,
+//         isPhoneVerified: result.data.isPhoneVerified,
+//         isEmailVerified: result.data.isEmailVerified,
+
+//         message: result.data.message || 'Account verification required',
+//       };
+//     }
+
+//     if (result.data.status === 'error') {
+//       Toast.show({
+//         type: 'error',
+//         text1: 'Login Failed',
+//         text2: result.data.message,
+//       });
+
+//       return {
+//         success: false,
+//         message: result.data.message || 'Login failed',
+//       };
+//     } else {
+
+//       await saveAccessToken(result.data.accessToken);
+
+//       await saveRefreshToken(result.data.refreshToken);
+
+//       await saveOnboardingStatus(result.data.onboardingStatus);
+
+//       await saveOnboardingStep(result.data.onboardingStep);
+
+//       await saveDriverId(result.data.user.id);
+
+//       useAuthStore.getState().setAuth({
+//         accessToken: result.data.accessToken,
+//         refreshToken: result.data.refreshToken,
+
+//         onboardingStatus: result.data.onboardingStatus,
+
+//         onboardingStep: result.data.onboardingStep,
+
+//         driverId: result.data.user.id,
+
+//         authStatus: 'AUTHENTICATED',
+//       });
+
+//       Toast.show({
+//         type: 'success',
+//         text1: 'Login Successful',
+//       });
+
+//       return {
+//         success: true,
+//         status: result.data.status,
+//         onboardingStatus: result.data.onboardingStatus,
+//         onboardingStep: result.data.onboardingStep,
+//         driverId: result.data.user.id,
+//         message: result.data.message || 'Login successful',
+//       };
+//     }
+//   } catch (error: any) {
+//     console.log('FULL ERROR');
+//     console.log(JSON.stringify(error, null, 2));
+
+//     console.log('response', error?.response);
+//     console.log('data', error?.response?.data);
+//     console.log('message', error?.message);
+//     console.log('code', error?.code);
+//     return {
+//       success: false,
+//       message: error?.response?.data?.message || 'Login failed',
+//     };
+//   }
+// };
 
 export const forgetPasswordAction = async (payload: ForgetPasswordPayload) => {
   try {

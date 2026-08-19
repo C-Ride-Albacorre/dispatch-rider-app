@@ -2,6 +2,7 @@ import AuthPageHeader from '@/components/layout/auth-header';
 
 import Button from '@/components/ui/buttons/button';
 import IconButton from '@/components/ui/buttons/icon-button';
+import ReturnButton from '@/components/ui/buttons/return-button';
 
 import OtpInput from '@/components/ui/input/otp-input';
 
@@ -129,12 +130,7 @@ export default function VerifyResetScreen() {
           scrollEnabled={true}
         >
           <View>
-            <IconButton
-              variant="outlineSecondary"
-              onPress={() => router.push('/(app)/(auth)/login')}
-            >
-              <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
-            </IconButton>
+           <ReturnButton />
 
             <AuthPageHeader />
           </View>

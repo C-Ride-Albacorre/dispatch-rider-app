@@ -7,6 +7,7 @@ import {
 import Toast from 'react-native-toast-message';
 import { PersonalInfoFormValues, Step3Payload } from './schema';
 import { onboarding, submitDriverDocuments } from './service';
+import { saveOnboardingProgress } from '@/utils/save-onboarding-progress';
 
 export type VehicleInfoPayload = {
   vehicleType: 'CAR' | 'EV';
@@ -17,7 +18,9 @@ export type VehicleInfoPayload = {
   notes?: string;
 };
 
-export async function personalInfoAction(payload: PersonalInfoFormValues) {
+export async function personalInfoAction(
+  payload: PersonalInfoFormValues,
+) {
   try {
     const result = await onboarding(payload, 1);
 
@@ -31,26 +34,51 @@ export async function personalInfoAction(payload: PersonalInfoFormValues) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: responseData?.message ?? 'Failed to save personal information',
+        text2:
+          responseData?.message ??
+          'Failed to save personal information',
       });
 
       return {
         success: false,
-        message: responseData?.message ?? 'Failed to save personal information',
+        message:
+          responseData?.message ??
+          'Failed to save personal information',
       };
     }
+
+    /**
+     * API successfully saved step 1.
+     *
+     * Now persist local onboarding progress.
+     */
+    const onboardingStatus =
+      normalizeOnboardingStatus(
+        responseData?.onboardingStatus,
+      ) ?? 'IN_PROGRESS';
+
+    await saveOnboardingProgress({
+      step: Number(responseData.onboardingStep),
+      status: onboardingStatus,
+    });
 
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: responseData?.message ?? 'Personal information saved successfully',
+      text2:
+        responseData?.message ??
+        'Personal information saved successfully',
     });
 
     return {
       success: true,
+     step: Number(responseData.onboardingStep),
+      onboardingStatus,
       data: responseData,
     };
   } catch (error) {
+    console.log('Personal information error:', error);
+
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -63,9 +91,15 @@ export async function personalInfoAction(payload: PersonalInfoFormValues) {
     };
   }
 }
-export async function vehicleInfoAction(payload: VehicleInfoPayload) {
+export async function vehicleInfoAction(
+  payload: VehicleInfoPayload,
+) {
   try {
-    console.log(' Calling onboarding service with payload:', payload);
+    console.log(
+      'Calling onboarding service with payload:',
+      payload,
+    );
+
     const result = await onboarding(payload, 2);
 
     const responseData = result?.data;
@@ -76,26 +110,49 @@ export async function vehicleInfoAction(payload: VehicleInfoPayload) {
       Toast.show({
         type: 'error',
         text1: 'Error',
-        text2: responseData?.message || 'Failed to save vehicle information',
+        text2:
+          responseData?.message ??
+          'Failed to save vehicle information',
       });
 
       return {
         success: false,
-        message: responseData?.message || 'Failed to save vehicle information',
+        message:
+          responseData?.message ??
+          'Failed to save vehicle information',
       };
     }
+
+    /**
+     * Step 2 successfully saved.
+     */
+    const onboardingStatus =
+      normalizeOnboardingStatus(
+        responseData?.onboardingStatus,
+      ) ?? 'IN_PROGRESS';
+
+    await saveOnboardingProgress({
+      step: Number(responseData.onboardingStep),
+      status: onboardingStatus,
+    });
 
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: responseData?.message || 'Vehicle information saved successfully',
+      text2:
+        responseData?.message ??
+        'Vehicle information saved successfully',
     });
 
     return {
       success: true,
+      step: Number(responseData.onboardingStep),
+      onboardingStatus,
       data: responseData,
     };
   } catch (error) {
+    console.log('Vehicle information error:', error);
+
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -109,8 +166,13 @@ export async function vehicleInfoAction(payload: VehicleInfoPayload) {
   }
 }
 
-export async function submitDocumentsAction(payload: Step3Payload) {
-  console.log('Submitting documents with payload:', payload);
+export async function submitDocumentsAction(
+  payload: Step3Payload,
+) {
+  console.log(
+    'Submitting documents with payload:',
+    payload,
+  );
 
   try {
     const response = await submitDriverDocuments(payload);
@@ -123,38 +185,57 @@ export async function submitDocumentsAction(payload: Step3Payload) {
       Toast.show({
         type: 'error',
         text1: 'Upload Failed',
-        text2: data?.message ?? 'Failed to upload documents',
+        text2:
+          data?.message ??
+          'Failed to upload documents',
       });
 
       return {
         success: false,
-        message: data?.message ?? 'Failed to upload documents',
+        message:
+          data?.message ??
+          'Failed to upload documents',
       };
     }
+
+    /**
+     * API successfully completed step 3.
+     */
+    const latestStatus =
+      normalizeOnboardingStatus(
+        data?.onboardingStatus,
+      ) ?? 'SUBMITTED';
+
+    const completedStep =
+      Number(data?.onboardingStep) || 3;
+
+    /**
+     * Persist onboarding progress locally.
+     */
+    await saveOnboardingProgress({
+      step: completedStep,
+      status: latestStatus,
+    });
 
     Toast.show({
       type: 'success',
       text1: 'Success',
-      text2: data?.message ?? 'Documents uploaded successfully',
-    });
-
-    const latestStatus =
-      normalizeOnboardingStatus(data?.onboardingStatus) ?? 'SUBMITTED';
-
-    await saveOnboardingStatus(latestStatus);
-    await saveOnboardingStep(3);
-
-    useAuthStore.getState().setAuth({
-      onboardingStatus: latestStatus,
-      onboardingStep: 3,
+      text2:
+        data?.message ??
+        'Documents uploaded successfully',
     });
 
     return {
       success: true,
+      step: completedStep,
+      onboardingStatus: latestStatus,
       data,
     };
   } catch (error: any) {
-    console.log('UPLOAD ERROR:', error?.response?.data || error);
+    console.log(
+      'UPLOAD ERROR:',
+      error?.response?.data || error,
+    );
 
     Toast.show({
       type: 'error',

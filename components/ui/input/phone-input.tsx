@@ -18,6 +18,7 @@ const DEFAULT_COUNTRY: Country = {
 
 interface PhoneInputProps {
   label?: string;
+  required?: boolean;
 
   placeholder?: string;
 
@@ -40,6 +41,7 @@ import { StyleSheet } from 'react-native';
 
 export default function PhoneInput({
   label = 'Phone Number',
+    required = false,
   placeholder = '800 000 0000',
   onChangePhone,
   errorMessage,
@@ -72,7 +74,13 @@ useEffect(() => {
 
   return (
     <View style={styles.wrapper}>
-      {label ? <Text style={styles.label}>{label}</Text> : null}
+       {label && (
+             <View style={styles.labelContainer}>
+               <Text style={styles.label}>{label}</Text>
+     
+               {required && <Text style={styles.required}>*</Text>}
+             </View>
+           )}
 
       <View style={[styles.row, hasError && styles.rowError]}>
      <View style={styles.dialButton}>
@@ -124,11 +132,30 @@ const createStyles = (Colors: any) =>
       width: '100%',
     },
 
-    label: {
-      fontSize: normalize(16),
-      color: Colors.text,
-      fontFamily: Fonts.brandMedium,
-    },
+  labelContainer: {
+    flexDirection: 'row',
+
+    alignItems: 'center',
+
+    gap: scale(2),
+  },
+
+  label: {
+    fontSize: normalize(14),
+
+    color: Colors.text,
+
+    fontFamily: Fonts.brandMedium,
+  },
+
+  required: {
+    color: Colors.error,
+
+    fontSize: normalize(16),
+
+    fontFamily: Fonts.brandBold,
+  },
+
 
     row: {
       flexDirection: 'row',
@@ -159,7 +186,7 @@ const createStyles = (Colors: any) =>
     },
 
     dialCode: {
-      fontSize: normalize(15),
+      fontSize: normalize(14),
       color: Colors.text,
       fontFamily: Fonts.brandMedium,
     },
@@ -179,7 +206,7 @@ const createStyles = (Colors: any) =>
       flex: 1,
   height: '100%',
   paddingVertical: 0,
-  fontSize: normalize(16),
+  fontSize: normalize(14),
   fontFamily: Fonts.brandRegular,
   color: Colors.text,
   textAlignVertical: 'center',
@@ -227,13 +254,13 @@ const createStyles = (Colors: any) =>
     },
 
     modalTitle: {
-      fontSize: normalize(17),
+      fontSize: normalize(14),
       color: Colors.text,
       fontFamily: Fonts.brandMedium,
     },
 
     modalClose: {
-      fontSize: normalize(16),
+      fontSize: normalize(14),
       color: Colors.primary,
     },
 
