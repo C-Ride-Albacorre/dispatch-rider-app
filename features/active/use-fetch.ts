@@ -1,3 +1,4 @@
+import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   declineJobsService,
@@ -31,12 +32,17 @@ export function useOrderTracking() {
 
 export function useDeclineJob() {
   const queryClient = useQueryClient();
+  const clearActiveOrder = useDriverJobsStore((s) => s.clearActiveOrder);
 
   return useMutation({
     mutationFn: ({ orderId, reason }: { orderId: string; reason: string }) =>
       declineJobsService({ orderId, reason }),
 
     onSuccess: () => {
+      // Clear the active order from store
+      clearActiveOrder();
+
+      // Invalidate all related caches
       queryClient.invalidateQueries({
         queryKey: ['available-jobs'],
       });
@@ -47,6 +53,11 @@ export function useDeclineJob() {
 
       queryClient.invalidateQueries({
         queryKey: ['dashboard-stats'],
+      });
+
+      // Invalidate active order tracking cache
+      queryClient.invalidateQueries({
+        queryKey: ['order-tracking'],
       });
     },
   });

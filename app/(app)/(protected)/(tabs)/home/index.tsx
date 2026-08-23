@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   const etaToCustomer = useDriverJobsStore((s) => s.etaToCustomer);
 
-  const { Colors,isDark } = useTheme();
+  const { Colors, isDark } = useTheme();
 
   const styles = createStyles(Colors);
 
@@ -86,8 +86,6 @@ export default function Dashboard() {
     return `${Math.ceil(etaValue / 60)} min`;
   }, [etaToCustomer, etaToVendor, deliveryPhase]);
 
-
-
   return (
     <Animated.ScrollView
       onScroll={scrollHandler}
@@ -95,11 +93,10 @@ export default function Dashboard() {
       contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
       refreshControl={
         <RefreshControl
-         refreshing={isFetching}
-         onRefresh={refetch}
-
-           tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
-                     progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
+          refreshing={isFetching}
+          onRefresh={refetch}
+          tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
+          progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
         />
       }
     >

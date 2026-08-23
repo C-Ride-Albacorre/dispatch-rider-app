@@ -33,6 +33,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { clearVerificationAuth } from '@/utils/clear-verification-auth';
 
 const onBoardingSteps = [
   'Set up your profile',
@@ -43,18 +44,16 @@ const onBoardingSteps = [
 
 export default function VerifyEmailScreen() {
   const [code, setCode] = useState('');
-
   const [errorMessage, setErrorMessage] = useState('');
-
   const [loading, setLoading] = useState(false);
 
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
   const [resending, setResending] = useState(false);
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { Colors } = useTheme();
-
   const styles = createStyles(Colors);
 
   const router = useRouter();
@@ -63,59 +62,111 @@ export default function VerifyEmailScreen() {
 
   const verificationToken = useAuthStore((state) => state.verificationToken);
 
-  const handleVerify = async () => {
-    if (code.length !== 6) {
-      setErrorMessage('Please enter the 6 digit code');
+  /**
+   * ==========================================
+   * GO TO LOGIN
+   * ==========================================
+   */
+  const goToLogin = async () => {
+    await clearVerificationAuth();
 
+    router.replace('/(app)/(auth)/login');
+  };
+
+  /**
+   * ==========================================
+   * VERIFY EMAIL
+   * ==========================================
+   */
+  const handleVerify = async (otpCode?: string) => {
+    const codeToVerify = otpCode || code;
+
+    if (codeToVerify.length !== 6) {
+      setErrorMessage('Please enter the 6 digit code');
       return;
     }
 
     if (!verificationEmail || !verificationToken) {
       setErrorMessage('Verification session expired');
-
       return;
     }
 
     setLoading(true);
-
     setErrorMessage('');
 
-    const result = await verifyEmailAction({
-      email: verificationEmail,
-      otp: code,
-      verificationToken,
-    });
+    try {
+      const result = await verifyEmailAction({
+        email: verificationEmail,
+        otp: codeToVerify,
+        verificationToken,
+      });
 
-    setLoading(false);
+      console.log('Verification result:', result);
 
-    console.log('Verification result:', result);
+      /**
+       * ==========================================
+       * VERIFICATION FAILED
+       * ==========================================
+       */
+      if (!result.success) {
+        /**
+         * TOKEN INVALID / EXPIRED
+         *
+         * The action already logs the user out.
+         *
+         * We clear the verification data and
+         * send the user back to login.
+         */
+        if (result.tokenExpired) {
+          Toast.show({
+            type: 'error',
+            text1: 'Session Expired',
+            text2: 'Please login again to continue',
+          });
 
-    if (!result.success) {
-      // expired token/code - navigate back to login and show toast
-      if (result.expired) {
-        await clearVerificationData();
-        Toast.show({
-          type: 'error',
-          text1: 'Session Expired',
-          text2: 'Please login again to continue',
-        });
-        router.replace('/(app)/(auth)/login');
+          await goToLogin();
+
+          return;
+        }
+
+        /**
+         * OTP/CODE INVALID / EXPIRED
+         *
+         * IMPORTANT:
+         * Do NOT logout.
+         *
+         * Keep the verification token alive so
+         * the user can retry or resend the OTP.
+         */
+        if (result.codeInvalid) {
+          setErrorMessage(
+            result.message || 'Invalid or expired verification code',
+          );
+
+          return;
+        }
+
+        /**
+         * Any other verification error.
+         */
+        setErrorMessage(result.message || 'Verification failed');
+
         return;
       }
 
-      // invalid otp
-      if (result.invalid) {
-        setErrorMessage(result.message || 'Invalid verification code');
-        return;
-      }
+      /**
+       * ==========================================
+       * SUCCESS
+       * ==========================================
+       */
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.log('Email verification screen error:', error);
 
-      setErrorMessage(result.message || 'Verification failed');
-
-      return;
+      setErrorMessage('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
     }
-
-    // 🔥 SUCCESS
-    setShowSuccessModal(true);
   };
 
   useEffect(() => {
@@ -150,13 +201,10 @@ export default function VerifyEmailScreen() {
         <ScrollView
           contentContainerStyle={styles.container}
           bounces={false}
-          scrollEnabled={true}
+          scrollEnabled
         >
           <View>
-            <IconButton
-              variant="outlineSecondary"
-              onPress={() => router.push('/(app)/(auth)/register')}
-            >
+            <IconButton variant="outlineSecondary" onPress={goToLogin}>
               <Ionicons name="arrow-back" size={20} style={styles.returnIcon} />
             </IconButton>
 
@@ -175,6 +223,7 @@ export default function VerifyEmailScreen() {
             errorMessage={errorMessage}
             onComplete={(otp) => {
               setCode(otp);
+              handleVerify(otp);
             }}
             onChange={(otp) => {
               setCode(otp);
@@ -185,40 +234,20 @@ export default function VerifyEmailScreen() {
             }}
           />
 
-          <Button disabled={loading} loading={loading} onPress={handleVerify}>
+          <Button
+            disabled={loading}
+            loading={loading}
+            onPress={() => handleVerify()}
+          >
             {loading ? 'Verifying...' : 'Verify Email'}
           </Button>
 
           <View style={styles.resendContainer}>
-            {/* <TouchableOpacity
-              onPress={handleResendOtp}
-              disabled={!canResend || resending}
-            >
-              <Text
-                style={[
-                  styles.resendText,
-                  !canResend && styles.disabledResendText,
-                ]}
-              >
-                {resending
-                  ? 'Resending...'
-                  : canResend
-                    ? 'Resend Code'
-                    : `Resend Code in ${countdown}s`}
-              </Text>
-            </TouchableOpacity> */}
-
             <ResendOTP
               identifier={verificationEmail}
               verificationToken={verificationToken}
               setErrorMessage={setErrorMessage}
             />
-
-            {/* <TouchableOpacity>
-              <Link href="/(app)/(auth)/register" asChild>
-                <Text style={styles.resendText}>Change Email</Text>
-              </Link>
-            </TouchableOpacity> */}
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

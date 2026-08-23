@@ -101,7 +101,7 @@ const createStyles = (Colors : any)=> StyleSheet.create({
   banner: {
     minHeight: scale(64),
     borderRadius: scale(14),
-    backgroundColor: Colors.text,
+    backgroundColor: Colors.backgroundSecondary,
 
     flexDirection: 'row',
     alignItems: 'center',
@@ -140,7 +140,7 @@ const createStyles = (Colors : any)=> StyleSheet.create({
   },
 
   title: {
-    color: Colors.background,
+    color: Colors.text,
     fontSize: normalize(13),
     fontFamily: Fonts.brandMedium
   },
@@ -164,7 +164,7 @@ const createStyles = (Colors : any)=> StyleSheet.create({
     justifyContent: 'center',
 
     borderRadius: scale(8),
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.text,
   },
 
   retryButtonPressed: {
@@ -176,7 +176,7 @@ const createStyles = (Colors : any)=> StyleSheet.create({
   },
 
   retryText: {
-    color: Colors.textSecondary,
+    color: Colors.background,
     fontSize: normalize(12),
     fontFamily: Fonts.brandMedium
   },

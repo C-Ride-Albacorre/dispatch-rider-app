@@ -88,5 +88,6 @@ const createStyles = (Colors: any) =>
     loadingText: {
       fontSize: normalize(14),
       fontFamily: Fonts.brandMedium,
+      textAlign: 'center',
     },
   });

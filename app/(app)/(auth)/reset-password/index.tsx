@@ -1,6 +1,7 @@
 import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
+import IconButton from '@/components/ui/buttons/icon-button';
 import ReturnButton from '@/components/ui/buttons/return-button';
 import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
@@ -35,6 +36,12 @@ export default function ResetPassword() {
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
+
+  const goToLogin = async () => {
+    await clearResetToken();
+
+    router.replace('/(app)/(auth)/login');
+  };
 
   const handleResetPassword = async () => {
     const result = ResetPasswordSchema.safeParse({
@@ -102,7 +109,9 @@ export default function ResetPassword() {
           scrollEnabled={true}
         >
           <View>
-            <ReturnButton />
+            <IconButton variant="outlineSecondary" onPress={goToLogin}>
+              <Ionicons name="arrow-back" size={20} style={styles.returnIcon} />
+            </IconButton>
 
             <AuthPageHeader />
           </View>
@@ -180,6 +189,10 @@ const createStyles = (Colors: any) =>
       padding: scale(20),
       flexGrow: 1,
       gap: scale(24),
+    },
+
+    returnIcon: {
+      color: Colors.textSecondary,
     },
 
     form: {

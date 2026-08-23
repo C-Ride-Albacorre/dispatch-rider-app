@@ -459,12 +459,21 @@ export default function ActiveDeliveryContent() {
             backgroundColor: Colors.background,
           }}
         >
-          <Ionicons
-            name="hourglass-outline"
-            size={48}
-            color={Colors.textMuted}
-            style={{ marginBottom: 16 }}
-          />
+          <View
+            style={[
+              styles.iconWrapper,
+              {
+                backgroundColor: Colors.backgroundTertiary,
+              },
+            ]}
+          >
+            <Ionicons
+              name="hourglass-outline"
+              size={scale(36)}
+              color={Colors.textMuted }
+            />
+          </View>
+
           <Text
             style={{
               fontSize: 16,
@@ -472,7 +481,7 @@ export default function ActiveDeliveryContent() {
               fontFamily: Fonts.brandMedium,
             }}
           >
-            Loading delivery details...
+            Loading delivery details
           </Text>
         </View>
       );

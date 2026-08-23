@@ -24,47 +24,69 @@ export function useLocation() {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   const subscription = useRef<Location.LocationSubscription | null>(null);
+  const initializeRef = useRef(false); // Prevent multiple initializations
 
   const startTracking = useCallback(async () => {
-    if (subscription.current) return;
+    try {
+      if (subscription.current) return;
 
-    subscription.current = await Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.BestForNavigation,
-        timeInterval: 1000,
-        distanceInterval: 2,
-      },
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          heading: position.coords.heading ?? 0,
-        });
-      },
-    );
+      subscription.current = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.BestForNavigation,
+          timeInterval: 1000,
+          distanceInterval: 2,
+        },
+        (position) => {
+          setLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+            heading: position.coords.heading ?? 0,
+          });
+        },
+      );
 
-    setLoading(false);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error starting location tracking:', error);
+      setLoading(false);
+      setPermissionStatus('denied');
+    }
   }, []);
 
+  // Initialize permission check on mount (run only once)
   useEffect(() => {
+    if (initializeRef.current) return;
+    initializeRef.current = true;
+
     async function initialise() {
-      const { status } = await Location.getForegroundPermissionsAsync();
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
 
-      if (status === 'granted') {
-        setPermissionStatus('granted');
-        startTracking();
-        return;
-      }
+        if (status === 'granted') {
+          setPermissionStatus('granted');
+          setShowPermissionModal(false);
+          // Start tracking after permission is confirmed
+          await startTracking();
+          return;
+        }
 
-      if (status === 'denied') {
-        setPermissionStatus('denied');
+        if (status === 'denied') {
+          setPermissionStatus('denied');
+          setShowPermissionModal(false);
+          setLoading(false);
+          return;
+        }
+
+        // Status is 'undetermined'
+        setPermissionStatus('undetermined');
+        setShowPermissionModal(true);
         setLoading(false);
-        return;
+      } catch (error) {
+        console.error('Error checking location permission:', error);
+        setPermissionStatus('denied');
+        setShowPermissionModal(false);
+        setLoading(false);
       }
-
-      setPermissionStatus('undetermined');
-      setShowPermissionModal(true);
-      setLoading(false);
     }
 
     initialise();
@@ -76,21 +98,30 @@ export function useLocation() {
   }, [startTracking]);
 
   const requestPermission = useCallback(async () => {
-    setShowPermissionModal(false);
+    try {
+      setShowPermissionModal(false);
 
-    const { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-    if (status === 'granted') {
-      setPermissionStatus('granted');
-      startTracking();
-    } else {
+      if (status === 'granted') {
+        setPermissionStatus('granted');
+        // Start tracking after permission is granted
+        await startTracking();
+      } else if (status === 'denied') {
+        setPermissionStatus('denied');
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error requesting location permission:', error);
       setPermissionStatus('denied');
+      setLoading(false);
     }
   }, [startTracking]);
 
   const dismissPermissionModal = useCallback(() => {
     setShowPermissionModal(false);
     setPermissionStatus('denied');
+    setLoading(false);
   }, []);
 
   return {

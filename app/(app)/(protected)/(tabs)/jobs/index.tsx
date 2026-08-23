@@ -220,12 +220,12 @@ export default function Jobs() {
         ]}
       >
         <View
-          style={[styles.iconWrapper, { backgroundColor: Colors.primaryLight }]}
+          style={[styles.iconWrapper, { backgroundColor: Colors.warningLight }]}
         >
           <Ionicons
             name="location-outline"
             size={scale(36)}
-            color={Colors.textMuted}
+            color={Colors.warning}
           />
         </View>
 
@@ -442,7 +442,7 @@ const createStyles = (Colors: any) =>
       color: Colors.text,
     },
     subtitle: {
-      fontSize: normalize(12),
+      fontSize: normalize(14),
       fontFamily: Fonts.brandRegular,
       textAlign: 'center',
       color: Colors.textMuted,

@@ -30,6 +30,9 @@ import {
   Text,
   View,
 } from 'react-native';
+import IconButton from '@/components/ui/buttons/icon-button';
+import { Ionicons } from '@expo/vector-icons';
+import { clearVerificationAuth } from '@/utils/clear-verification-auth';
 
 export default function VerifyPhoneScreen() {
   const [code, setCode] = useState('');
@@ -40,65 +43,101 @@ export default function VerifyPhoneScreen() {
 
   const router = useRouter();
 
-  const verificationPhone = useAuthStore((state) => state.verificationPhone);
-
-  const verificationToken = useAuthStore((state) => state.verificationToken);
-
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
-  const handleVerify = async () => {
-    if (code.length !== 6) {
-      setErrorMessage('Please enter the 6 digit code');
+  const goToLogin = async () => {
+    await clearVerificationAuth();
 
+    router.replace('/(app)/(auth)/login');
+  };
+
+  const verificationPhone = useAuthStore((state) => state.verificationPhone);
+
+  const verificationToken = useAuthStore((state) => state.verificationToken);
+
+  const handleVerify = async (otpCode?: string) => {
+    const codeToVerify = otpCode || code;
+
+    if (codeToVerify.length !== 6) {
+      setErrorMessage('Please enter the 6 digit code');
       return;
     }
 
     if (!verificationPhone || !verificationToken) {
       setErrorMessage('Verification session expired');
-
       return;
     }
 
     setLoading(true);
-
     setErrorMessage('');
 
-    const result = await verifyPhoneAction({
-      phoneNumber: verificationPhone,
-      otp: code,
-      verificationToken,
-    });
+    try {
+      const result = await verifyPhoneAction({
+        phoneNumber: verificationPhone,
+        otp: codeToVerify,
+        verificationToken,
+      });
 
-    setLoading(false);
+      console.log('Verification result:', result);
 
-    if (!result.success) {
-      // expired token/code - navigate back to login and show toast
-      if (result.expired) {
-        await clearVerificationData();
-        Toast.show({
-          type: 'error',
-          text1: 'Session Expired',
-          text2: 'Please login again to continue',
-        });
-        router.replace('/(app)/(auth)/login');
+      /**
+       * ==========================================
+       * FAILED
+       * ==========================================
+       */
+      if (!result.success) {
+        /**
+         * TOKEN INVALID/EXPIRED
+         *
+         * Action has already logged the user out.
+         * Clear local verification data and go to login.
+         */
+        if (result.tokenExpired) {
+          Toast.show({
+            type: 'error',
+            text1: 'Session Expired',
+            text2: 'Please login again to continue',
+          });
+
+          await goToLogin();
+
+          return;
+        }
+
+        /**
+         * CODE INVALID/EXPIRED
+         *
+         * DO NOT logout.
+         *
+         * Just show the error underneath the OTP input.
+         */
+        if (result.codeInvalid) {
+          setErrorMessage(
+            result.message || 'Invalid or expired verification code',
+          );
+
+          return;
+        }
+
+        /**
+         * Other error.
+         */
+        setErrorMessage(result.message || 'Verification failed');
+
         return;
       }
 
-      // invalid otp
-      if (result.invalid) {
-        setErrorMessage(result.message || 'Invalid verification code');
-        return;
-      }
-
-      setErrorMessage(result.message || 'Verification failed');
-
-      return;
+      /**
+       * ==========================================
+       * SUCCESS
+       * ==========================================
+       */
+      router.push('/(app)/(verify)/email');
+    } finally {
+      setLoading(false);
     }
-
-    // 🔥 SUCCESS
-    router.push('/(app)/(verify)/email');
   };
 
   return (
@@ -114,7 +153,9 @@ export default function VerifyPhoneScreen() {
           scrollEnabled={true}
         >
           <View>
-            <ReturnButton />
+            <IconButton variant="outlineSecondary" onPress={goToLogin}>
+              <Ionicons name="arrow-back" size={20} style={styles.returnIcon} />
+            </IconButton>
 
             <AuthPageHeader />
           </View>
@@ -131,6 +172,8 @@ export default function VerifyPhoneScreen() {
             errorMessage={errorMessage}
             onComplete={(otp) => {
               setCode(otp);
+              // Auto-submit verification when OTP is complete
+              handleVerify(otp);
             }}
             onChange={(otp) => {
               setCode(otp);
