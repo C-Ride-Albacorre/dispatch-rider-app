@@ -12,6 +12,7 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.albacorre.cridedriver",
       "googleServicesFile": "./GoogleService-Info.plist",
+      "icon": "./assets/images/icon.png",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "Your location is required to find nearby delivery jobs."
@@ -40,14 +41,15 @@
     },
 
     "plugins": [
-      "expo-router", [
-    "expo-build-properties",
-    {
-      "ios": {
-        "useFrameworks": "static"
-      }
-    }
-  ],
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static"
+          }
+        }
+      ],
       [
         "react-native-maps",
         {

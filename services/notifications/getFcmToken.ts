@@ -2,7 +2,19 @@ import messaging from '@react-native-firebase/messaging';
 
 export async function getFCMToken() {
   try {
+
+        console.log('🔔 [FCM] Getting FCM token...');
+
+
     const token = await messaging().getToken();
+
+
+      console.log('🔔 [FCM] Token response:', {
+      exists: !!token,
+      length: token?.length,
+      token,
+    });
+
 
     if (!token) {
       console.warn('FCM token was not generated');

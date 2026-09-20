@@ -157,7 +157,7 @@ const createStyles = (Colors: any) =>
       fontSize: scale(32),
       color: Colors.primary,
       fontFamily: Fonts.brandMedium,
-      lineHeight: scale(24),
+      lineHeight: scale(44),
     },
 
     profileInfo: {

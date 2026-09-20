@@ -24,6 +24,9 @@ module.exports = {
         dark: '#2C3E50',
         light: '#ECF0F1',
       },
+      maxWidth: {
+        tablet: '600px',
+      },
     },
   },
   plugins: [],

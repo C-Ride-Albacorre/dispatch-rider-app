@@ -393,7 +393,7 @@ export default function Jobs() {
         contentContainerStyle={{
           paddingTop: HEADER_HEIGHT + insets.top + scale(12),
           paddingBottom: scale(32),
-          paddingHorizontal: scale(16),
+          paddingHorizontal: scale(12),
         }}
         ItemSeparatorComponent={() => <View style={{ height: scale(14) }} />}
         ListHeaderComponent={renderListHeader}
@@ -415,7 +415,7 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal: scale(20),
+      paddingHorizontal: scale(12),
       paddingVertical: scale(24),
       backgroundColor: Colors.background,
       gap: scale(16),

@@ -10,12 +10,18 @@ export default function VerifyLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        sceneContainerStyle: {
+          backgroundColor: '#000000',
+        },
         contentStyle: {
           backgroundColor: Colors.background,
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
           paddingLeft: insets.left,
           paddingRight: insets.right,
+          maxWidth: 600,
+          alignSelf: 'center',
+          width: '100%',
         },
 
         gestureEnabled: true,

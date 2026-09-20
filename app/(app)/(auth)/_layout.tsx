@@ -1,9 +1,6 @@
 import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function AuthLayout() {
   const insets = useSafeAreaInsets();
@@ -14,12 +11,18 @@ export default function AuthLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
+        sceneContainerStyle: {
+          backgroundColor: '#000000',
+        },
         contentStyle: {
           backgroundColor: Colors.background,
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
           paddingLeft: insets.left,
           paddingRight: insets.right,
+          maxWidth: 600,
+          alignSelf: 'center',
+          width: '100%',
         },
 
         gestureEnabled: true,

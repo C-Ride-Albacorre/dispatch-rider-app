@@ -1,40 +1,46 @@
 import { Fonts } from "@/constants/theme";
+import {
+  EarningsSummary,
+  formatHours,
+  formatNaira,
+} from "@/features/earnings/use-fetch";
 import { useTheme } from "@/hooks/use-theme";
 import { normalize, scale } from "@/utils/scaling";
 import { Text, View } from "react-native";
 import { StyleSheet } from "react-native";
 
 export default function DriverStats({
-    stats
+    earnings
 } :{
-    stats?: {
-        totalDeliveries: number;
-        
-    }
+    earnings?: EarningsSummary
 }) {
 
       const { Colors } = useTheme();
-    
+
       const styles = createStyles(Colors);
   return (
     <View style={styles.statsRow}>
       <View style={styles.statItem}>
-        <Text style={styles.statValue}>{stats?.totalDeliveries ?? 0}</Text>
+        <Text style={styles.statValue}>{earnings?.deliveries ?? 0}</Text>
         <Text style={styles.statLabel}>Deliveries</Text>
       </View>
 
       <View style={styles.statItem}>
-        <Text style={styles.statValue}>₦0</Text>
+        <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
+          {formatNaira(earnings?.totalEarnings)}
+        </Text>
         <Text style={styles.statLabel}>Earnings</Text>
       </View>
 
       <View style={styles.statItem}>
-        <Text style={styles.statValue}>0h</Text>
+        <Text style={styles.statValue}>{formatHours(earnings?.onlineHours)}</Text>
         <Text style={styles.statLabel}>Online</Text>
       </View>
 
       <View style={styles.statItem}>
-        <Text style={styles.statValue}>₦0</Text>
+        <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
+          {formatNaira(earnings?.tipsEarned)}
+        </Text>
         <Text style={styles.statLabel}>Tips</Text>
       </View>
     </View>

@@ -143,13 +143,13 @@ const createHeaderStyles = (Colors: any) =>
       alignItems: 'center',
       justifyContent: 'space-between',
       paddingHorizontal: scale(20),
-      paddingVertical: scale(10),
+      paddingVertical: scale(9),
       backgroundColor: Colors.background,
       borderBottomWidth: 1,
       borderBottomColor: Colors.inputBackground,
     },
     logo: {
-      width: scale(60),
+   width: scale(60),
       height: scale(30),
     },
     right: {
@@ -159,13 +159,13 @@ const createHeaderStyles = (Colors: any) =>
     },
     statusRow: {
       paddingHorizontal: scale(8),
-      paddingVertical: scale(2),
+      paddingVertical: scale(3),
       borderRadius: scale(20),
 
       borderWidth: 1,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(6),
+      gap: scale(5),
     },
 
     statusDot: {
@@ -174,7 +174,7 @@ const createHeaderStyles = (Colors: any) =>
       height: scale(6),
     },
     statusText: {
-      fontSize: normalize(10),
+      fontSize: normalize(9),
       fontFamily: Fonts.brandMedium,
     },
 

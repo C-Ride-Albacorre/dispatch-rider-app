@@ -470,7 +470,7 @@ export default function ActiveDeliveryContent() {
             <Ionicons
               name="hourglass-outline"
               size={scale(36)}
-              color={Colors.textMuted }
+              color={Colors.textMuted}
             />
           </View>
 
@@ -617,6 +617,7 @@ export default function ActiveDeliveryContent() {
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
         refreshControl={
           <RefreshControl
@@ -1076,7 +1077,7 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal: scale(16),
+      paddingHorizontal: scale(12),
       paddingVertical: scale(12),
       gap: scale(12),
     },

@@ -1,3 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  .tablet-container {
+    @apply max-w-tablet mx-auto;
+  }
+}

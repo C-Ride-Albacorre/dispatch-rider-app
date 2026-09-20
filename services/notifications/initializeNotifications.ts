@@ -32,8 +32,23 @@ export async function initializeNotifications() {
 
     console.log('Permission granted');
 
+    // iOS APNs token
+    const apnsToken = await messaging().getAPNSToken();
+
+    console.log('🍎 APNs token:', {
+      exists: !!apnsToken,
+      length: apnsToken?.length,
+      token: apnsToken,
+    });
+
     // 2. Get current FCM token
     const token = await getFCMToken();
+
+     console.log('🔔 FCM token result:', {
+      exists: !!token,
+      length: token?.length,
+      token,
+    });
 
     if (token) {
       // 3. Register token with backend

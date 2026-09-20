@@ -7,6 +7,7 @@ import ActiveDelivery from '@/features/home/components/active-delivery';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
 import RecentDeliveries from '@/features/home/components/recent-deliveries';
+import { useEarningsDashboard } from '@/features/earnings/use-fetch';
 import StatFrame from '@/features/home/components/stat-frame';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
@@ -26,6 +27,13 @@ export default function Dashboard() {
   const insets = useSafeAreaInsets();
 
   const { data, isLoading, isFetching, refetch } = useDashboardStats();
+
+  const {
+    data: earningsData,
+    isLoading: isEarningsLoading,
+    isFetching: isEarningsFetching,
+    refetch: refetchEarnings,
+  } = useEarningsDashboard('TODAY');
 
   const stats = data?.stats;
 
@@ -90,11 +98,15 @@ export default function Dashboard() {
     <Animated.ScrollView
       onScroll={scrollHandler}
       scrollEventThrottle={16}
+      showsVerticalScrollIndicator={false}
       contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
       refreshControl={
         <RefreshControl
-          refreshing={isFetching}
-          onRefresh={refetch}
+          refreshing={isFetching || isEarningsFetching}
+          onRefresh={() => {
+            refetch();
+            refetchEarnings();
+          }}
           tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
           progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
         />
@@ -103,7 +115,11 @@ export default function Dashboard() {
       <View style={styles.container}>
         <HomeHeader driverStatus={driverStatus} driverInfo={driverInfo} />
 
-        <StatFrame stats={stats} isLoading={isLoading} />
+        <StatFrame
+          stats={stats}
+          earnings={earningsData?.summary}
+          isLoading={isLoading || isEarningsLoading}
+        />
 
         {!activeOrder ? (
           <NoDelivery />
@@ -130,7 +146,7 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal: scale(20),
+      paddingHorizontal: scale(12),
       backgroundColor: Colors.background,
       gap: scale(16),
       paddingVertical: scale(24),

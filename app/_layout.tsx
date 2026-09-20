@@ -7,7 +7,7 @@ import {
   Poppins_700Bold,
   useFonts,
 } from '@expo-google-fonts/poppins';
-import { Slot } from 'expo-router';
+import { DefaultTheme, Slot, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -24,12 +24,17 @@ import ExpiredTokenModal from '@/features/verify/components/expired-token-modal'
 import { usePathname } from 'expo-router';
 import Toast from 'react-native-toast-message';
 import NetInfo from '@react-native-community/netinfo';
-import OfflineScreen from '@/features/auth/components/offline-screen';
 import messaging from '@react-native-firebase/messaging';
 import { toastConfig } from '@/components/ui/input/toast-config';
 import OfflineBanner from '@/components/layout/offline-banner';
 
 SplashScreen.preventAutoHideAsync();
+
+// Black background shows outside the max-width content area
+const AppTheme = {
+  ...DefaultTheme,
+  colors: { ...DefaultTheme.colors, background: '#000000' },
+};
 
 
 
@@ -143,11 +148,13 @@ const appReady =
   // }
 
   return (
-  <GestureHandlerRootView style={{ flex: 1 }}>
+  <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000000' }}>
     <ReactQueryProvider>
-      <AuthGate>
-        <Slot />
-      </AuthGate>
+      <ThemeProvider value={AppTheme}>
+        <AuthGate>
+          <Slot />
+        </AuthGate>
+      </ThemeProvider>
 
       <ExpiredTokenModal
         showExpiredModal={showExpiredModal}

@@ -4,12 +4,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useEffect } from 'react';
 
+import { useTheme } from '@/hooks/use-theme';
 import { useAuthStore } from '@/store/auth-store';
 import { requiresOnboarding } from '@/utils/onboarding-status';
-import { useTheme } from '@/hooks/use-theme';
 
 export default function ProtectedLayout() {
-const { Colors} = useTheme()
+  const { Colors } = useTheme();
 
   const { authStatus, onboardingStatus, onboardingStep } = useAuthStore();
   const segments = useSegments();
@@ -42,6 +42,9 @@ const { Colors} = useTheme()
           // paddingBottom: insets.bottom,
           paddingLeft: insets.left,
           paddingRight: insets.right,
+          maxWidth: 600,
+          alignSelf: 'center',
+          width: '100%',
         },
         gestureEnabled: true,
 

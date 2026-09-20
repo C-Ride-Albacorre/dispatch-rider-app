@@ -1,5 +1,10 @@
 import {  Fonts } from '@/constants/theme';
 import AppFrame from '@/features/dashboard/components/app-frame';
+import {
+  EarningsSummary,
+  formatHours,
+  formatNaira,
+} from '@/features/earnings/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -8,12 +13,14 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 
 export default function StatFrame({
   stats,
+  earnings,
   isLoading,
 }: {
   stats?: {
     totalDeliveries: number;
     rating: number;
   };
+  earnings?: EarningsSummary;
   isLoading?: boolean;
 }) {
   const { Colors, isDark } = useTheme();
@@ -64,7 +71,7 @@ export default function StatFrame({
             isDark ? { color: Colors.text } : { color: Colors.background },
           ]}
         >
-          NGN 0:00
+          {formatNaira(earnings?.totalEarnings)}
         </Text>
 
         <View style={styles.statsRow}>
@@ -82,7 +89,7 @@ export default function StatFrame({
                     : { color: Colors.background },
                 ]}
               >
-                {stats?.totalDeliveries ?? '0'}
+                {earnings?.deliveries ?? 0}
               </Text>
             )}
 
@@ -143,7 +150,7 @@ export default function StatFrame({
                     : { color: Colors.background },
                 ]}
               >
-                0h
+                {formatHours(earnings?.onlineHours)}
               </Text>
             )}
 

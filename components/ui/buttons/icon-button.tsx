@@ -41,8 +41,7 @@ export default function IconButton({
       backgroundColor: Colors.primary,
     },
     outline: {
-      borderWidth: 1,
-      borderColor: Colors.border,
+      borderWidth: 0,
       backgroundColor: 'transparent',
     },
     outlineSecondary: {

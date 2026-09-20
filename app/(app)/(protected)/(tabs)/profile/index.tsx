@@ -4,21 +4,21 @@ import {
   useScrollHeader,
 } from '@/components/layout/scroll-header-context';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { useEarningsDashboard } from '@/features/earnings/use-fetch';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import DriverPerformance from '@/features/profile/components/performamce';
 import ProfileFrame from '@/features/profile/components/profile-frame';
 import Reviews from '@/features/profile/components/reviews';
 import DriverStats from '@/features/profile/components/stats';
 import { useTheme } from '@/hooks/use-theme';
-import {  scale } from '@/utils/scaling';
+import { scale } from '@/utils/scaling';
 
+import ConfirmLogout from '@/features/profile/components/confirm-logout';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated from 'react-native-reanimated';
-import ConfirmLogout from '@/features/profile/components/confirm-logout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
@@ -42,6 +42,8 @@ export default function ProfileScreen() {
 
   const { data, isLoading } = useDashboardStats();
 
+  const { data: earningsData } = useEarningsDashboard('TODAY');
+
   const stats = data?.stats;
 
   const driverInfo = data?.personalInfo;
@@ -51,6 +53,7 @@ export default function ProfileScreen() {
       <Animated.ScrollView
         onScroll={scrollHandler}
         scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
       >
         <View style={styles.container}>
@@ -60,7 +63,7 @@ export default function ProfileScreen() {
             isLoading={isLoading}
           />
 
-          <DriverStats stats={stats} />
+          <DriverStats earnings={earningsData?.summary} />
           <DriverPerformance stats={stats} />
 
           <Reviews />
@@ -89,7 +92,7 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      paddingHorizontal: scale(20),
+      paddingHorizontal: scale(12),
       paddingVertical: scale(24),
       backgroundColor: Colors.background,
       gap: scale(16),

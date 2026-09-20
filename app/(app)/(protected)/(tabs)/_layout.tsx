@@ -203,6 +203,7 @@ export default function TabsLayout() {
         <Tabs
           screenOptions={{
             tabBarHideOnKeyboard: true,
+                tabBarLabelPosition: 'below-icon',
             tabBarLabelStyle: {
               fontFamily: Fonts.brandMedium,
               fontSize: normalize(11),
@@ -265,7 +266,7 @@ export default function TabsLayout() {
             }}
           />
 
-          {/* <Tabs.Screen
+          <Tabs.Screen
             name="earnings"
             options={{
               title: 'Earnings',
@@ -278,7 +279,7 @@ export default function TabsLayout() {
                 />
               ),
             }}
-          /> */}
+          />
 
           <Tabs.Screen
             name="profile"

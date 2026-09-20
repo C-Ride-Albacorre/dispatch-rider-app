@@ -1,25 +1,76 @@
 import { HEADER_HEIGHT, useScrollHeader } from '@/components/layout/scroll-header-context';
 import { Fonts } from '@/constants/theme';
+import AppFrame from '@/features/dashboard/components/app-frame';
+import {
+  EarningsPeriod,
+  formatHours,
+  formatNaira,
+  useEarningsDashboard,
+} from '@/features/earnings/use-fetch';
+import RecentDeliverySkeleton from '@/features/home/components/recent-delivery-skeleton';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Animated as RNAnimated, RefreshControl, StyleSheet } from 'react-native';
 import { Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+const PERIODS: { label: string; value: EarningsPeriod }[] = [
+  { label: 'Today', value: 'TODAY' },
+  { label: 'Week', value: 'WEEK' },
+  { label: 'Month', value: 'MONTH' },
+];
+
+function formatBreakdownDate(date: string) {
+  return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  });
+}
+
 export default function EarningsScreen( ){
-  
+  const [period, setPeriod] = useState<EarningsPeriod>('WEEK');
 
-  // Mock array for cleaner payout listing history structure
-  const payoutHistory = [
-    { id: 'PO-001', date: '10 Jan', amount: '₦250,000', status: 'Completed' },
-    { id: 'PO-002', date: '3 Jan', amount: '₦180,000', status: 'Completed' },
-  ];
+  const { data, isLoading, isFetching, refetch } = useEarningsDashboard(period);
 
+  const wallet = data?.wallet;
+  const summary = data?.summary;
+  const breakdown = (data?.breakdown ?? []).filter((day) => day.deliveries > 0);
 
-   const { Colors } = useTheme();
+  const pulseAnim = useRef(new RNAnimated.Value(0.4)).current;
+
+  useEffect(() => {
+    if (isLoading) {
+      RNAnimated.loop(
+        RNAnimated.sequence([
+          RNAnimated.timing(pulseAnim, {
+            toValue: 0.9,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+          RNAnimated.timing(pulseAnim, {
+            toValue: 0.4,
+            duration: 700,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+    } else {
+      pulseAnim.stopAnimation();
+      pulseAnim.setValue(1);
+    }
+  }, [isLoading]);
+
+   const { Colors, isDark } = useTheme();
     const styles = createStyles(Colors);
+
+ 
+  const onFrameMutedText = isDark
+    ? Colors.textSecondary
+    : Colors.backgroundTertiary;
   
       const insets = useSafeAreaInsets()
   
@@ -30,81 +81,159 @@ export default function EarningsScreen( ){
             onScroll={scrollHandler}
             scrollEventThrottle={16}
              contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
+             refreshControl={
+               <RefreshControl
+                 refreshing={isFetching && !isLoading}
+                 onRefresh={refetch}
+                 progressViewOffset={HEADER_HEIGHT + insets.top}
+               />
+             }
           >
 
         <View style={styles.container}>
       {/* 1. Wallet Balance Hero Master Card */}
-      <View style={[styles.walletHeroCard, { backgroundColor: '#1A202C' }]}>
-        <View style={styles.walletHeaderHeader}>
-          <Ionicons name="wallet-outline" size={scale(16)} color="#A0AEC0" />
-          <Text style={styles.walletTitleLabel}>Wallet Balance</Text>
-        </View>
-        
-        <Text style={[styles.mainBalanceText, { color: Colors.primary }]}>₦285,400</Text>
-        
-        <TouchableOpacity style={[styles.payoutButton, { backgroundColor: Colors.primary }]}>
-          <Ionicons name="send-outline" size={scale(14)} color="#1A202C" />
-          <Text style={styles.payoutButtonText}>Request Payout</Text>
-        </TouchableOpacity>
+      <View style={styles.walletHeroCard}>
+        <AppFrame>
+          <View style={styles.walletHeaderHeader}>
+            <Ionicons
+              name="wallet-outline"
+              size={scale(16)}
+              color={onFrameMutedText}
+            />
+            <Text style={[styles.walletTitleLabel, { color: onFrameMutedText }]}>
+              Wallet Balance
+            </Text>
+          </View>
+
+          {isLoading ? (
+            <RNAnimated.View
+              style={[styles.skeletonBalance, { opacity: pulseAnim }]}
+            />
+          ) : (
+            <Text style={[styles.mainBalanceText, { color: Colors.primary }]}>
+              {formatNaira(wallet?.availableBalance)}
+            </Text>
+          )}
+
+          {isLoading ? (
+            <RNAnimated.View
+              style={[styles.skeletonPending, { opacity: pulseAnim }]}
+            />
+          ) : (
+            <Text style={[styles.pendingText, { color: onFrameMutedText }]}>
+              Pending: {formatNaira(wallet?.pendingBalance)}
+            </Text>
+          )}
+        </AppFrame>
       </View>
 
       {/* 2. Horizontal Timeframe Filter Pill Toggles */}
       <View style={styles.timeframeFilterRow}>
-        <TouchableOpacity style={styles.inactiveFilterFilter}>
-          <Text style={styles.inactiveFilterText}>Today</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.activeFilterFilter}>
-          <Text style={styles.activeFilterText}>Week</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.inactiveFilterFilter}>
-          <Text style={styles.inactiveFilterText}>Month</Text>
-        </TouchableOpacity>
+        {PERIODS.map(({ label, value }) => {
+          const isActive = period === value;
+
+          return (
+            <TouchableOpacity
+              key={value}
+              style={isActive ? styles.activeFilterFilter : styles.inactiveFilterFilter}
+              onPress={() => setPeriod(value)}
+            >
+              <Text style={isActive ? styles.activeFilterText : styles.inactiveFilterText}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
 
       {/* 3. Performance Core Metric Grid Panels */}
       <View style={styles.metricsGridContainer}>
         <View style={styles.metricItemCard}>
           <Text style={styles.metricLabel}>Total Earnings</Text>
-          <Text style={[styles.metricValue, { color: Colors.primary }]}>₦285,400</Text>
+          {isLoading ? (
+            <RNAnimated.View
+              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
+            />
+          ) : (
+            <Text style={[styles.metricValue, { color: Colors.primary }]}>
+              {formatNaira(summary?.totalEarnings)}
+            </Text>
+          )}
         </View>
 
         <View style={styles.metricItemCard}>
           <Text style={styles.metricLabel}>Deliveries</Text>
-          <Text style={[styles.metricValue, { color: '#1A202C' }]}>87</Text>
+          {isLoading ? (
+            <RNAnimated.View
+              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
+            />
+          ) : (
+            <Text style={[styles.metricValue, { color: Colors.text }]}>
+              {summary?.deliveries ?? 0}
+            </Text>
+          )}
         </View>
 
         <View style={styles.metricItemCard}>
           <Text style={styles.metricLabel}>Tips Earned</Text>
-          <Text style={[styles.metricValue, { color: Colors.success }]}>₦12,400</Text>
+          {isLoading ? (
+            <RNAnimated.View
+              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
+            />
+          ) : (
+            <Text style={[styles.metricValue, { color: Colors.success }]}>
+              {formatNaira(summary?.tipsEarned)}
+            </Text>
+          )}
         </View>
 
         <View style={styles.metricItemCard}>
           <Text style={styles.metricLabel}>Bonuses</Text>
-          <Text style={[styles.metricValue, { color: '#3182CE' }]}>₦28,000</Text>
+          {isLoading ? (
+            <RNAnimated.View
+              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
+            />
+          ) : (
+            <Text style={[styles.metricValue, { color: Colors.info }]}>
+              {formatNaira(summary?.bonuses)}
+            </Text>
+          )}
         </View>
       </View>
 
-      {/* 4. Historic Payout Logs List Container */}
+      {/* 4. Per-day earnings breakdown for the selected period */}
       <View style={styles.historyContainer}>
-        <Text style={styles.sectionHeaderTitle}>Payout History</Text>
-        
-        {payoutHistory.map((payout) => (
-          <View key={payout.id} style={styles.payoutRowCard}>
+        <Text style={styles.sectionHeaderTitle}>Delivery Breakdown</Text>
+
+        {isLoading && <RecentDeliverySkeleton count={3} />}
+
+        {!isLoading && breakdown.length === 0 && (
+          <Text style={styles.emptyText}>No deliveries in this period yet.</Text>
+        )}
+
+        {breakdown.map((day) => (
+          <View key={day.date} style={styles.payoutRowCard}>
             <View style={styles.payoutLeftGroup}>
-              <View style={[styles.bankIconFrame, { backgroundColor: Colors.success + '15' }]}>
-                <Ionicons name="business-outline" size={scale(18)} color={Colors.success} />
+              <View style={styles.bankIconFrame}>
+                <Ionicons
+                  name="checkmark-circle-outline"
+                  size={scale(18)}
+                  color={Colors.success}
+                />
               </View>
               <View>
-                <Text style={styles.payoutTitle}>Bank Transfer</Text>
-                <Text style={styles.payoutSubtext}>{payout.id} • {payout.date}</Text>
+                <Text style={styles.payoutTitle}>{formatBreakdownDate(day.date)}</Text>
+                <Text style={styles.payoutSubtext}>
+                  {day.deliveries} {day.deliveries === 1 ? 'delivery' : 'deliveries'} • {formatHours(day.onlineHours)} online
+                </Text>
               </View>
             </View>
 
             <View style={{ alignItems: 'flex-end' }}>
-              <Text style={[styles.payoutAmountText, { color: Colors.success }]}>{payout.amount}</Text>
-              <Text style={styles.payoutStatusTag}>{payout.status}</Text>
+              <Text style={[styles.payoutAmountText, { color: Colors.primary }]}>
+                {formatNaira(day.earnings)}
+              </Text>
+              <Text style={styles.payoutSubtext}>earned</Text>
             </View>
           </View>
         ))}
@@ -124,11 +253,7 @@ const createStyles = (Colors: any) =>
        gap: scale(16),
      },
     walletHeroCard: {
-      borderRadius: scale(20),
-      padding: scale(20),
       marginBottom: scale(16),
-      position: 'relative',
-      overflow: 'hidden',
     },
     walletHeaderHeader: {
       flexDirection: 'row',
@@ -137,47 +262,63 @@ const createStyles = (Colors: any) =>
     },
     walletTitleLabel: {
       fontSize: normalize(13),
-      color: '#A0AEC0',
       fontFamily: Fonts.brandMedium,
     },
     mainBalanceText: {
       fontSize: normalize(28),
       fontFamily: Fonts.brandSemiBold,
-      marginVertical: scale(12),
+      marginTop: scale(12),
     },
-    payoutButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      alignSelf: 'flex-start',
-      paddingHorizontal: scale(14),
-      paddingVertical: scale(8),
-      borderRadius: scale(10),
-      gap: scale(6),
+    pendingText: {
+      fontSize: normalize(11),
+      fontFamily: Fonts.brandRegular,
+      marginTop: scale(4),
     },
-    payoutButtonText: {
+    emptyText: {
       fontSize: normalize(12),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#1A202C',
+      color: Colors.textMuted,
+      fontFamily: Fonts.brandRegular,
+    },
+    skeletonBalance: {
+      width: scale(170),
+      height: scale(32),
+      borderRadius: scale(6),
+      backgroundColor: Colors.light,
+      marginTop: scale(12),
+    },
+    skeletonPending: {
+      width: scale(110),
+      height: scale(12),
+      borderRadius: scale(6),
+      backgroundColor: Colors.light,
+      marginTop: scale(8),
+    },
+    skeletonMetric: {
+      width: scale(90),
+      height: scale(20),
+      borderRadius: scale(6),
+      backgroundColor: Colors.light,
     },
     timeframeFilterRow: {
       flexDirection: 'row',
-      backgroundColor: '#EDF2F7',
+      backgroundColor: Colors.inputBackground,
       borderRadius: scale(12),
       padding: scale(4),
       marginBottom: scale(16),
     },
     activeFilterFilter: {
       flex: 1,
-      backgroundColor: '#FFFFFF',
+      backgroundColor: Colors.background,
       paddingVertical: scale(8),
       borderRadius: scale(8),
       alignItems: 'center',
-      elevation: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
     },
     activeFilterText: {
       fontSize: normalize(13),
       fontFamily: Fonts.brandSemiBold,
-      color: '#1A202C',
+      color: Colors.text,
     },
     inactiveFilterFilter: {
       flex: 1,
@@ -187,7 +328,7 @@ const createStyles = (Colors: any) =>
     inactiveFilterText: {
       fontSize: normalize(13),
       fontFamily: Fonts.brandMedium,
-      color: '#718096',
+      color: Colors.textMuted,
     },
     metricsGridContainer: {
       flexDirection: 'row',
@@ -197,15 +338,15 @@ const createStyles = (Colors: any) =>
     },
     metricItemCard: {
       width: '48.5%', // Handles responsive 2-column spacing gracefully
-      backgroundColor: '#FFFFFF',
+      backgroundColor: Colors.card,
       borderRadius: scale(14),
       padding: scale(14),
       borderWidth: 1,
-      borderColor: '#EDF2F7',
+      borderColor: Colors.border,
     },
     metricLabel: {
       fontSize: normalize(12),
-      color: '#718096',
+      color: Colors.textSecondary,
       fontFamily: Fonts.brandRegular,
       marginBottom: scale(4),
     },
@@ -217,20 +358,18 @@ const createStyles = (Colors: any) =>
       gap: scale(10),
     },
     sectionHeaderTitle: {
-      fontSize: normalize(15),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#1A202C',
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandMedium,
+      color: Colors.text,
       marginBottom: scale(4),
     },
     payoutRowCard: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: Colors.inputBackground,
       padding: scale(14),
-      borderRadius: scale(14),
-      borderWidth: 1,
-      borderColor: '#EDF2F7',
+      borderRadius: scale(12),
     },
     payoutLeftGroup: {
       flexDirection: 'row',
@@ -238,31 +377,26 @@ const createStyles = (Colors: any) =>
       gap: scale(12),
     },
     bankIconFrame: {
-      width: scale(38),
-      height: scale(38),
-      borderRadius: scale(10),
+      width: scale(40),
+      height: scale(40),
+      borderRadius: scale(20),
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: Colors.successExtraLight,
     },
     payoutTitle: {
       fontSize: normalize(13),
       fontFamily: Fonts.brandSemiBold,
-      color: '#1A202C',
+      color: Colors.text,
     },
     payoutSubtext: {
       fontSize: normalize(11),
-      color: '#A0AEC0',
+      color: Colors.textMuted,
       fontFamily: Fonts.brandRegular,
       marginTop: scale(2),
     },
     payoutAmountText: {
       fontSize: normalize(13),
       fontFamily: Fonts.brandSemiBold,
-    },
-    payoutStatusTag: {
-      fontSize: normalize(10),
-      color: '#48BB78',
-      fontFamily: Fonts.brandMedium,
-      marginTop: scale(2),
     },
   });
