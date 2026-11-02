@@ -29,6 +29,7 @@ export default function ConfirmRequest({
   const { mutate: acceptJob, isPending } = useAcceptJob();
 
   const socket = useDriverJobsStore((s) => s.socket);
+  const removeOrder = useDriverJobsStore((s) => s.removeOrder);
 
   const handleAccept = () => {
     if (!selectedOrderId) {
@@ -42,6 +43,11 @@ export default function ConfirmRequest({
     acceptJob(selectedOrderId, {
       onSuccess: () => {
         setShowConfirmRequestModal(false);
+
+        // Drop it from our own list now, and tell the server so it can
+        // broadcast order-removed to the other drivers
+        removeOrder(selectedOrderId);
+        socket?.emit('order-removed', { order_id: selectedOrderId });
 
         void saveActiveOrder(selectedOrderId);
 

@@ -22,3 +22,11 @@ export const resendOtp = async (identifier: string) => {
 
   return response.data.data;
 };
+
+export const resendVerificationToken = async (identifier: string) => {
+  const response = await api.post('/auth/resend-verification-token', {
+    identifier,
+  });
+
+  return response.data.data;
+};

@@ -3,7 +3,9 @@ import {
   useScrollHeader,
 } from '@/components/layout/scroll-header-context';
 import { Fonts } from '@/constants/theme';
-import ActiveDelivery from '@/features/home/components/active-delivery';
+import ActiveDelivery, {
+  DeliveryPhase,
+} from '@/features/home/components/active-delivery';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
 import RecentDeliveries from '@/features/home/components/recent-deliveries';
@@ -56,7 +58,7 @@ export default function Dashboard() {
 
   const scrollHandler = useScrollHeader();
 
-  function normalizeStatus(status?: string) {
+  function normalizeStatus(status?: string): DeliveryPhase {
     if (!status) return 'IDLE';
 
     switch (status) {
@@ -65,6 +67,7 @@ export default function Dashboard() {
         return 'TO_VENDOR';
 
       case 'PICKED_UP':
+      case 'IN_TRANSIT':
         return 'TO_CUSTOMER';
 
       case 'DELIVERED':
@@ -78,21 +81,6 @@ export default function Dashboard() {
   const deliveryPhase = useMemo(() => {
     return normalizeStatus(activeOrder?.order_status);
   }, [activeOrder?.order_status]);
-
-  const isPickupActive = deliveryPhase === 'TO_VENDOR';
-  const isCustomerActive =
-    deliveryPhase === 'TO_CUSTOMER' || deliveryPhase === 'DELIVERED';
-
-  const etaText = useMemo(() => {
-    const etaValue =
-      deliveryPhase === 'TO_CUSTOMER' ? etaToCustomer : etaToVendor;
-
-    if (etaValue == null) return 'Waiting...';
-
-    if (etaValue < 60) return `${etaValue} sec`;
-
-    return `${Math.ceil(etaValue / 60)} min`;
-  }, [etaToCustomer, etaToVendor, deliveryPhase]);
 
   return (
     <Animated.ScrollView
@@ -126,9 +114,7 @@ export default function Dashboard() {
         ) : (
           <ActiveDelivery
             activeOrder={activeOrder}
-            etaText={etaText}
-            isPickupActive={isPickupActive}
-            isCustomerActive={isCustomerActive}
+            phase={deliveryPhase}
             etaVendor={etaToVendor}
             etaCustomer={etaToCustomer}
           />

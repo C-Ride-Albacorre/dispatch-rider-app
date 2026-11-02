@@ -13,7 +13,7 @@ export default function AvailableDelivery() {
           <Text style={styles.deliveryTypeText}>express</Text>
         </View>
 
-        <Text style={styles.deliveryAmountText}>NGN 4500</Text>
+        <Text style={styles.deliveryAmountText}>₦ 4500</Text>
       </View>
 
       <View style={styles.deliveryInfo}>

@@ -41,7 +41,11 @@ type AuthState = {
   isHydrated: boolean;
 
   setAuth: (data: Partial<AuthState>) => void;
-  logout: () => Promise<void>;
+  /**
+   * skipRemote: only clear the local session (e.g. after account deletion,
+   * when server calls would fail with 401).
+   */
+  logout: (options?: { skipRemote?: boolean }) => Promise<void>;
 };
 
 export const useAuthStore = create<AuthState>()(
@@ -77,7 +81,7 @@ export const useAuthStore = create<AuthState>()(
           ...data,
         })),
 
-      logout: async () => {
+      logout: async ({ skipRemote = false } = {}) => {
         const { refreshToken } = useAuthStore.getState();
 
         cleanupNotifications();
@@ -89,26 +93,28 @@ export const useAuthStore = create<AuthState>()(
         const queryClient = getQueryClient();
         queryClient.clear();
 
-        try {
-          await unregisterDeviceToken();
-        } catch (error) {
-          console.log('Failed to unregister device token:', error);
-        }
+        if (!skipRemote) {
+          try {
+            await unregisterDeviceToken();
+          } catch (error) {
+            console.log('Failed to unregister device token:', error);
+          }
 
-        try {
-          await fetch(`${BASE_URL}/auth/logout`, {
-            method: 'POST',
+          try {
+            await fetch(`${BASE_URL}/auth/logout`, {
+              method: 'POST',
 
-            headers: {
-              'Content-Type': 'application/json',
-            },
+              headers: {
+                'Content-Type': 'application/json',
+              },
 
-            body: JSON.stringify({
-              refreshToken,
-            }),
-          });
-        } catch (e) {
-          console.error('Logout failed:', e);
+              body: JSON.stringify({
+                refreshToken,
+              }),
+            });
+          } catch (e) {
+            console.error('Logout failed:', e);
+          }
         }
 
         await clearTokens();

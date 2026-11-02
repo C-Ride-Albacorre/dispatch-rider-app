@@ -1,5 +1,3 @@
-import React from 'react';
-
 import {
   ActivityIndicator,
   Linking,
@@ -17,9 +15,9 @@ import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 
-import { useDeliveryDetails } from '../use-fetch';
-import { Ionicons } from '@expo/vector-icons';
 import Avatar from '@/components/ui/avatar';
+import { Ionicons } from '@expo/vector-icons';
+import { useDeliveryDetails } from '../use-fetch';
 
 interface DeliveryDetailsModalProps {
   visible: boolean;
@@ -241,7 +239,11 @@ export default function DeliveryDetailsModal({
                 style={styles.locationCard}
               >
                 <View style={[styles.locationIcon, styles.dropoffIcon]}>
-              <Ionicons name='location-sharp' size={20} color={Colors.success} />
+                  <Ionicons
+                    name="location-sharp"
+                    size={20}
+                    color={Colors.success}
+                  />
                 </View>
 
                 <View style={styles.locationContent}>
@@ -267,7 +269,11 @@ export default function DeliveryDetailsModal({
                 </View>
 
                 <View style={styles.chevron}>
-                  <Ionicons name='chevron-forward' size={18} color={Colors.text} />
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={Colors.text}
+                  />
                 </View>
               </Pressable>
             </View>
@@ -303,9 +309,13 @@ export default function DeliveryDetailsModal({
                       }
                       style={styles.locationCard}
                     >
-                       <View style={[styles.locationIcon, styles.pickupIcon]}>
-              <Ionicons name='location-sharp' size={20} color={Colors.primary} />
-                </View>
+                      <View style={[styles.locationIcon, styles.pickupIcon]}>
+                        <Ionicons
+                          name="location-sharp"
+                          size={20}
+                          color={Colors.primary}
+                        />
+                      </View>
 
                       <View style={styles.locationContent}>
                         <Text style={styles.locationTitle}>
@@ -323,9 +333,13 @@ export default function DeliveryDetailsModal({
                         )}
                       </View>
 
-                        <View style={styles.chevron}>
-                  <Ionicons name='chevron-forward' size={18} color={Colors.text} />
-                </View>
+                      <View style={styles.chevron}>
+                        <Ionicons
+                          name="chevron-forward"
+                          size={18}
+                          color={Colors.text}
+                        />
+                      </View>
                     </Pressable>
                   ),
                 )
@@ -392,7 +406,7 @@ export default function DeliveryDetailsModal({
                   <Text style={styles.summaryLabel}>Delivery fee</Text>
 
                   <Text style={styles.summaryValue}>
-                    NGN {order.deliveryFee.toLocaleString()}
+                    ₦ {order.deliveryFee.toLocaleString()}
                   </Text>
                 </View>
 
@@ -791,7 +805,7 @@ const createStyles = (Colors: any) =>
     },
 
     pickupBadge: {
-       paddingHorizontal: scale(7),
+      paddingHorizontal: scale(7),
       paddingVertical: scale(4),
       borderRadius: scale(6),
       backgroundColor: Colors.primaryLight,

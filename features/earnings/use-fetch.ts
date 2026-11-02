@@ -48,7 +48,7 @@ export function useEarningsDashboard(period: EarningsPeriod = 'TODAY') {
 }
 
 export function formatNaira(amount?: number) {
-  return `NGN ${(amount ?? 0).toLocaleString()}`;
+  return `₦ ${(amount ?? 0).toLocaleString()}`;
 }
 
 export function formatHours(hours?: number) {

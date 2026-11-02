@@ -69,6 +69,43 @@ export type DriverInfo = {
   driver_status: string;
 };
 
+/**
+ * Flattens a `new-order-request` socket payload into the shape the job
+ * cards render. Accepts the payload bare or wrapped in `data` / `order`,
+ * with snake_case or camelCase keys. Returns null when no order id exists.
+ */
+export function normalizeIncomingJob(payload: any) {
+  const raw = payload?.data ?? payload;
+  const job = raw?.order ?? raw;
+
+  const orderId = job?.order_id ?? job?.orderId ?? job?.id;
+  if (!orderId) return null;
+
+  const pickup = job.pickup_location ?? job.pickupLocation ?? job.pickup ?? {};
+  const dropoff =
+    job.dropoff_location ?? job.dropoffLocation ?? job.dropoff ?? {};
+  const store = job.store ?? {};
+
+  return {
+    ...job,
+    order_id: orderId,
+    order_number: job.order_number ?? job.orderNumber,
+    store_name:
+      job.store_name ?? job.storeName ?? store.name ?? pickup.storeName,
+    store_logo: job.store_logo ?? job.storeLogo ?? store.logo,
+    total_amount: job.total_amount ?? job.totalAmount ?? 0,
+    deliveryFee:
+      job.deliveryFee ?? job.delivery_fee ?? raw?.deliveryFee ?? 0,
+    distance_meters:
+      job.distance_meters ?? job.distanceMeters ?? raw?.distanceMeters,
+    store_lat: job.store_lat ?? pickup.latitude ?? pickup.lat,
+    store_lng: job.store_lng ?? pickup.longitude ?? pickup.lng,
+    pickup_location: pickup,
+    dropoff_location: dropoff,
+    items: job.items ?? [],
+  };
+}
+
 type DriverJobsState = {
   /** SOCKET */
   socket: Socket | null;
@@ -108,7 +145,8 @@ type DriverJobsState = {
 
   /** INCOMING ORDERS */
   incomingOrders: any[];
-  addOrder: (order: any) => void;
+  setOrders: (orders: any[]) => void;
+  addOrders: (orders: any[]) => void;
   removeOrder: (orderId: string) => void;
   clearIncoming: () => void;
 };
@@ -190,34 +228,45 @@ export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
   /** INCOMING */
   incomingOrders: [],
 
-  addOrder: (order) =>
-    set((state) => {
-      // Normalize order ID (handle both order_id and orderId)
-      const orderId = order?.order_id ?? order?.orderId;
+  /** Replace the whole list (sent by the server on connect) */
+  setOrders: (orders) =>
+    set({
+      incomingOrders: (orders ?? [])
+        .map(normalizeIncomingJob)
+        .filter((job): job is NonNullable<typeof job> => !!job),
+    }),
 
-      // Don't add if no ID found
-      if (!orderId) {
-        console.warn('[driver-jobs-store] Order has no id:', order);
-        return { incomingOrders: state.incomingOrders };
+  /** Merge newly dispatched orders at the top, skipping ones already listed */
+  addOrders: (orders) =>
+    set((state) => {
+      const known = new Set(state.incomingOrders.map((o) => o.order_id));
+      const fresh: any[] = [];
+
+      for (const order of orders ?? []) {
+        const job = normalizeIncomingJob(order);
+
+        if (!job) {
+          console.warn('[driver-jobs-store] Order has no id:', order);
+          continue;
+        }
+
+        if (known.has(job.order_id)) continue;
+
+        known.add(job.order_id);
+        fresh.push(job);
       }
 
-      return {
-        incomingOrders: [
-          order,
-          ...state.incomingOrders.filter((o) => {
-            const oId = o?.order_id ?? o?.orderId;
-            return oId !== orderId;
-          }),
-        ],
-      };
+      if (!fresh.length) return state;
+
+      // Newest first: the last order in the batch was dispatched most recently
+      return { incomingOrders: [...fresh.reverse(), ...state.incomingOrders] };
     }),
 
   removeOrder: (orderId) =>
     set((state) => ({
-      incomingOrders: state.incomingOrders.filter((o) => {
-        const oId = o?.order_id ?? o?.orderId;
-        return oId !== orderId;
-      }),
+      incomingOrders: state.incomingOrders.filter(
+        (o) => o.order_id !== orderId,
+      ),
     })),
 
   clearIncoming: () => set({ incomingOrders: [] }),

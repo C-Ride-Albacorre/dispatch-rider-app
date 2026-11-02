@@ -3,18 +3,16 @@ import {
   useHeaderReset,
   useScrollHeader,
 } from '@/components/layout/scroll-header-context';
-import Button from '@/components/ui/buttons/button';
 import { useEarningsDashboard } from '@/features/earnings/use-fetch';
 import { useDashboardStats } from '@/features/home/use-fetch';
-import DriverPerformance from '@/features/profile/components/performamce';
 import ProfileFrame from '@/features/profile/components/profile-frame';
-import Reviews from '@/features/profile/components/reviews';
+import ProfileMenu from '@/features/profile/components/profile-menu';
 import DriverStats from '@/features/profile/components/stats';
 import { useTheme } from '@/hooks/use-theme';
 import { scale } from '@/utils/scaling';
 
 import ConfirmLogout from '@/features/profile/components/confirm-logout';
-import { Ionicons } from '@expo/vector-icons';
+import DeleteAccountModal from '@/features/profile/components/delete-account/delete-account-modal';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -25,6 +23,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
 
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const resetHeader = useHeaderReset();
 
@@ -64,25 +63,23 @@ export default function ProfileScreen() {
           />
 
           <DriverStats earnings={earningsData?.summary} />
-          <DriverPerformance stats={stats} />
 
-          <Reviews />
-
-          <Button
-            leftIcon={
-              <Ionicons name="log-out-outline" size={scale(20)} color="white" />
-            }
-            variant="red"
-            onPress={() => setShowLogoutModal(true)}
-          >
-            Sign out
-          </Button>
+          <ProfileMenu
+            stats={stats}
+            onSignOut={() => setShowLogoutModal(true)}
+            onDeleteAccount={() => setShowDeleteModal(true)}
+          />
         </View>
       </Animated.ScrollView>
 
       <ConfirmLogout
         showLogoutModal={showLogoutModal}
         setShowLogoutModal={setShowLogoutModal}
+      />
+
+      <DeleteAccountModal
+        showDeleteModal={showDeleteModal}
+        setShowDeleteModal={setShowDeleteModal}
       />
     </>
   );
@@ -95,6 +92,6 @@ const createStyles = (Colors: any) =>
       paddingHorizontal: scale(12),
       paddingVertical: scale(24),
       backgroundColor: Colors.background,
-      gap: scale(16),
+      gap: scale(24),
     },
   });

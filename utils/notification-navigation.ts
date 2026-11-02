@@ -1,4 +1,3 @@
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { router } from 'expo-router';
 
 type NotificationData = {
@@ -6,9 +5,10 @@ type NotificationData = {
   orderId?: string;
 };
 
-export function handleNotificationNavigation(
-  notification: FirebaseMessagingTypes.RemoteMessage,
-) {
+// Accepts both FCM remote messages and expo-notifications content
+export function handleNotificationNavigation(notification: {
+  data?: Record<string, unknown> | null;
+}) {
   const data = notification.data as NotificationData | undefined;
 
   if (!data) {

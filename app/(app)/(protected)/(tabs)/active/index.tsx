@@ -1,6 +1,6 @@
 import {
   HEADER_HEIGHT,
-  useScrollHeader,
+  useHeaderReset,
 } from '@/components/layout/scroll-header-context';
 import Button from '@/components/ui/buttons/button';
 import { Fonts } from '@/constants/theme';
@@ -16,13 +16,18 @@ import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { trimPolyline } from '@/utils/trim-polyline';
 import { Ionicons } from '@expo/vector-icons';
+import BottomSheet, {
+  BottomSheetFooter,
+  BottomSheetFooterProps,
+  BottomSheetScrollView,
+} from '@gorhom/bottom-sheet';
 import polyline from '@mapbox/polyline';
-import { router } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
-  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -34,21 +39,72 @@ import MapView, {
   Polyline,
   PROVIDER_GOOGLE,
 } from 'react-native-maps';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LOCATION_ANIMATION_DURATION = 450;
 
 const CAMERA_ANIMATION_DURATION = 350;
 
+// The collapsed sheet covers the bottom 40%, leaving 60% of the screen for the map
+const SHEET_COLLAPSED_RATIO = 0.4;
+
+const MAP_CONTROL_SIZE = 46;
+
+const MAP_CONTROLS_GAP = 10;
+
+const MAP_CONTROLS_HEIGHT = MAP_CONTROL_SIZE * 2 + MAP_CONTROLS_GAP;
+
+// Space at the end of the sheet content so the sticky footer doesn't cover it
+const SHEET_FOOTER_SPACE = 96;
+
 export default function ActiveDeliveryContent() {
-  const { Colors, isDark } = useTheme();
+  const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
   const insets = useSafeAreaInsets();
 
-  const scrollHandler = useScrollHeader();
+  const resetHeader = useHeaderReset();
+
+  const sheetRef = useRef<BottomSheet>(null);
+
+  const sheetIndexRef = useRef(0);
+
+  // The sheet must never close: layout changes (tab switch, returning from
+  // chat, app resume) can leave it at index -1, so bring it back to the
+  // collapsed snap point
+  const handleSheetChange = useCallback((index: number) => {
+    sheetIndexRef.current = index;
+
+    if (index < 0) sheetRef.current?.snapToIndex(0);
+  }, []);
+
+  // The map runs behind the shared header, so keep it visible on this tab
+  useFocusEffect(
+    useCallback(() => {
+      resetHeader();
+
+      if (sheetIndexRef.current < 0) sheetRef.current?.snapToIndex(0);
+    }, []),
+  );
+
+  const mapTopInset = HEADER_HEIGHT + insets.top;
+
+  const [containerHeight, setContainerHeight] = useState(0);
+
+  const collapsedSheetHeight = containerHeight * SHEET_COLLAPSED_RATIO;
+
+  // Top edge of the bottom sheet, in screen-container coordinates
+  const sheetPosition = useSharedValue(0);
+
+  // Expanding stops at 70% so part of the map always stays visible
+  const snapPoints = useMemo(() => ['40%', '70%'], []);
 
   const [showConfirmDeclineModal, setShowConfirmDeclineModal] =
     useState<boolean>(false);
@@ -182,6 +238,35 @@ export default function ActiveDeliveryContent() {
   const isCustomerActive =
     deliveryPhase === 'TO_CUSTOMER' || deliveryPhase === 'DELIVERED';
 
+  // Computed on the JS thread: scale() isn't a worklet, so it can't run
+  // inside useAnimatedStyle
+  const mapControlsOffset = MAP_CONTROLS_HEIGHT + scale(16);
+
+  // Drivers can close the ETA card; it comes back when the delivery phase changes
+  const [etaCardDismissedPhase, setEtaCardDismissedPhase] = useState<
+    string | null
+  >(null);
+
+  const showEtaCard = etaCardDismissedPhase !== deliveryPhase;
+
+  // Bottom edge of the ETA card (or the compact pill when it's closed)
+  const etaCardBottom = mapTopInset + (showEtaCard ? scale(100) : scale(56));
+
+  // Fade the buttons out only when they'd overlap the ETA card at the top
+  const mapControlsFadeStart = etaCardBottom + mapControlsOffset;
+  const mapControlsFadeEnd = mapControlsFadeStart + scale(60);
+
+  // Refresh/recenter buttons ride just above the sheet and fade out as it expands
+  const mapControlsStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetPosition.value - mapControlsOffset }],
+    opacity: interpolate(
+      sheetPosition.value,
+      [mapControlsFadeStart, mapControlsFadeEnd],
+      [0, 1],
+      Extrapolation.CLAMP,
+    ),
+  }));
+
   /**
    * -----------------------------
    * POLYLINE SELECTION
@@ -307,21 +392,23 @@ export default function ActiveDeliveryContent() {
 
   useEffect(() => {
     if (!isMapReady) return;
+    if (!containerHeight) return;
     if (coordinates.length < 2) return;
     if (hasFittedRoute.current) return;
 
     hasFittedRoute.current = true;
 
+    // mapPadding already keeps the route clear of the header and the sheet
     mapRef.current?.fitToCoordinates(coordinates, {
       edgePadding: {
-        top: 180,
-        right: 70,
-        left: 70,
-        bottom: 260,
+        top: 60,
+        right: 60,
+        left: 60,
+        bottom: 60,
       },
       animated: true,
     });
-  }, [coordinates, isMapReady]);
+  }, [coordinates, isMapReady, containerHeight]);
 
   useEffect(() => {
     if (!driverLocation || !isMapReady) return;
@@ -428,22 +515,13 @@ export default function ActiveDeliveryContent() {
     activeOrder?.pickup_location?.longitude,
   ]);
 
-  const focusLocation = driverLocation
-    ? {
-        latitude: driverLocation.lat,
-        longitude: driverLocation.lng,
-      }
-    : activeOrder
-      ? deliveryPhase === 'TO_VENDOR'
-        ? {
-            latitude: activeOrder.pickup_location.latitude,
-            longitude: activeOrder.pickup_location.longitude,
-          }
-        : {
-            latitude: activeOrder.dropoff_location.latitude,
-            longitude: activeOrder.dropoff_location.longitude,
-          }
-      : null;
+  // The map unmounts while there's no order; a remounted map must wait for
+  // its own onMapReady before receiving padding
+  const hasOrder = Boolean(activeOrder?.order_id);
+
+  useEffect(() => {
+    if (!hasOrder) setIsMapReady(false);
+  }, [hasOrder]);
 
   /**
    * SAFE GUARD (WAIT FOR WEBSOCKET OR TIMEOUT)
@@ -578,17 +656,22 @@ export default function ActiveDeliveryContent() {
 
   const mapStyle: any[] = [];
 
+  // Snap back to the driver's latest position and resume following them
   const recenterDriver = () => {
-    if (!focusLocation) return;
+    if (!driverLocation) return;
 
     userInteracting.current = false;
+    setIsFollowingDriver(true);
 
     mapRef.current?.animateCamera(
       {
-        center: focusLocation,
+        center: {
+          latitude: driverLocation.lat,
+          longitude: driverLocation.lng,
+        },
+        heading: carRotation,
+        pitch: 55,
         zoom: 17,
-        heading: driverLocation ? carRotation : 0,
-        pitch: driverLocation ? 60 : 0,
       },
       {
         duration: 700,
@@ -612,32 +695,56 @@ export default function ActiveDeliveryContent() {
           longitude: activeOrder.dropoff_location.longitude,
         };
 
+  const renderSheetFooter = (props: BottomSheetFooterProps) => (
+    <BottomSheetFooter {...props}>
+      <View style={styles.footer}>
+        {isPickupActive ? (
+          <View style={styles.footerRow}>
+            <Button
+              onPress={handleConfirmDecline}
+              variant="redOutline"
+              style={{ flex: 1 }}
+            >
+              Decline 
+            </Button>
+
+            <Button
+              onPress={handleConfirmPickup}
+              variant="green"
+              style={{ flex: 1 }}
+            >
+              Confirm Pickup
+            </Button>
+          </View>
+        ) : (
+          <Button
+            onPress={handleConfirmDelivery}
+            variant="green"
+            style={{ flex: 1 }}
+          >
+            Confirm Delivery
+          </Button>
+        )}
+      </View>
+    </BottomSheetFooter>
+  );
+
   return (
     <>
-      <Animated.ScrollView
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
-        refreshControl={
-          <RefreshControl
-            refreshing={isFetching}
-            onRefresh={refetch}
-            tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
-            progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
-          />
-        }
+      <View
+        style={styles.screen}
+        onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
       >
-        <View style={styles.container}>
-          {/* 1. Map Canvas Section */}
+        {/* 1. Full-screen map behind the header and the bottom sheet */}
 
-          <View style={styles.mapContainer}>
+        <View style={StyleSheet.absoluteFill}>
+          {showEtaCard ? (
             <View
               style={{
                 position: 'absolute',
-                top: scale(20),
-                left: scale(20),
-                right: scale(20),
+                top: mapTopInset + scale(12),
+                left: scale(16),
+                right: scale(16),
 
                 backgroundColor: Colors.background,
 
@@ -672,7 +779,7 @@ export default function ActiveDeliveryContent() {
                 />
               </View>
 
-              <View style={{ marginLeft: scale(12) }}>
+              <View style={{ flex: 1, marginLeft: scale(12) }}>
                 <Text
                   style={{
                     fontFamily: Fonts.brandSemiBold,
@@ -694,364 +801,369 @@ export default function ActiveDeliveryContent() {
                   {trackingMessage}
                 </Text>
               </View>
+
+              <TouchableOpacity
+                onPress={() => setEtaCardDismissedPhase(deliveryPhase)}
+                hitSlop={12}
+                style={styles.etaCloseButton}
+                accessibilityLabel="Close ETA card"
+              >
+                <Ionicons name="close" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
             </View>
-            <MapView
-              initialRegion={initialMapRegion}
-              ref={mapRef}
-              mapType="standard"
-              provider={PROVIDER_GOOGLE}
-              style={[
-                StyleSheet.absoluteFill,
-                {
-                  borderRadius: scale(24),
-                },
-              ]}
-              mapPadding={{
-                top: 180,
-                bottom: 40,
-                left: 40,
-                right: 40,
-              }}
-              onMapReady={() => setIsMapReady(true)}
-              showsUserLocation={false}
-              showsCompass
-              customMapStyle={mapStyle}
-              onPanDrag={() => {
-                userInteracting.current = true;
-                setIsFollowingDriver(false);
+          ) : (
+            <TouchableOpacity
+              onPress={() => setEtaCardDismissedPhase(null)}
+              style={[styles.etaPill, { top: mapTopInset + scale(12) }]}
+              accessibilityLabel="Show ETA details"
+            >
+              <Ionicons name="time-outline" size={16} color={Colors.primary} />
+              <Text style={styles.etaPillText}>{etaText}</Text>
+            </TouchableOpacity>
+          )}
+          <MapView
+            initialRegion={initialMapRegion}
+            ref={mapRef}
+            mapType="standard"
+            provider={PROVIDER_GOOGLE}
+            style={StyleSheet.absoluteFill}
+            // Android crashes (NPE in GoogleMap.setPadding) if padding changes
+            // after layout but before the native map exists, so hold it back
+            // until onMapReady
+            mapPadding={
+              isMapReady
+                ? {
+                    top: etaCardBottom,
+                    bottom: collapsedSheetHeight,
+                    left: 40,
+                    right: 40,
+                  }
+                : undefined
+            }
+            onMapReady={() => setIsMapReady(true)}
+            showsUserLocation={false}
+            showsCompass
+            customMapStyle={mapStyle}
+            onPanDrag={() => {
+              userInteracting.current = true;
+              setIsFollowingDriver(false);
+            }}
+          >
+            {/* Store */}
+
+            <Marker
+              tracksViewChanges={!storeLogoLoaded}
+              coordinate={{
+                latitude: activeOrder.pickup_location.latitude,
+                longitude: activeOrder.pickup_location.longitude,
               }}
             >
-              {/* Store */}
+              <View
+                style={{
+                  width: 50,
+                  height: 50,
+                  borderRadius: 25,
 
-              <Marker
-                tracksViewChanges={!storeLogoLoaded}
-                coordinate={{
-                  latitude: activeOrder.pickup_location.latitude,
-                  longitude: activeOrder.pickup_location.longitude,
+                  backgroundColor: '#FFFFFF',
+
+                  justifyContent: 'center',
+                  alignItems: 'center',
+
+                  borderWidth: 2,
+                  borderColor: Colors.primary,
+
+                  // Only add shadows on Android, iOS handles differently
+                  ...Platform.select({
+                    android: {
+                      elevation: 8,
+                    },
+                    ios: {
+                      shadowColor: 'transparent',
+                      shadowOpacity: 0,
+                    },
+                  }),
                 }}
               >
                 <View
                   style={{
-                    width: 50,
-                    height: 50,
-                    borderRadius: 25,
-
-                    backgroundColor: '#FFFFFF',
-
+                    width: 30,
+                    height: 30,
+                    borderRadius: 15,
+                    overflow: 'hidden',
                     justifyContent: 'center',
                     alignItems: 'center',
-
-                    borderWidth: 2,
-                    borderColor: Colors.primary,
-
-                    // Only add shadows on Android, iOS handles differently
-                    ...Platform.select({
-                      android: {
-                        elevation: 8,
-                      },
-                      ios: {
-                        shadowColor: 'transparent',
-                        shadowOpacity: 0,
-                      },
-                    }),
+                    backgroundColor: Colors.primaryLight,
                   }}
                 >
-                  <View
-                    style={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: 15,
-                      overflow: 'hidden',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      backgroundColor: Colors.primaryLight,
-                    }}
-                  >
-                    {activeOrder.store_logo && storeLogoLoaded ? (
-                      <Image
-                        source={{
-                          uri: activeOrder.store_logo,
-                          cache: 'force-cache',
-                        }}
-                        onLoad={() => setStoreLogoLoaded(true)}
-                        onError={() => setStoreLogoLoaded(false)}
-                        style={{
-                          width: 30,
-                          height: 30,
-                          borderRadius: 15,
-                        }}
-                      />
-                    ) : (
-                      <Ionicons name="bag" size={16} color={Colors.primary} />
-                    )}
-                  </View>
+                  {activeOrder.store_logo && storeLogoLoaded ? (
+                    <Image
+                      source={{
+                        uri: activeOrder.store_logo,
+                        cache: 'force-cache',
+                      }}
+                      onLoad={() => setStoreLogoLoaded(true)}
+                      onError={() => setStoreLogoLoaded(false)}
+                      style={{
+                        width: 30,
+                        height: 30,
+                        borderRadius: 15,
+                      }}
+                    />
+                  ) : (
+                    <Ionicons name="bag" size={16} color={Colors.primary} />
+                  )}
                 </View>
-              </Marker>
+              </View>
+            </Marker>
 
-              {/* <Marker
+            {/* <Marker
                 coordinate={{
                   latitude: activeOrder.dropoff_location.latitude,
                   longitude: activeOrder.dropoff_location.longitude,
                 }}
                 pinColor="red"
               /> */}
-              {/* Driver */}
-              {driverLocation && (
-                <Marker.Animated
-                  coordinate={driverMarkerCoordinate}
-                  flat
-                  tracksViewChanges={false}
-                  anchor={{ x: 0.5, y: 0.5 }}
-                >
-                  <View
-                    style={{
-                      width: scale(22),
-                      height: scale(22),
-                      borderRadius: scale(11),
-                      backgroundColor: Colors.success,
-                      borderWidth: 3,
-                      borderColor: '#fff',
-                      ...Platform.select({
-                        ios: {
-                          elevation: 5,
-                          // shadowColor: '#000',
-                          // shadowOpacity: 0.3,
-                          // shadowRadius: 3,
-                          // shadowOffset: { width: 0, height: 1 },
-                        },
-                        android: {
-                          elevation: 5,
-                        },
-                      }),
-                    }}
-                  />
-                </Marker.Animated>
-              )}
+            {/* Driver */}
+            {driverLocation && (
+              <Marker.Animated
+                coordinate={driverMarkerCoordinate}
+                flat
+                tracksViewChanges={false}
+                anchor={{ x: 0.5, y: 0.5 }}
+              >
+                <View
+                  style={{
+                    width: scale(22),
+                    height: scale(22),
+                    borderRadius: scale(11),
+                    backgroundColor: Colors.success,
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    ...Platform.select({
+                      ios: {
+                        elevation: 5,
+                        // shadowColor: '#000',
+                        // shadowOpacity: 0.3,
+                        // shadowRadius: 3,
+                        // shadowOffset: { width: 0, height: 1 },
+                      },
+                      android: {
+                        elevation: 5,
+                      },
+                    }),
+                  }}
+                />
+              </Marker.Animated>
+            )}
 
-              <Marker
-                coordinate={{
-                  latitude: activeOrder.dropoff_location.latitude,
-                  longitude: activeOrder.dropoff_location.longitude,
-                }}
-                pinColor={Colors.success}
-              />
-
-              {coordinates.length > 0 && (
-                <>
-                  <Polyline
-                    coordinates={coordinates}
-                    strokeColor="#FFFFFF"
-                    strokeWidth={10}
-                    lineCap="round"
-                    lineJoin="round"
-                  />
-
-                  <Polyline
-                    coordinates={coordinates}
-                    strokeColor="#000000"
-                    strokeWidth={6}
-                    lineCap="round"
-                    lineJoin="round"
-                  />
-                </>
-              )}
-            </MapView>
-
-            <TouchableOpacity
-              onPress={recenterDriver}
-              style={{
-                position: 'absolute',
-                bottom: 30,
-                right: 20,
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                backgroundColor: '#fff',
-                justifyContent: 'center',
-                alignItems: 'center',
-                elevation: scale(20),
+            <Marker
+              coordinate={{
+                latitude: activeOrder.dropoff_location.latitude,
+                longitude: activeOrder.dropoff_location.longitude,
               }}
-            >
-              <Ionicons name="locate" size={24} color={Colors.primary} />
-            </TouchableOpacity>
-          </View>
+              pinColor={Colors.success}
+            />
 
-          <View style={styles.statusContainer}>
-            <View style={styles.statusContent}>
-              <Ionicons name="car" size={scale(20)} color={Colors.success} />
-              <Text style={styles.statusText}> {trackingMessage}</Text>
-            </View>
+            {coordinates.length > 0 && (
+              <>
+                <Polyline
+                  coordinates={coordinates}
+                  strokeColor="#FFFFFF"
+                  strokeWidth={10}
+                  lineCap="round"
+                  lineJoin="round"
+                />
 
-            <View style={styles.statusContent}>
-              <Ionicons
-                name="time-outline"
-                size={scale(16)}
-                color={Colors.success}
-              />
-              <Text style={styles.etaText}>{etaText}</Text>
-            </View>
-          </View>
+                <Polyline
+                  coordinates={coordinates}
+                  strokeColor="#000000"
+                  strokeWidth={6}
+                  lineCap="round"
+                  lineJoin="round"
+                />
+              </>
+            )}
+          </MapView>
+        </View>
 
-          <View style={styles.card}>
-            <View style={styles.addressesContainerHeader}>
-              <StatusDot active={isPickupActive} />
-              <Text style={styles.sectionLabel}>Vendor Location</Text>
-            </View>
+        <Animated.View style={[styles.mapControls, mapControlsStyle]}>
+          <TouchableOpacity
+            onPress={() => refetch()}
+            disabled={isFetching}
+            style={styles.mapControlButton}
+          >
+            {isFetching ? (
+              <ActivityIndicator size="small" color={Colors.primary} />
+            ) : (
+              <Ionicons name="refresh" size={22} color={Colors.primary} />
+            )}
+          </TouchableOpacity>
 
-            <View style={styles.storeRow}>
-              <Image
-                source={{
-                  uri: activeOrder.store_logo,
-                }}
-                style={styles.logo}
-              />
+          <TouchableOpacity
+            onPress={recenterDriver}
+            style={styles.mapControlButton}
+          >
+            <Ionicons name="locate" size={24} color={Colors.primary} />
+          </TouchableOpacity>
+        </Animated.View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.storeName}>{activeOrder.store_name}</Text>
+        {/* 2. Order details in a draggable bottom sheet */}
 
-                <Text style={styles.address}>
-                  {activeOrder?.pickup_location?.address ?? 'N/A'}
-                </Text>
+        <BottomSheet
+          ref={sheetRef}
+          index={0}
+          snapPoints={snapPoints}
+          onChange={handleSheetChange}
+          enablePanDownToClose={false}
+          enableDynamicSizing={false}
+          topInset={mapTopInset}
+          animatedPosition={sheetPosition}
+          footerComponent={renderSheetFooter}
+          backgroundStyle={{ backgroundColor: Colors.background }}
+          handleIndicatorStyle={{ backgroundColor: Colors.border }}
+        >
+          <BottomSheetScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.sheetContent}
+          >
+            <Text style={styles.sheetTitle}>
+              Order #{activeOrder.order_number}
+            </Text>
 
-                <Text style={styles.coordinates}>
-                  {activeOrder.store_lat.toFixed(5)},{' '}
-                  {activeOrder.store_lng.toFixed(5)}
-                </Text>
+            <View style={styles.card}>
+              <View style={styles.addressesContainerHeader}>
+                <StatusDot active={isPickupActive} />
+                <Text style={styles.sectionLabel}>Vendor Location</Text>
               </View>
-            </View>
 
-            {/* <Button
+              <View style={styles.storeRow}>
+                <Image
+                  source={{
+                    uri: activeOrder.store_logo,
+                  }}
+                  style={styles.logo}
+                />
+
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.storeName}>{activeOrder.store_name}</Text>
+
+                  <Text style={styles.address}>
+                    {activeOrder?.pickup_location?.address ?? 'N/A'}
+                  </Text>
+
+                  <Text style={styles.coordinates}>
+                    {activeOrder.store_lat.toFixed(5)},{' '}
+                    {activeOrder.store_lng.toFixed(5)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* <Button
             variant="inverted"
             leftIcon={<Ionicons name="navigate" size={16} color="#FFF" />}
           >
             Navigate to Store
           </Button> */}
-          </View>
-
-          <View style={styles.card}>
-            <View
-              style={{ flexDirection: 'row', justifyContent: 'space-between' }}
-            >
-              <View style={styles.addressesContainerHeader}>
-                <StatusDot active={isCustomerActive} />
-                <Text style={styles.sectionLabel}>Customer Location</Text>
-              </View>
             </View>
 
-            <View style={styles.addressesContainerRow}>
+            <View style={styles.card}>
               <View
-                style={[
-                  styles.addressWrapper,
-                  { backgroundColor: Colors.successExtraLight },
-                ]}
+                style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                }}
               >
-                <Ionicons
-                  name="location"
-                  size={scale(20)}
-                  color={Colors.success}
-                />
+                <View style={styles.addressesContainerHeader}>
+                  <StatusDot active={isCustomerActive} />
+                  <Text style={styles.sectionLabel}>Customer Location</Text>
+                </View>
               </View>
 
-              <View style={{ flex: 1 }}>
-                <Text style={styles.address}>
-                  {activeOrder.dropoff_location.address}
-                </Text>
-
-                <Text style={styles.city}>
-                  {activeOrder.dropoff_location.city},{' '}
-                  {activeOrder.dropoff_location.state}
-                </Text>
-
-                <Text style={styles.city}>
-                  {activeOrder.dropoff_location.country}
-                </Text>
-
-                <Text style={styles.city}>
-                  {activeOrder.dropoff_location.postalCode}
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-              <Button
-                size="sm"
-                onPress={handleChat}
-                // variant="primary"
-                leftIcon={
+              <View style={styles.addressesContainerRow}>
+                <View
+                  style={[
+                    styles.addressWrapper,
+                    { backgroundColor: Colors.successExtraLight },
+                  ]}
+                >
                   <Ionicons
-                    name="chatbubble-ellipses"
-                    size={16}
-                    color="#000000"
+                    name="location"
+                    size={scale(20)}
+                    color={Colors.success}
                   />
-                }
-              >
-                Chat with Customer
-              </Button>
-            </View>
-          </View>
+                </View>
 
-          <View style={styles.card}>
-            <View style={styles.metaGrid}>
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Created</Text>
-                <Text style={styles.metaValue}>
-                  {formatDate(activeOrder.created_at)}
-                </Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Assigned</Text>
-                <Text style={styles.metaValue}>
-                  {formatDate(activeOrder.assigned_at)}
-                </Text>
-              </View>
-              {activeOrder?.distance_meters && (
-                <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Distance</Text>
-                  <Text style={styles.metaValue}>
-                    {(activeOrder?.distance_meters / 1000).toFixed(1)} km
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.address}>
+                    {activeOrder.dropoff_location.address}
+                  </Text>
+
+                  <Text style={styles.city}>
+                    {activeOrder.dropoff_location.city},{' '}
+                    {activeOrder.dropoff_location.state}
+                  </Text>
+
+                  <Text style={styles.city}>
+                    {activeOrder.dropoff_location.country}
+                  </Text>
+
+                  <Text style={styles.city}>
+                    {activeOrder.dropoff_location.postalCode}
                   </Text>
                 </View>
-              )}
+              </View>
 
-              <View style={styles.metaItem}>
-                <Text style={styles.metaLabel}>Order ID</Text>
-
-                <Text style={styles.metaValue}>{activeOrder.order_id}</Text>
+              <View
+                style={{ flexDirection: 'row', justifyContent: 'flex-end' }}
+              >
+                <Button
+                  size="sm"
+                  onPress={handleChat}
+                  // variant="primary"
+                  leftIcon={
+                    <Ionicons
+                      name="chatbubble-ellipses"
+                      size={16}
+                      color="#000000"
+                    />
+                  }
+                >
+                  Chat with Customer
+                </Button>
               </View>
             </View>
-          </View>
 
-          <View style={styles.footer}>
-            {isPickupActive ? (
-              <View style={styles.footerRow}>
-                <Button
-                  onPress={handleConfirmDecline}
-                  variant="redOutline"
-                  style={{ flex: 1 }}
-                >
-                  Decline Order
-                </Button>
-
-                <Button
-                  onPress={handleConfirmPickup}
-                  variant="green"
-                  style={{ flex: 1 }}
-                >
-                  Confirm Pickup
-                </Button>
+            <View style={styles.card}>
+              <View style={styles.metaGrid}>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Created</Text>
+                  <Text style={styles.metaValue}>
+                    {formatDate(activeOrder.created_at)}
+                  </Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Assigned</Text>
+                  <Text style={styles.metaValue}>
+                    {formatDate(activeOrder.assigned_at)}
+                  </Text>
+                </View>
+                {activeOrder?.distance_meters && (
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaLabel}>Distance</Text>
+                    <Text style={styles.metaValue}>
+                      {(activeOrder?.distance_meters / 1000).toFixed(1)} km
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.metaItem}>
+                  <Text style={styles.metaLabel}>Order ID</Text>
+                  <Text style={styles.metaValue}>{activeOrder.order_id}</Text>
+                </View>
               </View>
-            ) : (
-              <Button
-                onPress={handleConfirmDelivery}
-                variant="green"
-                style={{ flex: 1 }}
-              >
-                Confirm Delivery
-              </Button>
-            )}
-          </View>
-        </View>
-      </Animated.ScrollView>
+            </View>
+          </BottomSheetScrollView>
+        </BottomSheet>
+      </View>
 
       <ConfirmDeclineRequest
         showConfirmDeclineModal={showConfirmDeclineModal}
@@ -1075,11 +1187,76 @@ export default function ActiveDeliveryContent() {
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
+    screen: {
       flex: 1,
+    },
+
+    sheetContent: {
       paddingHorizontal: scale(12),
-      paddingVertical: scale(12),
+      paddingTop: scale(4),
+      paddingBottom: SHEET_FOOTER_SPACE,
       gap: scale(12),
+    },
+
+    sheetTitle: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandSemiBold,
+      color: Colors.text,
+      paddingHorizontal: scale(4),
+    },
+
+    etaCloseButton: {
+      width: scale(32),
+      height: scale(32),
+      borderRadius: scale(16),
+      // Translucent so it works on both light and dark card backgrounds
+      backgroundColor: `${Colors.textMuted}1F`,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginLeft: scale(8),
+    },
+
+    etaPill: {
+      position: 'absolute',
+      left: scale(16),
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(6),
+      paddingHorizontal: scale(14),
+      paddingVertical: scale(10),
+      borderRadius: scale(20),
+      backgroundColor: Colors.background,
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 6,
+      zIndex: 10,
+    },
+
+    etaPillText: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: normalize(13),
+      color: Colors.text,
+    },
+
+    mapControls: {
+      position: 'absolute',
+      top: 0,
+      right: scale(16),
+      gap: MAP_CONTROLS_GAP,
+    },
+
+    mapControlButton: {
+      width: MAP_CONTROL_SIZE,
+      height: MAP_CONTROL_SIZE,
+      borderRadius: MAP_CONTROL_SIZE / 2,
+      backgroundColor: '#fff',
+      justifyContent: 'center',
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOpacity: 0.15,
+      shadowRadius: 8,
+      elevation: 6,
     },
 
     title: {
@@ -1099,30 +1276,6 @@ const createStyles = (Colors: any) =>
       borderWidth: 1,
       borderColor: Colors.border,
       gap: scale(12),
-    },
-
-    statusContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      gap: scale(8),
-      padding: scale(12),
-      borderWidth: 1,
-      borderColor: Colors.success,
-      borderRadius: scale(20),
-      backgroundColor: Colors.successExtraLight,
-    },
-
-    statusContent: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(2),
-    },
-
-    statusText: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
     },
 
     orderNumber: {
@@ -1408,18 +1561,6 @@ const createStyles = (Colors: any) =>
       alignItems: 'center',
     },
 
-    mapContainer: {
-      height: scale(360),
-      borderRadius: scale(20),
-      elevation: scale(2),
-      width: '100%',
-      position: 'relative',
-      overflow: 'hidden',
-      borderWidth: 1,
-      borderColor: '#E2E8F0',
-      backgroundColor: '#EBF8FF',
-      // overflow: 'visible',
-    },
     mockMapBackground: {
       flex: 1,
       position: 'relative',
@@ -1481,11 +1622,6 @@ const createStyles = (Colors: any) =>
       paddingVertical: scale(6),
       borderRadius: scale(12),
       elevation: 2,
-    },
-    etaText: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
     },
 
     progressCard: {

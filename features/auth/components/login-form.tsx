@@ -65,9 +65,9 @@ export default function LoginForm() {
 
   const [nextSteps, setNextSteps] = useState<string[]>([]);
 
-  const [pendingLogin, setPendingLogin] = useState<
-  Awaited<ReturnType<typeof loginAction>> | null
->(null);
+  const [pendingLogin, setPendingLogin] = useState<Awaited<
+    ReturnType<typeof loginAction>
+  > | null>(null);
 
   const router = useRouter();
 
@@ -88,96 +88,49 @@ export default function LoginForm() {
     },
   });
 
-
   const onSubmit = async (data: LoginPayload) => {
-  try {
-    setLoading(true);
-    setErrorMessage('');
+    try {
+      setLoading(true);
+      setErrorMessage('');
 
-    const response = await loginAction(data);
+      const response = await loginAction(data);
 
-    console.log('Login result:', response);
+      console.log('Login result:', response);
 
-    if (!response.success) {
-      setValue('password', '');
-      setErrorMessage(response.message || 'Login failed');
-      return;
-    }
-
-    /**
-     * =========================
-     * VERIFICATION MODAL
-     * =========================
-     */
-    if (response.flow === 'verification') {
-      setValue('password', '');
-
-      setPendingLogin(response);
-
-      setModalType('verification');
-      setModalTitle('Verification Required');
-      setButtonText('Proceed to Verification');
-
-      if (response.verificationMethod === 'email') {
-        setRedirectPath('/(app)/(verify)/email');
-
-        setNextSteps([
-          'Phone verified successfully',
-          'Verify your email address to continue',
-        ]);
-      } else {
-        setRedirectPath('/(app)/(verify)/phone');
-
-        setNextSteps([
-          'Verify your phone number first',
-          'Then verify your email address',
-        ]);
+      if (!response.success) {
+        setValue('password', '');
+        setErrorMessage(response.message || 'Login failed');
+        return;
       }
 
-      setShowModal(true);
-
-      return;
-    }
-
-    /**
-     * =========================
-     * AUTHENTICATED
-     * =========================
-     */
-    if (response.flow === 'authenticated') {
-      setPendingLogin(response);
-
       /**
-       * ALWAYS show onboarding modal first.
+       * =========================
+       * VERIFICATION MODAL
+       * =========================
        */
-      if (
-        response.onboardingStatus === 'NOT_STARTED' ||
-        response.onboardingStatus === 'IN_PROGRESS'
-      ) {
-        setModalType('onboarding');
-        setModalTitle('Complete Onboarding');
-        setButtonText('Continue Onboarding');
+      if (response.flow === 'verification') {
+        setValue('password', '');
 
-        if (response.onboardingStatus === 'NOT_STARTED') {
-          const nextStep = 1;
+        setPendingLogin(response);
 
-          setRedirectPath(
-            `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=0`,
-          );
+        setModalType('verification');
+        setModalTitle('Verification Required');
+        setButtonText('Proceed to Verification');
 
-          setNextSteps(onBoardingSteps);
+        if (response.verificationMethod === 'email') {
+          setRedirectPath('/(app)/(verify)/email');
+
+          setNextSteps([
+            'Phone verified successfully',
+            'Verify your email address to continue',
+          ]);
         } else {
-          const completedStep = Number(
-            response.onboardingStep || 0,
-          );
+          setRedirectPath('/(app)/(verify)/phone');
 
-          const nextStep = completedStep + 1;
-
-          setRedirectPath(
-            `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=${completedStep}`,
-          );
-
-          setNextSteps(onBoardingSteps.slice(completedStep));
+          setNextSteps([
+            'Verify your phone number first',
+            'Then verify your email address',
+          ]);
         }
 
         setShowModal(true);
@@ -187,100 +140,122 @@ export default function LoginForm() {
 
       /**
        * =========================
-       * NO ONBOARDING REQUIRED
+       * AUTHENTICATED
        * =========================
        */
-      await saveAuthenticatedAuth(response);
+      if (response.flow === 'authenticated') {
+        setPendingLogin(response);
+
+        /**
+         * ALWAYS show onboarding modal first.
+         */
+        if (
+          response.onboardingStatus === 'NOT_STARTED' ||
+          response.onboardingStatus === 'IN_PROGRESS'
+        ) {
+          setModalType('onboarding');
+          setModalTitle('Complete Onboarding');
+          setButtonText('Continue Onboarding');
+
+          if (response.onboardingStatus === 'NOT_STARTED') {
+            const nextStep = 1;
+
+            setRedirectPath(
+              `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=0`,
+            );
+
+            setNextSteps(onBoardingSteps);
+          } else {
+            const completedStep = Number(response.onboardingStep || 0);
+
+            const nextStep = completedStep + 1;
+
+            setRedirectPath(
+              `/(app)/(protected)/onboarding?step=${nextStep}&resumeStep=${completedStep}`,
+            );
+
+            setNextSteps(onBoardingSteps.slice(completedStep));
+          }
+
+          setShowModal(true);
+
+          return;
+        }
+
+        /**
+         * =========================
+         * NO ONBOARDING REQUIRED
+         * =========================
+         */
+        await saveAuthenticatedAuth(response);
+
+        Toast.show({
+          type: 'success',
+          text1: 'Login Successful',
+        });
+
+        router.replace('/(app)/(protected)/(tabs)/home');
+      }
+    } catch (error) {
+      console.log(error);
+      setErrorMessage('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleModalContinue = async () => {
+    if (!pendingLogin) {
+      return;
+    }
+
+    /**
+     * =========================
+     * VERIFICATION
+     * =========================
+     */
+    if (pendingLogin.success && pendingLogin.flow === 'verification') {
+      await saveVerificationAuth({
+        verificationToken: pendingLogin.verificationToken,
+
+        verificationEmail: pendingLogin.verificationEmail,
+
+        verificationPhone: pendingLogin.verificationPhone,
+
+        isEmailVerified: pendingLogin.isEmailVerified,
+
+        isPhoneVerified: pendingLogin.isPhoneVerified,
+      });
+    }
+
+    /**
+     * =========================
+     * ONBOARDING
+     * =========================
+     */
+    if (pendingLogin.success && pendingLogin.flow === 'authenticated') {
+      await saveAuthenticatedAuth({
+        accessToken: pendingLogin.accessToken,
+        refreshToken: pendingLogin.refreshToken,
+
+        onboardingStatus: pendingLogin.onboardingStatus,
+
+        onboardingStep: pendingLogin.onboardingStep,
+
+        driverId: pendingLogin.driverId,
+      });
 
       Toast.show({
         type: 'success',
         text1: 'Login Successful',
       });
-
-      router.replace(
-        '/(app)/(protected)/(tabs)/home',
-      );
     }
-  } catch (error) {
-    console.log(error);
-    setErrorMessage('Something went wrong');
-  } finally {
-    setLoading(false);
-  }
-};
 
+    setShowModal(false);
+    setPendingLogin(null);
 
-
-
-
-const handleModalContinue = async () => {
-  if (!pendingLogin) {
-    return;
-  }
-
-  /**
-   * =========================
-   * VERIFICATION
-   * =========================
-   */
-  if (
-    pendingLogin.success &&
-    pendingLogin.flow === 'verification'
-  ) {
-    await saveVerificationAuth({
-      verificationToken:
-        pendingLogin.verificationToken,
-
-      verificationEmail:
-        pendingLogin.verificationEmail ,
-
-      verificationPhone:
-        pendingLogin.verificationPhone,
-
-      isEmailVerified:
-        pendingLogin.isEmailVerified,
-
-      isPhoneVerified:
-        pendingLogin.isPhoneVerified,
-    });
-  }
-
-  /**
-   * =========================
-   * ONBOARDING
-   * =========================
-   */
-  if (
-    pendingLogin.success &&
-    pendingLogin.flow === 'authenticated'
-  ) {
-    await saveAuthenticatedAuth({
-      accessToken: pendingLogin.accessToken,
-      refreshToken: pendingLogin.refreshToken,
-
-      onboardingStatus:
-        pendingLogin.onboardingStatus,
-
-      onboardingStep:
-        pendingLogin.onboardingStep,
-
-      driverId: pendingLogin.driverId,
-    });
-
-    Toast.show({
-      type: 'success',
-      text1: 'Login Successful',
-    });
-  }
-
-  setShowModal(false);
-  setPendingLogin(null);
-
-  router.replace(redirectPath);
-};
-
-
-
+    router.replace(redirectPath);
+  };
 
   // const onSubmit = async (data: LoginPayload) => {
   //   try {
@@ -307,7 +282,7 @@ const handleModalContinue = async () => {
   //           'Then verify your email address',
   //         ]);
   //       } else if (response.isPhoneVerified && !response.isEmailVerified) {
-       
+
   //         setRedirectPath('/(app)/(verify)/email');
 
   //         setNextSteps([
@@ -356,7 +331,6 @@ const handleModalContinue = async () => {
   //       return;
   //     }
 
-
   //     if (!response.success) {
   //       setValue('password', '');
 
@@ -365,7 +339,6 @@ const handleModalContinue = async () => {
   //       return;
   //     }
 
-   
   //     if (response.status === 'UNDER_REVIEW') {
   //       setShowModal(true);
   //       setModalType('verification');
@@ -484,8 +457,7 @@ const handleModalContinue = async () => {
         nextSteps={nextSteps}
         setShowSuccessModal={setShowModal}
         requireVerification={modalType === 'verification'}
-          onContinue={handleModalContinue}
-
+        onContinue={handleModalContinue}
       />
     </>
   );

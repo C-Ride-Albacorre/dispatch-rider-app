@@ -2,7 +2,6 @@ import { Fonts } from '@/constants/theme';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { RecentDelivery } from '../use-fetch';
 
@@ -62,7 +61,7 @@ export default function RenderRecentDeliveries({
       </View>
 
       <View style={styles.deliveryFare}>
-        <Text style={styles.amount}>NGN {delivery.deliveryFee}</Text>
+        <Text style={styles.amount}>₦ {delivery.deliveryFee}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -96,7 +95,6 @@ const createStyles = (Colors: any) =>
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: Colors.successExtraLight,
-  
     },
 
     statusIconText: {

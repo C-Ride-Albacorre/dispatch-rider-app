@@ -1,6 +1,6 @@
 {
   "name": "C-Ride Driver",
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "version": "1.0.0",
   "scripts": {
     "start": "expo start",
@@ -43,6 +43,7 @@
     "expo-status-bar": "~56.0.4",
     "expo-symbols": "~56.0.6",
     "expo-system-ui": "~56.0.5",
+    "expo-task-manager": "~56.0.27",
     "expo-updates": "~56.0.23",
     "expo-web-browser": "~56.0.6",
     "lottie-react-native": "~7.3.1",

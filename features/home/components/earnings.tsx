@@ -15,11 +15,16 @@ export default function Earnings() {
         </View>
 
         <View style={styles.earningsDetails}>
-          <View style={[    styles.earningItem, { backgroundColor: Colors.successExtraLight }]}>
+          <View
+            style={[
+              styles.earningItem,
+              { backgroundColor: Colors.successExtraLight },
+            ]}
+          >
             <View style={styles.earningDetail}>
               <Text style={styles.earningDetailText}>This Month</Text>
 
-              <Text style={styles.earningDetailValue}>NGN 12,500</Text>
+              <Text style={styles.earningDetailValue}>₦ 12,500</Text>
             </View>
 
             <Ionicons
@@ -29,11 +34,16 @@ export default function Earnings() {
             />
           </View>
 
-          <View style={[    styles.earningItem, { backgroundColor: Colors.primaryLight }]}>
+          <View
+            style={[
+              styles.earningItem,
+              { backgroundColor: Colors.primaryLight },
+            ]}
+          >
             <View style={styles.earningDetail}>
               <Text style={styles.earningDetailText}>This Week</Text>
 
-              <Text style={styles.earningDetailValue}>NGN 42,500</Text>
+              <Text style={styles.earningDetailValue}>₦ 42,500</Text>
             </View>
 
             <Ionicons
@@ -43,11 +53,11 @@ export default function Earnings() {
             />
           </View>
 
-          <View style={[    styles.earningItem, { backgroundColor: Colors.light }]}>
+          <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
             <View style={styles.earningDetail}>
               <Text style={styles.earningDetailText}>This Month</Text>
 
-              <Text style={styles.earningDetailValue}>NGN 112,500</Text>
+              <Text style={styles.earningDetailValue}>₦ 112,500</Text>
             </View>
 
             <Ionicons
@@ -67,34 +77,36 @@ export default function Earnings() {
           </View>
         </View>
 
-        <View style={[  styles.earningItem, { backgroundColor: Colors.light }]}>
+        <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
           <View style={styles.earningDetail}>
             <Ionicons name="cash-outline" size={16} color={Colors.primary} />
             <Text style={styles.earningDetailText}>Base Earnings</Text>
           </View>
 
-          <Text style={styles.earningDetailValue}>NGN 12,500</Text>
+          <Text style={styles.earningDetailValue}>₦ 12,500</Text>
         </View>
 
-        <View style={[  styles.earningItem, { backgroundColor: Colors.light }]}>
+        <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
           <View style={styles.earningDetail}>
             <Ionicons name="trophy-outline" size={16} color={Colors.primary} />
             <Text style={styles.earningDetailText}>Performance Bonus</Text>
           </View>
 
-          <Text style={styles.earningDetailValue}>NGN 28,500</Text>
+          <Text style={styles.earningDetailValue}>₦ 28,500</Text>
         </View>
 
-        <View style={[  styles.earningItem, { backgroundColor: Colors.light }]}>
+        <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
           <View style={styles.earningDetail}>
             <Ionicons name="cash-outline" size={16} color={Colors.primary} />
             <Text style={styles.earningDetailText}>Tips</Text>
           </View>
 
-          <Text style={styles.earningDetailValue}>NGN 12,500</Text>
+          <Text style={styles.earningDetailValue}>₦ 12,500</Text>
         </View>
 
-        <View style={[  styles.earningItem, { backgroundColor: Colors.primaryLight  }]}>
+        <View
+          style={[styles.earningItem, { backgroundColor: Colors.primaryLight }]}
+        >
           <View style={styles.earningDetail}>
             <Text style={styles.earningDetailText}>Total This Week</Text>
           </View>
@@ -136,11 +148,9 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.brandMedium,
     color: Colors.textSecondary,
   },
-earningsDetails:{
-
+  earningsDetails: {
     gap: 12,
-
-},
+  },
   earningItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -148,12 +158,10 @@ earningsDetails:{
     gap: 12,
     padding: 16,
     borderRadius: 14,
-    
   },
 
   earningDetail: {
     gap: 8,
-
   },
 
   earningDetailText: {
@@ -162,12 +170,9 @@ earningsDetails:{
     color: Colors.text,
   },
 
-    earningDetailValue: {
-
+  earningDetailValue: {
     fontSize: 14,
     fontFamily: Fonts.brandSemiBold,
     color: Colors.text,
-    },
-
-
+  },
 });

@@ -55,7 +55,7 @@ const createStyles = (Colors: any) =>
     },
 
   label: {
-    fontSize: normalize(16),
+    fontSize: normalize(14),
     fontFamily: Fonts.brandMedium,
     color: Colors.text,
   },
@@ -78,7 +78,7 @@ const createStyles = (Colors: any) =>
   },
 
   uploadText: {
-    fontSize: normalize(14),
+    fontSize: normalize(12),
     fontFamily: Fonts.brandRegular,
     color: Colors.textSecondary,
   },

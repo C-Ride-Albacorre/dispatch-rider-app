@@ -85,7 +85,8 @@ export function useDriverSocket(
 
   const setSocket = useDriverJobsStore((s) => s.setSocket);
   const setActiveOrder = useDriverJobsStore((s) => s.setActiveOrder);
-  const addOrder = useDriverJobsStore((s) => s.addOrder);
+  const setOrders = useDriverJobsStore((s) => s.setOrders);
+  const addOrders = useDriverJobsStore((s) => s.addOrders);
   const removeOrder = useDriverJobsStore((s) => s.removeOrder);
   const clearIncoming = useDriverJobsStore((s) => s.clearIncoming);
 
@@ -184,49 +185,36 @@ export function useDriverSocket(
       });
     });
 
-    socket.on('new-order-request', (order) => {
-      const orderId = order?.order_id ?? order?.orderId;
+    // Full list of available orders, sent on every (re)connect
+    socket.on('sync-orders', (payload) => {
+      const orders = payload?.orders ?? [];
 
-      driverSocketLog('new-order-request', {
-        orderId,
-        hasOrderId: !!orderId,
-        driverStatus: status,
-        orderData: order,
-      });
+      driverSocketLog('sync-orders', { count: orders.length });
 
-      if (!orderId) {
-        console.warn('[driver-socket] Received order without ID:', order);
-        return;
-      }
-
-      // Don't accept jobs if status is OFFLINE or UNKNOWN
-      // if (status === 'OFFLINE' || status === 'UNKNOWN') {
-      //   driverSocketLog('rejecting order: driver status is', status);
-      //   return;
-      // }
-
-      addOrder(order);
+      setOrders(orders);
     });
 
-    socket.on('request-timeout', ({ orderId }) => {
-      removeOrder(orderId);
+    // Orders dispatched while connected
+    socket.on('new-order-request', (payload) => {
+      const orders = payload?.orders ?? [];
+
+      console.log(
+        '[driver-socket] new-order-request:',
+        JSON.stringify(payload, null, 2),
+      );
+
+      addOrders(orders);
     });
 
-    socket.on('remove-order', (data) => {
-      const { orderId, assignedDriverId } = data;
+    // Order accepted by another driver (or otherwise withdrawn)
+    socket.on('order-removed', (payload) => {
+      driverSocketLog('order-removed', { orderId: payload?.order_id });
 
-      driverSocketLog('remove-order', {
-        orderId,
-        assignedDriverId,
-        currentDriverId: driverId,
-      });
+      removeOrder(payload?.order_id);
+    });
 
-      removeOrder(orderId);
-
-      // Only clear incoming if this job was assigned to current driver
-      if (assignedDriverId === driverId) {
-        clearIncoming();
-      }
+    socket.on('request-timeout', (data) => {
+      removeOrder(data?.orderId ?? data?.order_id);
     });
 
     socket.on('active-order', (payload) => {
@@ -296,7 +284,8 @@ export function useDriverSocket(
     activeOrderId,
     setSocket,
     setActiveOrder,
-    addOrder,
+    setOrders,
+    addOrders,
     removeOrder,
     clearIncoming,
   ]);

@@ -1,23 +1,5 @@
 import { api } from '@/libs/api';
 
-export async function getAvailableJobsService(lat: number, lng: number) {
-
-if (!lat || !lng) {
-    throw new Error('Latitude and longitude are required to fetch available jobs.');
-  }
-
-  console.log('Fetching available jobs for location:', { lat, lng });
-
-  const response = await api.get('/driver/available-orders', {
-    params: {
-      lat,
-      lng,
-    },
-  });
-
-  return response.data;
-}
-
 export async function getAvailableJobsDetailsService(orderId: string) {
   console.log('Fetching available job details for order ID:', { orderId });
 

@@ -8,14 +8,12 @@ import { normalize, scale } from '@/utils/scaling';
 
 type LocationPermissionModalProps = {
   visible: boolean;
-  onAllow: () => void;
-  onDeny: () => void;
+  onContinue: () => void;
 };
 
 export default function LocationPermissionModal({
   visible,
-  onAllow,
-  onDeny,
+  onContinue,
 }: LocationPermissionModalProps) {
   const { Colors } = useTheme();
 
@@ -27,6 +25,7 @@ export default function LocationPermissionModal({
       transparent
       animationType="fade"
       statusBarTranslucent
+      onRequestClose={onContinue}
     >
       <View style={styles.overlay}>
         <View style={styles.content}>
@@ -34,24 +33,16 @@ export default function LocationPermissionModal({
             <Ionicons name="location" size={scale(36)} color={Colors.primary} />
           </View>
 
-          <Text style={styles.title}>Enable Location Access</Text>
+          <Text style={styles.title}>Location Access</Text>
 
           <Text style={styles.description}>
-            C-Ride needs your location to find nearby delivery jobs and match
-            you with orders along your route. Your location is only used while
-            the app is open.
+            C-Ride uses your location to find nearby delivery jobs, match you
+            with orders along your route, and share your position with
+            customers during a delivery.
           </Text>
 
-          <Button onPress={onAllow} style={styles.button}>
-            Allow Location Access
-          </Button>
-
-          <Button
-            variant="outline"
-            onPress={onDeny}
-            style={StyleSheet.flatten([styles.button, styles.denyButton])}
-          >
-            Not Now
+          <Button onPress={onContinue} style={styles.button}>
+            Continue
           </Button>
         </View>
       </View>
@@ -107,9 +98,5 @@ const createStyles = (Colors: any) =>
 
     button: {
       width: '100%',
-    },
-
-    denyButton: {
-      marginTop: scale(12),
     },
   });

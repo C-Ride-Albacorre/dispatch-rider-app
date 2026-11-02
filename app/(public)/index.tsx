@@ -2,11 +2,19 @@ import Button from '@/components/ui/buttons/button';
 import { Colors, Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { scale } from '@/utils/scaling';
+import { scale, verticalScale } from '@/utils/scaling';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import { Image, Linking, StyleSheet, Text, View } from 'react-native';
+import {
+  Image,
+  Linking,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function Index() {
   const openWebBrowser = async (url: string) => {
@@ -19,11 +27,18 @@ export default function Index() {
   };
 
   const { Colors } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const styles = createStyles(Colors);
 
   return (
-    <View style={styles.container}>
+    // Scrollable so short screens can still reach the terms text
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+      bounces={false}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.imageContainer}>
         <Image
           source={require('../../assets/images/rider-image.jpg')}
@@ -38,7 +53,13 @@ export default function Index() {
         />
       </View>
 
-      <View style={styles.contentContainer}>
+      <View
+        style={[
+          styles.contentContainer,
+          // Keep the terms text above the Android navigation bar / iOS home indicator
+          { paddingBottom: insets.bottom + 20 },
+        ]}
+      >
         <View style={{ width: '100%' }}>
           <View style={{ alignItems: 'center' }}>
             <Image
@@ -78,14 +99,14 @@ export default function Index() {
               <Text>
                 By continuing, you agree to our{' '}
                 <Text
-                  onPress={() => openWebBrowser('https://example.com/terms')}
+                  onPress={() => openWebBrowser('https://c-ride.co/terms')}
                   style={styles.link}
                 >
                   Terms of Service
                 </Text>{' '}
                 and{' '}
                 <Text
-                  onPress={() => openWebBrowser('https://example.com/privacy')}
+                  onPress={() => openWebBrowser('https://c-ride.co/privacy')}
                   style={styles.link}
                 >
                   Privacy Policy
@@ -96,7 +117,7 @@ export default function Index() {
           </View>
         </View>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -107,14 +128,21 @@ const createStyles = (Colors: any) =>
       backgroundColor: Colors.background,
     },
 
+    scrollContent: {
+      flexGrow: 1,
+    },
+
     bgImage: {
       width: '100%',
       height: '100%',
       transform: [{ scale: 1.01 }],
     },
 
+    // Takes whatever height the content leaves over, but never collapses on
+    // short screens; past this minimum the page scrolls instead
     imageContainer: {
-      flex: 0.8,
+      flexGrow: 1,
+      minHeight: verticalScale(220),
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
@@ -137,17 +165,16 @@ const createStyles = (Colors: any) =>
     },
 
     contentContainer: {
-      flex: 1,
       alignItems: 'center',
       paddingHorizontal: 30,
-      paddingVertical: 20,
+      paddingTop: 20,
     },
 
     tagline: {
       fontSize: 32,
       fontFamily: Fonts.brandBold,
       textAlign: 'center',
-      marginBottom: 50,
+      marginBottom: verticalScale(40),
       lineHeight: 36,
       color: Colors.text,
     },

@@ -1,5 +1,3 @@
-
-
 import {
   Poppins_400Regular,
   Poppins_500Medium,
@@ -9,42 +7,40 @@ import {
 } from '@expo-google-fonts/poppins';
 import { DefaultTheme, Slot, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import '../global.css';
 import ReactQueryProvider from '../providers/react-query-provider';
-
-
 
 import { restoreAuth, useAuthStore } from '@/store/auth-store';
 
 import AuthGate from '@/features/auth/components/auth-gate';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
 
+import AnimatedSplash from '@/components/layout/animated-splash';
+import OfflineBanner from '@/components/layout/offline-banner';
+import { toastConfig } from '@/components/ui/input/toast-config';
+import { setupNotificationChannels } from '@/services/notifications/setupNotificationChannels';
+import NetInfo from '@react-native-community/netinfo';
 import { usePathname } from 'expo-router';
 import Toast from 'react-native-toast-message';
-import NetInfo from '@react-native-community/netinfo';
-import messaging from '@react-native-firebase/messaging';
-import { toastConfig } from '@/components/ui/input/toast-config';
-import OfflineBanner from '@/components/layout/offline-banner';
 
 SplashScreen.preventAutoHideAsync();
+
+// The native window behind the app defaults to white and shows through
+// around the tab bar / navigation bar on some Android devices
+SystemUI.setBackgroundColorAsync('#000000');
 
 // Black background shows outside the max-width content area
 const AppTheme = {
   ...DefaultTheme,
-  colors: { ...DefaultTheme.colors, background: '#000000' },
+  colors: { ...DefaultTheme.colors, background: '#1A1A1A' },
 };
 
-
-
-
-
-messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-  console.log('Background notification:', remoteMessage);
-});
-
-
+// Initialize notification channels as early as possible.
+// The background message handler is registered in index.ts.
+setupNotificationChannels();
 
 export default function RootLayout() {
   console.log('ROOT LAYOUT MOUNTED');
@@ -56,6 +52,7 @@ export default function RootLayout() {
   const verificationPhone = useAuthStore((state) => state.verificationPhone);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [isConnected, setIsConnected] = useState<boolean | null>(null);
+  const [splashFinished, setSplashFinished] = useState(false);
   const pathname = usePathname();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -64,35 +61,23 @@ export default function RootLayout() {
     Poppins_700Bold,
   });
 
-useEffect(() => {
-  async function checkConnection() {
-    const state = await NetInfo.fetch();
+  useEffect(() => {
+    async function checkConnection() {
+      const state = await NetInfo.fetch();
 
-    setIsConnected(
-      Boolean(
-        state.isConnected &&
-        state.isInternetReachable
-      ),
-    );
-  }
+      setIsConnected(Boolean(state.isConnected && state.isInternetReachable));
+    }
 
-  checkConnection();
+    checkConnection();
 
-  const unsubscribe = NetInfo.addEventListener((state) => {
-    setIsConnected(
-      Boolean(
-        state.isConnected &&
-        state.isInternetReachable
-      ),
-    );
-  });
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsConnected(Boolean(state.isConnected && state.isInternetReachable));
+    });
 
-  return unsubscribe;
-}, []);
+    return unsubscribe;
+  }, []);
 
-const appReady =
-  fontsLoaded &&
-  isHydrated;
+  const appReady = fontsLoaded && isHydrated;
 
   // Only restore auth if not on a verification route
   useEffect(() => {
@@ -112,27 +97,6 @@ const appReady =
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  // Hide native splash ONLY after everything is ready
-  useEffect(() => {
-    async function hideSplash() {
-      if (appReady) {
-        await SplashScreen.hideAsync();
-      }
-    }
-
-    hideSplash();
-  }, [appReady]);
-
-  if (!appReady) {
-    return null;
-  }
-
-  console.log({
-    fontsLoaded,
-    isHydrated,
-    authStatus: useAuthStore.getState().authStatus,
-  });
-
   // if (!isConnected) {
   //   return (
   //     <OfflineScreen
@@ -147,39 +111,49 @@ const appReady =
   //   );
   // }
 
+  // The native splash is hidden by AnimatedSplash once it is on screen; it
+  // stays on top while the app loads and fades out when appReady is true.
   return (
-  <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000000' }}>
-    <ReactQueryProvider>
-      <ThemeProvider value={AppTheme}>
-        <AuthGate>
-          <Slot />
-        </AuthGate>
-      </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#1A1A1A' }}>
+      {appReady && (
+        <>
+          <ReactQueryProvider>
+            <ThemeProvider value={AppTheme}>
+              <AuthGate>
+                <Slot />
+              </AuthGate>
+            </ThemeProvider>
 
-      <ExpiredTokenModal
-        showExpiredModal={showExpiredModal}
-        setShowExpiredModal={setShowExpiredModal}
-      />
+            <ExpiredTokenModal
+              showExpiredModal={showExpiredModal}
+              setShowExpiredModal={setShowExpiredModal}
+            />
 
-      {!isConnected && (
-        <OfflineBanner
-          onRetry={async () => {
-            const state = await NetInfo.fetch();
+            {!isConnected && (
+              <OfflineBanner
+                onRetry={async () => {
+                  const state = await NetInfo.fetch();
 
-            setIsConnected(
-              Boolean(
-                state.isConnected &&
-                state.isInternetReachable
-              ),
-            );
-          }}
+                  setIsConnected(
+                    Boolean(state.isConnected && state.isInternetReachable),
+                  );
+                }}
+              />
+            )}
+          </ReactQueryProvider>
+
+          <Toast config={toastConfig} />
+        </>
+      )}
+
+      {!splashFinished && (
+        <AnimatedSplash
+          ready={appReady}
+          onFinish={() => setSplashFinished(true)}
         />
       )}
-    </ReactQueryProvider>
-
-    <Toast config={toastConfig} />
-  </GestureHandlerRootView>
-);
+    </GestureHandlerRootView>
+  );
 
   // return (
   //   <GestureHandlerRootView style={{ flex: 1 }}>

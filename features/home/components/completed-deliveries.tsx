@@ -44,7 +44,7 @@ export default function CompletedDeliveries() {
         </View>
 
         <View style={styles.earningsInfo}>
-          <Text style={styles.earningsAmount}>NGN 6500</Text>
+          <Text style={styles.earningsAmount}>₦ 6500</Text>
 
           <View style={styles.earningsDetails}>
             <View style={styles.rating}>

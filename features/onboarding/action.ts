@@ -10,7 +10,7 @@ import { onboarding, submitDriverDocuments } from './service';
 import { saveOnboardingProgress } from '@/utils/save-onboarding-progress';
 
 export type VehicleInfoPayload = {
-  vehicleType: 'CAR' | 'EV';
+  vehicleTypeConfigId: string;
   vehicleMake: string;
   vehicleModel: string;
   year: number;

@@ -1,103 +1,85 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 
-const Progress_Bar_Color = {
-  rating: {
-    backgroundColor: Colors.success,
-  },
-  acceptance: {
-    backgroundColor: Colors.primary,
-  },
-  onTime: {
-    backgroundColor: Colors.primary,
-  },
+function MetricBar({
+  title,
+  value,
+  percent,
+  color,
+}: {
+  title: string;
+  value: string;
+  percent: number;
+  color: string;
+}) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-  completion: {
-    backgroundColor: Colors.primary,
-  },
-};
+  const width = useSharedValue(0);
+
+  // Grow the bar each time the metric is revealed
+  useEffect(() => {
+    width.value = withTiming(Math.min(Math.max(percent, 0), 100), {
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+    });
+  }, [percent]);
+
+  const barStyle = useAnimatedStyle(() => ({
+    width: `${width.value}%`,
+  }));
+
+  return (
+    <View style={styles.metricItem}>
+      <View style={styles.metricHeader}>
+        <Text style={styles.metricTitle}>{title}</Text>
+        <Text style={styles.metricValue}>{value}</Text>
+      </View>
+
+      <View style={styles.metricProgressBarContainer}>
+        <Animated.View
+          style={[styles.metricProgressBar, { backgroundColor: color }, barStyle]}
+        />
+      </View>
+    </View>
+  );
+}
 
 export default function DriverPerformance({
   stats,
 }: {
   stats?: {
-    rating: number;
+    rating?: number;
   };
 }) {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
+  const rating = stats?.rating ?? 0;
+
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Performance Metrics</Text>
-
-      <View style={styles.metricsContainer}>
-        <View style={styles.metricItem}>
-          <View style={styles.metricHeader}>
-            <Text style={styles.metricTitle}>Overall Rating</Text>
-            <Text style={styles.metricValue}>{stats?.rating.toFixed(1)}/5.0</Text>
-          </View>
-
-          <View style={styles.metricProgressBarContainer}>
-            <View style={[styles.metricProgressBar, Progress_Bar_Color.rating, { width: `${(stats?.rating ?? 0) * 20}%` }]}></View>
-          </View>
-        </View>
-
-        <View style={styles.metricItem}>
-          <View style={styles.metricHeader}>
-            <Text style={styles.metricTitle}>Acceptance Rate</Text>
-            <Text style={styles.metricValue}>0%</Text>
-          </View>
-
-          <View style={styles.metricProgressBarContainer}>
-            <View style={[styles.metricProgressBar, Progress_Bar_Color.acceptance, { width: `${0}%` }]}></View>
-          </View>
-        </View>
-
-        <View style={styles.metricItem}>
-          <View style={styles.metricHeader}>
-            <Text style={styles.metricTitle}>On-Time Delivery</Text>
-            <Text style={styles.metricValue}>0%</Text>
-          </View>
-
-          <View style={styles.metricProgressBarContainer}>
-            <View style={[styles.metricProgressBar, Progress_Bar_Color.onTime, { width: `${0}%` }]}></View>
-          </View>
-        </View>
-
-        <View style={styles.metricItem}>
-          <View style={styles.metricHeader}>
-            <Text style={styles.metricTitle}>Completion Rate</Text>
-            <Text style={styles.metricValue}>0%</Text>
-          </View>
-
-          <View style={styles.metricProgressBarContainer}>
-            <View style={[styles.metricProgressBar, Progress_Bar_Color.completion, { width: `${0}%` }]}></View>
-          </View>
-        </View>
-      </View>
+    <View style={styles.metricsContainer}>
+      <MetricBar
+        title="Overall Rating"
+        value={`${rating.toFixed(1)}/5.0`}
+        percent={rating * 20}
+        color={Colors.success}
+      />
     </View>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    section: {
-      gap: scale(12),
-      padding: scale(16),
-      borderRadius: scale(12),
-      borderWidth: 1,
-      borderColor: Colors.border,
-    },
-
-    sectionTitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-    },
-
     metricsContainer: {
       gap: scale(16),
     },
@@ -128,8 +110,6 @@ const createStyles = (Colors: any) =>
     },
     metricProgressBar: {
       height: '100%',
-      width: '75%',
       borderRadius: scale(3),
-      backgroundColor: Colors.primary,
     },
   });

@@ -1,5 +1,4 @@
 import { api } from '@/libs/api';
-import { DeliveryHistoryStatus } from './use-fetch';
 
 export async function getDashboardStatsService() {
   const response = await api.get('/driver/dashboard');

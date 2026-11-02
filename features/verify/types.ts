@@ -9,3 +9,11 @@ export type VerifyEmailPayload = {
   otp: string;
   verificationToken: string;
 };
+
+export type ResendVerificationTokenResponse = {
+  message: string;
+  verificationToken: string;
+  verificationIdentifier: string;
+  requiresVerification: boolean;
+  otpExpiresAt: string;
+};

@@ -118,18 +118,11 @@ export function useLocation() {
     }
   }, [startTracking]);
 
-  const dismissPermissionModal = useCallback(() => {
-    setShowPermissionModal(false);
-    setPermissionStatus('denied');
-    setLoading(false);
-  }, []);
-
   return {
     location,
     loading,
     permissionStatus,
     showPermissionModal,
     requestPermission,
-    dismissPermissionModal,
   };
 }

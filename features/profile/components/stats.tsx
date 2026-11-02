@@ -37,12 +37,7 @@ export default function DriverStats({
         <Text style={styles.statLabel}>Online</Text>
       </View>
 
-      <View style={styles.statItem}>
-        <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
-          {formatNaira(earnings?.tipsEarned)}
-        </Text>
-        <Text style={styles.statLabel}>Tips</Text>
-      </View>
+  
     </View>
   );
 }

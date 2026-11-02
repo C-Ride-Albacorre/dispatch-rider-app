@@ -1,8 +1,9 @@
 import messaging from '@react-native-firebase/messaging';
 
-import { requestNotificationPermission } from './requestNotificationPermission';
-import { registerDeviceToken } from './registerDeviceToken';
 import { getFCMToken } from './getFcmToken';
+import { registerDeviceToken } from './registerDeviceToken';
+import { requestNotificationPermission } from './requestNotificationPermission';
+import { setupNotificationChannels } from './setupNotificationChannels';
 
 let unsubscribeTokenRefresh: (() => void) | null = null;
 
@@ -21,6 +22,9 @@ export async function initializeNotifications() {
     if (unsubscribeTokenRefresh) {
       return;
     }
+
+    // 0. Setup notification channels (Android only, but safe to call on all platforms)
+    await setupNotificationChannels();
 
     // 1. Request notification permission
     const permissionGranted = await requestNotificationPermission();
@@ -44,7 +48,7 @@ export async function initializeNotifications() {
     // 2. Get current FCM token
     const token = await getFCMToken();
 
-     console.log('🔔 FCM token result:', {
+    console.log('🔔 FCM token result:', {
       exists: !!token,
       length: token?.length,
       token,

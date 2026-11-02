@@ -112,7 +112,7 @@ export default function Performance() {
 
             <Text style={styles.weeklyStatTitle}>Earnings</Text>
 
-            <Text style={styles.weeklyStatValue}>NGN 285,400</Text>
+            <Text style={styles.weeklyStatValue}>₦ 285,400</Text>
           </View>
 
           <View
@@ -139,7 +139,7 @@ export default function Performance() {
 
             <Text style={styles.weeklyStatTitle}>Tips</Text>
 
-            <Text style={styles.weeklyStatValue}>NGN 12,500</Text>
+            <Text style={styles.weeklyStatValue}>₦ 12,500</Text>
           </View>
         </View>
       </View>

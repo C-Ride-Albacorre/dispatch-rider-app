@@ -7,23 +7,25 @@ import {
 import Button from '@/components/ui/buttons/button';
 import { Fonts } from '@/constants/theme';
 import { useDashboardStats } from '@/features/home/use-fetch';
-import ErrorContent from '@/features/jobs/components/error';
 import LoadingJobs from '@/features/jobs/components/loading-jobs';
 import NoJobs from '@/features/jobs/components/no-job';
 import RenderJobCard from '@/features/jobs/components/render-job-card';
 import RenderJobHeader from '@/features/jobs/components/render-job-header';
-import { useAvailableJobs } from '@/features/jobs/use-fetch';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Image, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Toast from 'react-native-toast-message';
 import { DriverStatus } from '../home';
+
+// Stop the spinner if the server never answers with sync-orders
+const REFRESH_TIMEOUT = 8000;
 
 export type DriverOrder = {
   order_id: string;
@@ -79,93 +81,43 @@ export default function Jobs() {
     permissionStatus,
     showPermissionModal,
     requestPermission,
-    dismissPermissionModal,
   } = useLocation();
 
-  // Only fetch jobs when NOT busy
-  const { data, isLoading, error, refetch } = useAvailableJobs(
-    location?.latitude,
-    location?.longitude,
-    {
-      enabled: !isBusy,
-    },
-  );
+  // Jobs arrive in real time over the driver socket only
+  const jobs = useDriverJobsStore((s) => s.incomingOrders);
 
-  // Pull-to-refresh state
+  const socket = useDriverJobsStore((s) => s.socket);
+
   const [refreshing, setRefreshing] = useState(false);
+  
+  const handleRefresh = useCallback(() => {
+    if (!socket?.connected || !location) {
+      Toast.show({
+        type: 'error',
+        text1: !location
+          ? 'Waiting for your location'
+          : 'Not connected, try again shortly',
+      });
+      return;
+    }
 
-  // Track previous status to detect offline -> online transition
-  const previousStatusRef = useRef(driverStatus);
-
-  // Handle pull-to-refresh
-  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
 
-    try {
-      await refetch();
-    } finally {
+    const done = () => {
+      clearTimeout(timeout);
+      socket.off('sync-orders', done);
       setRefreshing(false);
-    }
-  }, [refetch]);
+    };
 
-  // Refetch jobs when driver comes back online
-  useEffect(() => {
-    if (previousStatusRef.current === 'OFFLINE' && driverStatus !== 'OFFLINE') {
-      console.log('[JOBS] 🟢 Driver back online, refetching jobs...');
-      refetch();
-    }
-    previousStatusRef.current = driverStatus;
-  }, [driverStatus, refetch]);
+    const timeout = setTimeout(done, REFRESH_TIMEOUT);
 
-  const apiJobs = data?.data ?? [];
+    socket.once('sync-orders', done);
 
-  const socketJobs = useDriverJobsStore((s) => s.incomingOrders);
-
-  // console.log('API Jobs:', apiJobs);
-  console.log('Socket Jobs:', socketJobs);
-
-  /**
-   * Normalize job structure
-   */
-  const normalizeJob = (job: any) => ({
-    ...job,
-
-    order_id: job.order_id || job.orderId,
-
-    store_name:
-      job.store_name || job.storeName || job.pickup_location?.storeName,
-
-    total_amount: job.total_amount || job.totalAmount || 0,
-
-    deliveryFee: job.deliveryFee || job.delivery_fee || 0,
-
-    store_lat: job.store_lat || job.pickup_location?.latitude,
-
-    store_lng: job.store_lng || job.pickup_location?.longitude,
-  });
-
-  /**
-   * Merge API jobs + realtime socket jobs
-   * Socket jobs appear FIRST in the list
-   */
-
-  // Create a Set of socket job IDs for deduplication
-  const socketJobIds = new Set(
-    socketJobs.map((job: any) => normalizeJob(job).order_id),
-  );
-
-  // Start with socket jobs (first priority)
-  const socketJobsNormalized = socketJobs.map((job: any) => normalizeJob(job));
-
-  // Then add API jobs that aren't already in socket jobs
-  const apiJobsNotInSocket = apiJobs
-    .map((job: any) => normalizeJob(job))
-    .filter((job: any) => !socketJobIds.has(job.order_id));
-
-  console.log(' Socket Jobs:', socketJobs);
-  console.log(' API Jobs Not in Socket:', apiJobsNotInSocket);
-
-  const jobs = [...socketJobsNormalized, ...apiJobsNotInSocket];
+    socket.emit('request-sync', {
+      lat: location.latitude,
+      lng: location.longitude,
+    });
+  }, [socket, location]);
 
   const renderListHeader = useCallback(
     () => <RenderJobHeader jobs={jobs} />,
@@ -249,8 +201,7 @@ export default function Jobs() {
 
         <LocationPermissionModal
           visible={showPermissionModal}
-          onAllow={requestPermission}
-          onDeny={dismissPermissionModal}
+          onContinue={requestPermission}
         />
       </View>
     );
@@ -293,8 +244,7 @@ export default function Jobs() {
       <>
         <LocationPermissionModal
           visible={showPermissionModal}
-          onAllow={requestPermission}
-          onDeny={dismissPermissionModal}
+          onContinue={requestPermission}
         />
 
         <View
@@ -356,13 +306,12 @@ export default function Jobs() {
   }
 
   // Loading state
-  if (locationLoading || isLoading) {
+  if (locationLoading) {
     return (
       <>
         <LocationPermissionModal
           visible={showPermissionModal}
-          onAllow={requestPermission}
-          onDeny={dismissPermissionModal}
+          onContinue={requestPermission}
         />
 
         <LoadingJobs />
@@ -370,17 +319,11 @@ export default function Jobs() {
     );
   }
 
-  // Error state
-  if (error) {
-    return <ErrorContent error={error} />;
-  }
-
   return (
     <>
       <LocationPermissionModal
         visible={showPermissionModal}
-        onAllow={requestPermission}
-        onDeny={dismissPermissionModal}
+        onContinue={requestPermission}
       />
 
       <Animated.FlatList
@@ -397,13 +340,14 @@ export default function Jobs() {
         }}
         ItemSeparatorComponent={() => <View style={{ height: scale(14) }} />}
         ListHeaderComponent={renderListHeader}
-        ListEmptyComponent={!isLoading && renderEmptyState}
+        ListEmptyComponent={renderEmptyState}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
-            progressViewOffset={HEADER_HEIGHT + insets.top + scale(12)}
+            tintColor={Colors.primary}
+            colors={[Colors.primary]}
+            progressViewOffset={HEADER_HEIGHT + insets.top}
           />
         }
       />

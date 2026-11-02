@@ -15,8 +15,6 @@ import ErrorMessage from '../error/error-message';
 import { normalize, scale } from '@/utils/scaling';
 import { useTheme } from '@/hooks/use-theme';
 
-
-
 interface OtpInputProps {
   label?: string;
   errorMessage?: string;
@@ -38,9 +36,7 @@ export default function OtpInput({
   onChange,
   OTP_LENGTH = 6,
 }: OtpInputProps) {
-  const [digits, setDigits] = useState<string[]>(
-    Array(OTP_LENGTH).fill(''),
-  );
+  const [digits, setDigits] = useState<string[]>(Array(OTP_LENGTH).fill(''));
 
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
@@ -74,9 +70,7 @@ export default function OtpInput({
    * - Pasting an OTP
    */
   const fillOtp = (value: string) => {
-    const cleaned = value
-      .replace(/\D/g, '')
-      .slice(0, OTP_LENGTH);
+    const cleaned = value.replace(/\D/g, '').slice(0, OTP_LENGTH);
 
     if (!cleaned) {
       return;
@@ -105,10 +99,7 @@ export default function OtpInput({
   /**
    * Handle typing into a visible OTP box.
    */
-  const handleChange = (
-    value: string,
-    index: number,
-  ) => {
+  const handleChange = (value: string, index: number) => {
     const cleaned = value.replace(/\D/g, '');
 
     /**
@@ -143,10 +134,7 @@ export default function OtpInput({
     /**
      * Move to the next box after entering a digit.
      */
-    if (
-      digit &&
-      index < OTP_LENGTH - 1
-    ) {
+    if (digit && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
@@ -240,15 +228,9 @@ export default function OtpInput({
 
   return (
     <View style={styles.wrapper}>
-      {hasError && (
-        <ErrorMessage message={errorMessage} />
-      )}
+      {hasError && <ErrorMessage message={errorMessage} />}
 
-      {label && (
-        <Text style={styles.label}>
-          {label}
-        </Text>
-      )}
+      {label && <Text style={styles.label}>{label}</Text>}
 
       {/**
        * ==================================================
@@ -299,11 +281,9 @@ export default function OtpInput({
         ]}
       >
         {digits.map((digit, index) => {
-          const isFocused =
-            focusedIndex === index;
+          const isFocused = focusedIndex === index;
 
-          const isFilled =
-            digit.length > 0;
+          const isFilled = digit.length > 0;
 
           return (
             <Pressable
@@ -314,44 +294,23 @@ export default function OtpInput({
               style={[
                 styles.cell,
 
-                isFocused &&
-                  styles.cellFocused,
+                isFocused && styles.cellFocused,
 
-                isFilled &&
-                  !isFocused &&
-                  styles.cellFilled,
+                isFilled && !isFocused && styles.cellFilled,
 
-                hasError &&
-                  styles.cellError,
+                hasError && styles.cellError,
               ]}
             >
               <TextInput
                 ref={(ref) => {
-                  inputRefs.current[index] =
-                    ref;
+                  inputRefs.current[index] = ref;
                 }}
                 style={styles.cellText}
                 value={digit}
-                onChangeText={(value) =>
-                  handleChange(
-                    value,
-                    index,
-                  )
-                }
-                onKeyPress={(e) =>
-                  handleKeyPress(
-                    e,
-                    index,
-                  )
-                }
-                onFocus={() =>
-                  setFocusedIndex(
-                    index,
-                  )
-                }
-                onBlur={() =>
-                  setFocusedIndex(null)
-                }
+                onChangeText={(value) => handleChange(value, index)}
+                onKeyPress={(e) => handleKeyPress(e, index)}
+                onFocus={() => setFocusedIndex(index)}
+                onBlur={() => setFocusedIndex(null)}
                 keyboardType="number-pad"
                 maxLength={1}
                 selectTextOnFocus
@@ -366,10 +325,6 @@ export default function OtpInput({
     </View>
   );
 }
-
-
-
-
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({

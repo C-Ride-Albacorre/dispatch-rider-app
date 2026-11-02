@@ -160,7 +160,9 @@ export default function TabsLayout() {
 
       if (decision === 'allowed') {
         initializeNotifications();
-      } else if (decision === null) {
+      } else {
+        // Includes 'denied' saved by the old "Not Now" button, so those
+        // drivers still reach the system prompt once
         setShowNotificationModal(true);
       }
     };
@@ -300,14 +302,10 @@ export default function TabsLayout() {
 
       <NotificationPermissionModal
         visible={showNotificationModal}
-        onAllow={async () => {
+        onContinue={async () => {
           setShowNotificationModal(false);
           await saveNotificationPermissionDecision('allowed');
           initializeNotifications();
-        }}
-        onDeny={async () => {
-          setShowNotificationModal(false);
-          await saveNotificationPermissionDecision('denied');
         }}
       />
     </ScrollHeaderContext.Provider>

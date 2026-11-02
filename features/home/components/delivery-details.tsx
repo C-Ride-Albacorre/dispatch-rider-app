@@ -104,7 +104,7 @@ export default function DeliveryDetails() {
         <View style={styles.deliveryEarnings}>
           <Text style={styles.earningsLabel}>Earnings</Text>
 
-          <Text style={styles.earningsAmount}>NGN 3,500</Text>
+          <Text style={styles.earningsAmount}>₦ 3,500</Text>
         </View>
 
         <View style={styles.deliveryProgress}>

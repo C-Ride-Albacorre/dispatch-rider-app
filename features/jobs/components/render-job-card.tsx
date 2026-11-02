@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import AcceptButton from './accept-button';
 import ConfirmRequest from './confirm-job-request';
 
 export default function RenderJobCard({ item }: { item: any }) {
@@ -90,7 +91,7 @@ export default function RenderJobCard({ item }: { item: any }) {
             </View>
           </View>
           {/* <Text style={[styles.jobPrice, { color: Colors.primary }]}>
-            NGN {(item.total_amount || 0).toLocaleString()}
+            ₦ {(item.total_amount || 0).toLocaleString()}
           </Text> */}
         </View>
 
@@ -149,13 +150,11 @@ export default function RenderJobCard({ item }: { item: any }) {
             View Details
           </Button>
 
-          <Button
-            variant="primary"
+          <AcceptButton
+            amount={item.deliveryFee}
             onPress={() => handleAcceptOrder(item.order_id, item.total_amount)}
             style={styles.btnPrimary}
-          >
-            Accept • ₦{(item.deliveryFee || 0).toLocaleString()}
-          </Button>
+          />
         </View>
       </TouchableOpacity>
     </>

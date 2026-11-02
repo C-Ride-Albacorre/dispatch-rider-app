@@ -2,19 +2,46 @@ import { Colors, Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-export default function ErrorContent({ error }: { error?: Error }) {
-  const { Colors } = useTheme();
+type ErrorContentProps = {
+  error?: Error;
+  refreshing?: boolean;
+  onRefresh?: () => void;
+};
+
+export default function ErrorContent({
+  error,
+  refreshing = false,
+  onRefresh,
+}: ErrorContentProps) {
+  const { Colors, isDark } = useTheme();
 
   const styles = createStyles(Colors);
 
   return (
-    <View
-      style={[
+    <ScrollView
+      style={{ backgroundColor: Colors.background }}
+      contentContainerStyle={[
         styles.container,
-        { justifyContent: 'center', alignItems: 'center' },
+        { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
       ]}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
+          />
+        ) : undefined
+      }
     >
       <View
         style={[styles.iconWrapper, { backgroundColor: Colors.errorLight }]}
@@ -45,14 +72,13 @@ export default function ErrorContent({ error }: { error?: Error }) {
           {error?.message ?? `Failed to load jobs. Please try again.`}
         </Text>
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
-      flex: 1,
       paddingHorizontal: scale(20),
       paddingVertical: scale(24),
       backgroundColor: Colors.background,

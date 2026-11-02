@@ -1,7 +1,7 @@
 import { ScrollHeaderContext } from '@/components/layout/scroll-header-context';
-import Button from '@/components/ui/buttons/button';
 import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts } from '@/constants/theme';
+import AcceptButton from '@/features/jobs/components/accept-button';
 import ConfirmRequest from '@/features/jobs/components/confirm-job-request';
 import { useAvailableJobDetails } from '@/features/jobs/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
@@ -293,9 +293,11 @@ export default function OrderDetailSheet() {
                 },
               ]}
             >
-              <Button onPress={handleAccept}>
-                Accept Delivery Request · ₦{order.deliveryFee?.toLocaleString()}
-              </Button>
+              <AcceptButton
+                label="Accept Delivery Request"
+                amount={order.deliveryFee}
+                onPress={handleAccept}
+              />
             </View>
           </>
         ) : (

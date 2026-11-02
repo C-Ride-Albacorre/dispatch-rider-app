@@ -41,7 +41,12 @@ export default function Documents({
     error,
   } = useOnboardingStore();
 
-  // inside Documents component
+  const allDocumentsUploaded =
+    !!step3Data.DRIVER_LICENSE &&
+    !!step3Data.VEHICLE_INSURANCE &&
+    !!step3Data.VEHICLE_REGISTRATION;
+
+ 
 
   const pickDocument = async (
     documentType: DriverDocumentType,
@@ -171,7 +176,7 @@ export default function Documents({
             </Button>
             <Button
               loading={isSubmitting}
-              disabled={isSubmitting}
+              disabled={!allDocumentsUploaded || isSubmitting}
               onPress={handleSubmitDocuments}
             >
               Continue
@@ -224,13 +229,13 @@ const createStyles = (Colors: any) =>
     },
 
     mainText: {
-      fontSize: normalize(20),
+      fontSize: normalize(16),
       fontFamily: Fonts.brandBold,
       color: Colors.text,
     },
 
     subText: {
-      fontSize: normalize(16),
+      fontSize: normalize(12),
       color: Colors.textSecondary,
       fontFamily: Fonts.brandRegular,
     },

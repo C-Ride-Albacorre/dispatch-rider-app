@@ -20,11 +20,8 @@ export type PersonalInfoFormValues = z.infer<typeof personalInfoSchema>;
 
 // ─── Step 2 – Vehicle Information ────────────────────────────────────────────
 
-export const vehicleTypes = ['CAR', 'EV'] as const;
 export const vehicleInfoSchema = z.object({
-  vehicleType: z.enum(vehicleTypes, {
-    message: 'Please select a vehicle type',
-  }),
+  vehicleTypeConfigId: z.string().min(1, 'Please select a vehicle type'),
 
   vehicleMake: z.string().min(1, 'Vehicle make is required').trim(),
 

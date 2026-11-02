@@ -8,14 +8,12 @@ import { normalize, scale } from '@/utils/scaling';
 
 type NotificationPermissionModalProps = {
   visible: boolean;
-  onAllow: () => void;
-  onDeny: () => void;
+  onContinue: () => void;
 };
 
 export default function NotificationPermissionModal({
   visible,
-  onAllow,
-  onDeny,
+  onContinue,
 }: NotificationPermissionModalProps) {
   const { Colors } = useTheme();
 
@@ -27,6 +25,7 @@ export default function NotificationPermissionModal({
       transparent
       animationType="fade"
       statusBarTranslucent
+      onRequestClose={onContinue}
     >
       <View style={styles.overlay}>
         <View style={styles.content}>
@@ -41,20 +40,12 @@ export default function NotificationPermissionModal({
           <Text style={styles.title}>Stay in the loop</Text>
 
           <Text style={styles.description}>
-            Allow notifications so you never miss a ride request, delivery
-            update, or important alert from dispatch.
+            C-Ride sends notifications for new delivery requests, delivery
+            updates, and important alerts from dispatch.
           </Text>
 
-          <Button onPress={onAllow} style={styles.button}>
-            Allow Notifications
-          </Button>
-
-          <Button
-            variant="outline"
-            onPress={onDeny}
-            style={StyleSheet.flatten([styles.button, styles.denyButton])}
-          >
-            Not Now
+          <Button onPress={onContinue} style={styles.button}>
+            Continue
           </Button>
         </View>
       </View>
@@ -110,9 +101,5 @@ const createStyles = (Colors: any) =>
 
     button: {
       width: '100%',
-    },
-
-    denyButton: {
-      marginTop: scale(12),
     },
   });

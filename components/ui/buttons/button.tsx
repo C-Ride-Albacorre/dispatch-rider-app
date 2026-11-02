@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
 
   text: {
     fontFamily: Fonts.brandMedium,
-    fontSize: normalize(14),
+    fontSize: normalize(13),
   },
 
   iconLeft: {

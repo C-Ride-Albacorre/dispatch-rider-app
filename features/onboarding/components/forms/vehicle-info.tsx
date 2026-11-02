@@ -6,13 +6,18 @@ import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { vehicleInfoAction } from '../../action';
 import { VehicleInfoFormValues, vehicleInfoSchema } from '../../schema';
 import { useOnboardingStore } from '../../store';
+import { useVehicleTypeConfigs } from '../../use-fetch';
 import { useTheme } from '@/hooks/use-theme';
-
-
 
 export default function VehicleInfo({
   goToStep,
@@ -39,6 +44,13 @@ export default function VehicleInfo({
   const styles = createStyles(Colors);
 
   const {
+    data: vehicleTypes = [],
+    isLoading: isLoadingVehicleTypes,
+    isError: isVehicleTypesError,
+    refetch: refetchVehicleTypes,
+  } = useVehicleTypeConfigs();
+
+  const {
     control,
     handleSubmit,
     formState: { errors, isValid },
@@ -46,7 +58,7 @@ export default function VehicleInfo({
     resolver: zodResolver(vehicleInfoSchema),
 
     defaultValues: {
-      vehicleType: step2Data.vehicleType ?? 'CAR',
+      vehicleTypeConfigId: step2Data.vehicleTypeConfigId ?? '',
       vehicleMake: step2Data.vehicleMake ?? '',
       vehicleModel: step2Data.vehicleModel ?? '',
       year: step2Data.year ?? '',
@@ -98,66 +110,42 @@ export default function VehicleInfo({
         <View style={styles.vehicleTypeContainer}>
           <Text style={styles.vehicleTypeLabel}>Vehicle Type</Text>
 
-          <Controller
-            control={control}
-            name="vehicleType"
-            render={({ field: { value, onChange } }) => (
-              <TouchableOpacity style={styles.vehicleTypeOptions}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => onChange('CAR')}
-                  style={[
-                    styles.largeVehicles,
-                    value === 'CAR' && styles.selectedVehicleType,
-                  ]}
-                >
-                  <Ionicons
-                    name="car-outline"
-                    size={16}
-                    color={Colors.textSecondary}
-                  />
+          {isLoadingVehicleTypes ? (
+            <ActivityIndicator color={Colors.primary} />
+          ) : isVehicleTypesError ? (
+            <TouchableOpacity onPress={() => refetchVehicleTypes()}>
+              <Text style={styles.errorText}>
+                Failed to load vehicle types. Tap to retry.
+              </Text>
+            </TouchableOpacity>
+          ) : (
+            <Controller
+              control={control}
+              name="vehicleTypeConfigId"
+              render={({ field: { value, onChange } }) => (
+                <View style={styles.vehicleTypeOptions}>
+                  {vehicleTypes.map((type) => (
+                    <TouchableOpacity
+                      key={type.id}
+                      activeOpacity={0.8}
+                      onPress={() => onChange(type.id)}
+                      style={[
+                        styles.largeVehicles,
+                        value === type.id && styles.selectedVehicleType,
+                      ]}
+                    >
+                      <Text style={styles.largeMainText}>{type.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            />
+          )}
 
-                  <View style={styles.largeTextContainer}>
-                    <Text style={styles.largeMainText}>Car/Vehicle</Text>
-
-                    <Text style={styles.largeSubText}>For larger orders</Text>
-                  </View>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  onPress={() => onChange('EV')}
-                  style={[
-                    styles.evContainer,
-                    value === 'EV' && styles.selectedVehicleType,
-                  ]}
-                >
-                  <View style={styles.evTextContainer}>
-                    <Text style={styles.evMainText}>
-                      Electric Vehicle (EV) Driver
-                    </Text>
-
-                    <View style={styles.evIconContainer}>
-                      <Ionicons
-                        name="leaf-outline"
-                        size={12}
-                        color={Colors.background}
-                      />
-                      <Text style={styles.evSubText}>Eco-Friendly</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.evDescription}>
-                    Check this if you're using an electric vehicle or e-bike.
-                    Enjoy priority access to premium deliveries and eco bonuses!
-                  </Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
-            )}
-          />
-
-          {errors.vehicleType?.message && (
-            <Text style={styles.errorText}>{errors.vehicleType.message}</Text>
+          {errors.vehicleTypeConfigId?.message && (
+            <Text style={styles.errorText}>
+              {errors.vehicleTypeConfigId.message}
+            </Text>
           )}
         </View>
 
@@ -167,10 +155,10 @@ export default function VehicleInfo({
           render={({ field: { value, onChange } }) => (
             <Input
               label="Vehicle Make"
-              placeholder="e.g., Honda, Toyota"
+              placeholder="e.g., Honda"
               value={value}
               onChangeText={onChange}
-                  required
+              required
               error={errors.vehicleMake?.message}
             />
           )}
@@ -182,10 +170,10 @@ export default function VehicleInfo({
           render={({ field: { value, onChange } }) => (
             <Input
               label="Vehicle Model"
-              placeholder="e.g., Civic, Camry"
+              placeholder="e.g., Civic"
               value={value}
               onChangeText={onChange}
-                  required
+              required
               error={errors.vehicleModel?.message}
             />
           )}
@@ -200,7 +188,7 @@ export default function VehicleInfo({
               placeholder="Select year"
               value={value}
               onChange={onChange}
-                  required
+              required
               options={Array.from({ length: 25 }, (_, i) => {
                 const year = new Date().getFullYear() - i;
                 return {
@@ -256,151 +244,92 @@ const createStyles = (Colors: any) =>
       borderWidth: 1,
       borderColor: Colors.border,
       borderRadius: scale(12),
-    padding: scale(20),
-    gap: scale(32),
-  },
+      padding: scale(20),
+      gap: scale(32),
+    },
 
-  textContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(16),
-  },
+    textContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: scale(16),
+    },
 
-  errorText: {
-    fontSize: normalize(12),
-    color: Colors.error,
-    fontFamily: Fonts.brandMedium,
-  },
+    errorText: {
+      fontSize: normalize(12),
+      color: Colors.error,
+      fontFamily: Fonts.brandMedium,
+    },
 
-  iconContainer: {
-    width: scale(48),
-    height: scale(48),
-    borderRadius: scale(12),
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    iconContainer: {
+      width: scale(48),
+      height: scale(48),
+      borderRadius: scale(12),
+      backgroundColor: Colors.primaryLight,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  mainTextContainer: {
-    flex: 1,
-  },
+    mainTextContainer: {
+      flex: 1,
+    },
 
-  mainText: {
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
+    mainText: {
+      fontSize: normalize(16),
+      fontFamily: Fonts.brandBold,
+      color: Colors.text,
+    },
 
-  subText: {
-    fontSize: normalize(12),
-    color: Colors.textSecondary,
-    fontFamily: Fonts.brandRegular,
-  },
+    subText: {
+      fontSize: normalize(12),
+      color: Colors.textSecondary,
+      fontFamily: Fonts.brandRegular,
+    },
 
-  form: {
-    gap: scale(32),
-  },
+    form: {
+      gap: scale(32),
+    },
 
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: scale(16),
-  },
+    buttonContainer: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: scale(16),
+    },
 
-  vehicleTypeContainer: {
-    gap: scale(12),
-  },
+    vehicleTypeContainer: {
+      gap: scale(12),
+    },
 
-  vehicleTypeLabel: {
-    fontSize: normalize(14),
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    vehicleTypeLabel: {
+      fontSize: normalize(14),
+      fontFamily: Fonts.brandMedium,
+      color: Colors.text,
+    },
 
-  vehicleTypeOptions: {
-    gap: scale(16),
-  },
+    vehicleTypeOptions: {
+      flexDirection: 'row',
+      gap: scale(12),
+    },
 
-  largeVehicles: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: scale(12),
-    padding: scale(12),
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: scale(8),
-    flex: 1,
-  },
+    largeVehicles: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: scale(8),
+      padding: scale(14),
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: scale(8),
+      flex: 1,
+    },
 
-  largeTextContainer: {
-    gap: scale(4),
-  },
+    largeMainText: {
+      fontSize: normalize(14),
+      fontFamily: Fonts.brandSemiBold,
+      color: Colors.text,
+    },
 
-  largeMainText: {
-    fontSize: normalize(20),
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-    textAlign: 'center',
-  },
-
-  largeSubText: {
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-
-    textAlign: 'center',
-  },
-
-  evContainer: {
-    gap: scale(12),
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(16),
-    borderWidth: 1,
-    borderColor: Colors.successLight,
-    borderRadius: scale(8),
-    flex: 1,
-    backgroundColor: Colors.successExtraLight,
-  },
-
-  evMainText: {
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-    flexWrap: 'wrap',
-  },
-
-  evTextContainer: {
-    // flexDirection: 'row',
-    // justifyContent: 'space-between',
-    gap: scale(8),
-  },
-
-  evIconContainer: {
-    width:  scale(90),
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(2),
-    backgroundColor: Colors.success,
-    paddingHorizontal: scale(6),
-    borderRadius: scale(24),
-    height:  scale(24),
-  },
-
-  evSubText: {
-    fontSize: normalize(10),
-    fontFamily: Fonts.brandMedium,
-    color: Colors.background,
-  },
-
-  evDescription: {
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-    lineHeight: normalize(20),
-  },
-
-  selectedVehicleType: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
-  },
-});
+    selectedVehicleType: {
+      borderColor: Colors.primary,
+      backgroundColor: Colors.primaryLight,
+    },
+  });

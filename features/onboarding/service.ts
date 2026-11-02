@@ -25,6 +25,27 @@ export interface OnboardingStepResponse {
   };
 }
 
+export interface VehicleTypeConfig {
+  id: string;
+  name: string;
+}
+
+interface VehicleTypeConfigsResponse {
+  status: string;
+  statusCode: number;
+  timestamp: string;
+  path: string;
+  data: VehicleTypeConfig[];
+}
+
+export async function getVehicleTypeConfigs(): Promise<VehicleTypeConfig[]> {
+  const response = await api.get<VehicleTypeConfigsResponse>(
+    '/vehicle-types/configs',
+  );
+
+  return response.data.data ?? [];
+}
+
 export async function onboarding<S extends keyof StepPayloadMap>(
   payload: StepPayloadMap[S],
   step: S,

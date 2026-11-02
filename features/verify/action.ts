@@ -3,10 +3,20 @@ import {
   saveAccessToken,
   saveDriverId,
   saveRefreshToken,
+  saveVerificationToken,
 } from '@/utils/token-storage';
 import Toast from 'react-native-toast-message';
-import { resendOtp, verifyEmail, verifyPhone } from './service';
-import { VerifyEmailPayload, VerifyPhonePayload } from './types';
+import {
+  resendOtp,
+  resendVerificationToken,
+  verifyEmail,
+  verifyPhone,
+} from './service';
+import {
+  ResendVerificationTokenResponse,
+  VerifyEmailPayload,
+  VerifyPhonePayload,
+} from './types';
 
 export const verifyPhoneAction = async (
   payload: VerifyPhonePayload,
@@ -58,17 +68,10 @@ export const verifyPhoneAction = async (
        */
       if (tokenError && !codeError) {
         console.log(
-          'Verification token is invalid/expired. Logging out...',
+          'Verification token is invalid/expired. Requesting a new one...',
         );
 
-        await useAuthStore.getState().logout();
-
-        return {
-          success: false as const,
-          tokenExpired: true as const,
-          codeInvalid: false as const,
-          message,
-        };
+        return refreshExpiredVerificationToken(payload.phoneNumber, message);
       }
 
       /**
@@ -156,17 +159,10 @@ export const verifyPhoneAction = async (
      */
     if (tokenError && !codeError) {
       console.log(
-        'Verification token is invalid/expired. Logging out...',
+        'Verification token is invalid/expired. Requesting a new one...',
       );
 
-      await useAuthStore.getState().logout();
-
-      return {
-        success: false as const,
-        tokenExpired: true as const,
-        codeInvalid: false as const,
-        message,
-      };
+      return refreshExpiredVerificationToken(payload.phoneNumber, message);
     }
 
     /**
@@ -231,14 +227,7 @@ export const verifyEmailAction = async (
           'Email verification token invalid/expired',
         );
 
-        await useAuthStore.getState().logout();
-
-        return {
-          success: false as const,
-          tokenExpired: true as const,
-          codeInvalid: false as const,
-          message,
-        };
+        return refreshExpiredVerificationToken(payload.email, message);
       }
 
       /**
@@ -324,14 +313,7 @@ export const verifyEmailAction = async (
       normalizedMessage.includes('otp');
 
     if (tokenError && !codeError) {
-      await useAuthStore.getState().logout();
-
-      return {
-        success: false as const,
-        tokenExpired: true as const,
-        codeInvalid: false as const,
-        message,
-      };
+      return refreshExpiredVerificationToken(payload.email, message);
     }
 
     if (codeError) {
@@ -384,6 +366,86 @@ export const resendOtpAction = async (identifier: string) => {
       message: error?.response?.data?.message || 'OTP resend failed',
     };
   }
+};
+
+/**
+ * Reissues the verification token and resends the OTP.
+ *
+ * Used to recover when the previous verification token has expired.
+ * (The "Resend Code" button uses resendOtpAction, which only resends the OTP.)
+ */
+export const resendVerificationTokenAction = async (identifier: string) => {
+  try {
+    const data: ResendVerificationTokenResponse =
+      await resendVerificationToken(identifier);
+
+    console.log('Resend verification token response:', data);
+
+    if (!data?.verificationToken) {
+      return {
+        success: false as const,
+        message: data?.message || 'Failed to resend verification code',
+      };
+    }
+
+    await saveVerificationToken(data.verificationToken);
+
+    useAuthStore.getState().setAuth({
+      verificationToken: data.verificationToken,
+    });
+
+    return {
+      success: true as const,
+      message: data.message,
+    };
+  } catch (error: any) {
+    return {
+      success: false as const,
+      message:
+        error?.response?.data?.message ||
+        'Failed to resend verification code',
+    };
+  }
+};
+
+/**
+ * Called when verification fails because the token expired.
+ *
+ * Requests a fresh token + OTP instead of logging the user out.
+ * Only logs out if the token cannot be reissued.
+ */
+const refreshExpiredVerificationToken = async (
+  identifier: string,
+  message: string,
+) => {
+  const result = await resendVerificationTokenAction(identifier);
+
+  if (result.success) {
+    Toast.show({
+      type: 'info',
+      text1: 'Code Expired',
+      text2: "We've sent you a new verification code",
+    });
+
+    return {
+      success: false as const,
+      tokenExpired: false as const,
+      tokenRefreshed: true as const,
+      codeInvalid: false as const,
+      message: 'Your session expired. Enter the new code we just sent.',
+    };
+  }
+
+  console.log('Could not reissue verification token. Logging out...');
+
+  await useAuthStore.getState().logout();
+
+  return {
+    success: false as const,
+    tokenExpired: true as const,
+    codeInvalid: false as const,
+    message,
+  };
 };
 
 /**
