@@ -24,6 +24,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AppState,
   Image,
   Platform,
   Pressable,
@@ -39,9 +40,11 @@ import MapView, {
 import Animated, {
   Extrapolation,
   interpolate,
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { scheduleOnRN } from 'react-native-worklets';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const LOCATION_ANIMATION_DURATION = 450;
@@ -99,6 +102,33 @@ export default function ActiveDeliveryContent() {
 
   // Expanding stops at 70% so part of the map always stays visible
   const snapPoints = useMemo(() => ['40%', '70%'], []);
+
+  // Back to the last snap point the driver left it at, or collapsed
+  const restoreSheet = useCallback(() => {
+    sheetRef.current?.snapToIndex(Math.max(sheetIndexRef.current, 0));
+  }, []);
+
+  // On app resume Android re-measures the screen, and the sheet can be left
+  // parked off-screen without onChange ever reporting -1
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setTimeout(restoreSheet, 300);
+    });
+
+    return () => subscription.remove();
+  }, [restoreSheet]);
+
+  // Catch-all: the sheet never legitimately sits below its collapsed
+  // height, so if less than half of that is showing, bring it back
+  useAnimatedReaction(
+    () =>
+      containerHeight > 0 &&
+      sheetPosition.value > containerHeight - collapsedSheetHeight / 2,
+    (isHidden, wasHidden) => {
+      if (isHidden && !wasHidden) scheduleOnRN(restoreSheet);
+    },
+    [containerHeight, collapsedSheetHeight, restoreSheet],
+  );
 
   const [showConfirmDeclineModal, setShowConfirmDeclineModal] =
     useState<boolean>(false);
