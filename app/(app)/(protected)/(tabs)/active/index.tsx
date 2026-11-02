@@ -516,6 +516,17 @@ export default function ActiveDeliveryContent() {
     if (!hasOrder) setIsMapReady(false);
   }, [hasOrder]);
 
+  // Decline/pickup/delivery clear the order before their modals can close
+  // themselves (the modals unmount first), so close them here or they
+  // reopen on the next job
+  useEffect(() => {
+    if (hasOrder) return;
+
+    setShowConfirmDeclineModal(false);
+    setShowConfirmPickupModal(false);
+    setShowConfirmDeliveryModal(false);
+  }, [hasOrder]);
+
   /**
    * SAFE GUARD (WAIT FOR WEBSOCKET OR TIMEOUT)
    */

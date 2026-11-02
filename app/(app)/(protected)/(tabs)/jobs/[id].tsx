@@ -37,7 +37,7 @@ export default function OrderDetailSheet() {
   const { data: response, isLoading } = useAvailableJobDetails({
     orderId: id as string,
   });
-  const order = response?.data ?? [];
+  const order = response?.data ?? null;
 
   const { Colors } = useTheme();
 

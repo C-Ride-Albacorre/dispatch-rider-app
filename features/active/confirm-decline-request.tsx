@@ -39,12 +39,12 @@ export default function ConfirmDeclineRequest({
   const [selectedReason, setSelectedReason] = useState('');
   const [customReason, setCustomReason] = useState('');
 
-  const { mutate: declineJob, isPending } = useDeclineJob();
+  const { mutateAsync: declineJob, isPending } = useDeclineJob();
 
   const finalReason =
     selectedReason === 'Other' ? customReason.trim() : selectedReason;
 
-  const handleDecline = () => {
+  const handleDecline = async () => {
     if (!selectedOrderId) {
       Toast.show({
         type: 'error',
@@ -72,37 +72,31 @@ export default function ConfirmDeclineRequest({
       return;
     }
 
-    declineJob(
-      {
-        orderId: selectedOrderId,
-        reason: finalReason,
-      },
-      {
-        onSuccess: () => {
-          setShowConfirmDeclineModal(false);
+    // Awaited rather than mutate callbacks: a successful decline clears the
+    // active order, which unmounts this modal before callbacks would fire
+    try {
+      await declineJob({ orderId: selectedOrderId, reason: finalReason });
+    } catch (error: any) {
+      Toast.show({
+        type: 'error',
+        text1:
+          error?.response?.data?.message ||
+          error?.message ||
+          'Failed to decline request',
+      });
+      return;
+    }
 
-          setSelectedReason('');
-          setCustomReason('');
+    setShowConfirmDeclineModal(false);
+    setSelectedReason('');
+    setCustomReason('');
 
-          Toast.show({
-            type: 'success',
-            text1: 'Request declined successfully',
-          });
+    Toast.show({
+      type: 'success',
+      text1: 'Request declined successfully',
+    });
 
-          router.replace('/(app)/(protected)/(tabs)/jobs');
-        },
-
-        onError: (error: any) => {
-          Toast.show({
-            type: 'error',
-            text1:
-              error?.response?.data?.message ||
-              error?.message ||
-              'Failed to decline request',
-          });
-        },
-      },
-    );
+    router.replace('/(app)/(protected)/(tabs)/jobs');
   };
 
   return (
