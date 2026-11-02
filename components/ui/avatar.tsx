@@ -1,3 +1,4 @@
+import { ThemedText } from '@/components/themed-text';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,7 +7,6 @@ import {
   Image,
   ImageSourcePropType,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 
@@ -81,16 +81,18 @@ export default function Avatar({ src, name, size = 96 }: AvatarProps) {
         />
       ) : (
         <View style={styles.initialsContainer}>
-          <Text
+          <ThemedText
+            themeColor="white"
             style={[
               styles.initials,
               {
                 fontSize: size * 0.4,
+                lineHeight: size * 0.5,
               },
             ]}
           >
             {initials || '?'}
-          </Text>
+          </ThemedText>
         </View>
       )}
     </LinearGradient>
@@ -105,13 +107,14 @@ const createStyles = (Colors: any) =>
       alignItems: 'center',
     },
 
-  initialsContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+    initialsContainer: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-  initials: {
-    color: Colors.background,
-    fontFamily: Fonts.brandMedium,
-  },
-});
+    // Gradients are always saturated, so initials stay white in both themes
+    initials: {
+      fontFamily: Fonts.brandSemiBold,
+      letterSpacing: 0.5,
+    },
+  });

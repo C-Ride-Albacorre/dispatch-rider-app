@@ -159,7 +159,7 @@ export default function TabsLayout() {
   const [showNotificationModal, setShowNotificationModal] =
     useState<boolean>(false);
 
-  const { Colors } = useTheme();
+  const { Colors, isDark } = useTheme();
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -189,8 +189,8 @@ export default function TabsLayout() {
           tabBarInactiveTintColor: Colors.textMuted,
           tabBarLabelStyle: styles.label,
           tabBarStyle: {
-            backgroundColor: Colors.card,
-            borderColor: Colors.border,
+            backgroundColor: isDark ? Colors.background : '#1A1A1A',
+            borderTopColor: Colors.border,
           },
           tabBarItemStyle: styles.tabItem,
         }}

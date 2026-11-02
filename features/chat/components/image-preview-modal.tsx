@@ -1,17 +1,11 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import Button from '@/components/ui/buttons/button';
+import IconButton from '@/components/ui/buttons/icon-button';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
-import {
-    ActivityIndicator,
-    Image,
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+import { ActivityIndicator, Image, Modal, StyleSheet, View } from 'react-native';
 
 type Props = {
   visible: boolean;
@@ -59,14 +53,15 @@ export function ImagePreviewModal({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>Preview Image</Text>
-            <Pressable
+            <ThemedText style={styles.title}>Preview image</ThemedText>
+            <IconButton
+              icon="close"
+              size="sm"
+              variant="secondary"
               onPress={onCancel}
               disabled={isLoading}
-              style={({ pressed }) => [pressed && { opacity: 0.6 }]}
-            >
-              <Ionicons name="close" size={24} color={Colors.text} />
-            </Pressable>
+              accessibilityLabel="Close preview"
+            />
           </View>
 
           <View style={styles.imageContainer}>
@@ -82,41 +77,32 @@ export function ImagePreviewModal({
           </View>
 
           {imageSize && (
-            <Text style={styles.sizeText}>
+            <ThemedText style={styles.sizeText} themeColor="textMuted">
               {Math.round(imageSize.width)} × {Math.round(imageSize.height)} px
-            </Text>
+            </ThemedText>
           )}
 
           <View style={styles.actions}>
-            <Pressable
+            <Button
+              variant="outline"
               onPress={onCancel}
               disabled={isLoading}
-              style={({ pressed }) => [
-                styles.cancelButton,
-                pressed && { opacity: 0.7 },
-              ]}
+              style={styles.flex}
             >
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
+              Cancel
+            </Button>
 
-            <Pressable
+            <Button
               onPress={onConfirm}
+              loading={isLoading}
               disabled={isLoading}
-              style={({ pressed }) => [
-                styles.confirmButton,
-                pressed && !isLoading && { opacity: 0.9 },
-                isLoading && styles.confirmDisabled,
-              ]}
+              style={styles.flex}
+              leftIcon={
+                <Ionicons name="send" size={16} color={Colors.onPrimary} />
+              }
             >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <Ionicons name="send" size={18} color={Colors.text}/>
-                  <Text style={styles.confirmText}>Send</Text>
-                </>
-              )}
-            </Pressable>
+              Send
+            </Button>
           </View>
         </View>
       </View>
@@ -126,90 +112,67 @@ export function ImagePreviewModal({
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.85)',
+      backgroundColor: Colors.overlay,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: scale(16),
+      padding: Spacing.three,
     },
+
     container: {
       width: '100%',
       maxHeight: '85%',
-      backgroundColor: Colors.background,
-      borderRadius: scale(16),
+      backgroundColor: Colors.card,
+      borderRadius: 24,
+      borderWidth: 1,
+      borderColor: Colors.border,
       overflow: 'hidden',
     },
+
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: scale(16),
-      paddingVertical: scale(16),
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.border,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: 12,
     },
+
     title: {
-      fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
+
     imageContainer: {
       width: '100%',
-      height: scale(300),
+      height: 300,
       backgroundColor: Colors.backgroundSecondary,
       justifyContent: 'center',
       alignItems: 'center',
     },
+
     image: {
       width: '100%',
       height: '100%',
     },
+
     sizeText: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
+      fontSize: 12,
+      lineHeight: 17,
       textAlign: 'center',
-      paddingVertical: scale(12),
+      paddingTop: 12,
     },
+
     actions: {
       flexDirection: 'row',
-      gap: scale(12),
-      paddingHorizontal: scale(16),
-      paddingVertical: scale(16),
-      borderTopWidth: 1,
-      borderTopColor: Colors.border,
-    },
-    cancelButton: {
-      flex: 1,
-      paddingVertical: scale(12),
-      borderRadius: scale(8),
-      borderWidth: 1,
-      borderColor: Colors.border,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    cancelText: {
-      fontSize: normalize(15),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-    },
-    confirmButton: {
-      flex: 1,
-      paddingVertical: scale(12),
-      borderRadius: scale(8),
-      backgroundColor: Colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexDirection: 'row',
-      gap: scale(6),
-    },
-    confirmDisabled: {
-      opacity: 0.6,
-    },
-    confirmText: {
-      fontSize: normalize(15),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
+      gap: 12,
+      padding: Spacing.three,
     },
   });

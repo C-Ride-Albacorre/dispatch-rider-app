@@ -1,11 +1,11 @@
-import { Fonts } from '@/constants/theme';
-import AppFrame from '@/features/dashboard/components/app-frame';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Animated, StyleSheet, View } from 'react-native';
 
+/** Avatar, name and rating at the top of Profile */
 export default function ProfileFrame({
   stats,
   driverInfo,
@@ -24,7 +24,7 @@ export default function ProfileFrame({
   };
   isLoading?: boolean;
 }) {
-  const { Colors} = useTheme();
+  const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
@@ -62,179 +62,127 @@ export default function ProfileFrame({
 
   if (isLoading) {
     return (
-      <AppFrame>
-        <View style={styles.profileHeader}>
-          {/* Avatar */}
+      <View style={styles.identity}>
+        <Animated.View
+          style={[styles.skeleton, styles.avatar, styles.skeletonAvatar, { opacity: pulseAnim }]}
+        />
+
+        <View style={styles.flex}>
           <Animated.View
-            style={[styles.skeletonAvatar, { opacity: pulseAnim }]}
+            style={[styles.skeleton, styles.skeletonName, { opacity: pulseAnim }]}
           />
-
-          {/* Info */}
-          <View style={styles.profileInfo}>
-            <Animated.View
-              style={[styles.skeletonName, { opacity: pulseAnim }]}
-            />
-
-            <Animated.View
-              style={[styles.skeletonRole, { opacity: pulseAnim }]}
-            />
-
-            <Animated.View
-              style={[styles.skeletonStats, { opacity: pulseAnim }]}
-            />
-          </View>
+          <Animated.View
+            style={[styles.skeleton, styles.skeletonLine, { opacity: pulseAnim }]}
+          />
+          <Animated.View
+            style={[
+              styles.skeleton,
+              styles.skeletonLineWide,
+              { opacity: pulseAnim },
+            ]}
+          />
         </View>
-      </AppFrame>
+      </View>
     );
   }
 
   return (
-    <AppFrame>
-      <View style={styles.profileHeader}>
-        <View style={styles.profileAvatar}>
-          <Animated.Text
-            style={[styles.profileAvatarText, { opacity: pulseAnim }]}
-          >
-            {displayName}
-          </Animated.Text>
-        </View>
+    <View style={styles.identity}>
+      <View style={styles.avatar}>
+        <ThemedText style={styles.initials} themeColor="onPrimary">
+          {displayName}
+        </ThemedText>
+      </View>
 
-        <View style={styles.profileInfo}>
-          <View>{<Text style={styles.profileName}>{fullName}</Text>}</View>
+      <View style={styles.flex}>
+        <ThemedText style={styles.name} numberOfLines={1}>
+          {fullName}
+        </ThemedText>
 
-          <Text style={styles.profileRole}>Premium Care Partner</Text>
+        <ThemedText style={styles.detail} themeColor="textMuted">
+          Premium Care Partner
+        </ThemedText>
 
-          <View>
-            <View style={styles.profileStats}>
-              <View style={styles.profileStatItem}>
-                <Ionicons name="star" size={scale(10)} color={Colors.primary} />
-              </View>
-
-              <Text style={styles.profileRating}>{stats?.rating?.toFixed(1)}</Text>
-
-              <View style={styles.dot}></View>
-
-              <Text style={styles.profileRides}>
-                {stats?.totalDeliveries} total rides
-              </Text>
-            </View>
-          </View>
+        <View style={styles.ratingRow}>
+          <Ionicons name="star" size={12} color={Colors.primary} />
+          <ThemedText style={styles.detail} themeColor="textMuted">
+            {stats?.rating?.toFixed(1)} · {stats?.totalDeliveries} total rides
+          </ThemedText>
         </View>
       </View>
-    </AppFrame>
+    </View>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
+    flex: {
       flex: 1,
-      paddingHorizontal: scale(20),
-      backgroundColor: Colors.background,
-      gap: scale(16),
-      marginTop: scale(24),
     },
 
-    profileHeader: {
+    identity: {
       flexDirection: 'row',
-      gap: scale(16),
-      // paddingVertical: scale(16),
+      alignItems: 'center',
+      gap: Spacing.three,
     },
 
-    profileAvatar: {
-      width: scale(80),
-      height: scale(80),
-      borderRadius: scale(40),
-      borderWidth: 2,
-      borderColor: Colors.primary,
-      backgroundColor: Colors.primaryLight,
+    avatar: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      alignItems: 'center',
       justifyContent: 'center',
-      alignItems: 'center',
-      overflow: 'hidden',
-    },
-
-    profileAvatarText: {
-      fontSize: scale(32),
-      color: Colors.primary,
-      fontFamily: Fonts.brandMedium,
-      lineHeight: scale(44),
-    },
-
-    profileInfo: {
-      flexDirection: 'column',
-      gap: scale(2),
-    },
-
-    profileName: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#fff',
-    },
-
-    profileRole: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    profileStats: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(8),
-    },
-
-    dot: {
-      width: scale(4),
-      height: scale(4),
-      borderRadius: scale(100),
       backgroundColor: Colors.primary,
     },
 
-    profileStatItem: {
+    initials: {
+      fontFamily: Fonts.brandBold,
+      fontSize: 22,
+      lineHeight: 28,
+    },
+
+    name: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      textTransform: 'capitalize',
+    },
+
+    detail: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    ratingRow: {
       flexDirection: 'row',
-      gap: scale(2),
-      marginBottom: scale(0),
+      alignItems: 'center',
+      gap: Spacing.one,
     },
 
-    profileRating: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.primary,
-    },
-
-    profileRides: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.primary,
+    skeleton: {
+      borderRadius: 6,
+      backgroundColor: Colors.backgroundTertiary,
     },
 
     skeletonAvatar: {
-      width: scale(80),
-      height: scale(80),
-      borderRadius: scale(40),
-      backgroundColor: Colors.light,
+      backgroundColor: Colors.backgroundTertiary,
     },
 
     skeletonName: {
-      width: scale(140),
-      height: scale(18),
-      borderRadius: scale(6),
-      backgroundColor: Colors.light,
-      marginBottom: scale(8),
+      width: 160,
+      height: 22,
+      marginBottom: 4,
     },
 
-    skeletonRole: {
-      width: scale(100),
-      height: scale(12),
-      borderRadius: scale(6),
-      backgroundColor: Colors.light,
-      marginBottom: scale(12),
+    skeletonLine: {
+      width: 110,
+      height: 14,
+      marginBottom: 4,
     },
 
-    skeletonStats: {
-      width: scale(160),
-      height: scale(12),
-      borderRadius: scale(6),
-      backgroundColor: Colors.light,
+    skeletonLineWide: {
+      width: 150,
+      height: 14,
     },
   });

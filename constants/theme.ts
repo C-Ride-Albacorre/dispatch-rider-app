@@ -38,12 +38,15 @@ export const ColorScheme = {
 
     error: '#EF4444',
     errorLight: '#FEF2F2',
+    errorExtraLight: '#EF44441A',
 
     warning: '#FFA500',
     warningLight: '#FFF4E5',
+    warningExtraLight: '#FFA5001A',
 
     info: '#17A2B8',
     infoLight: '#D6F4F8',
+    infoExtraLight: '#17A2B81A',
 
     // Misc
     shadow: 'rgba(0,0,0,0.08)',

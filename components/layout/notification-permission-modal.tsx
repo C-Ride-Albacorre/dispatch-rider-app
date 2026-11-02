@@ -1,10 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 
 type NotificationPermissionModalProps = {
   visible: boolean;
@@ -30,19 +30,17 @@ export default function NotificationPermissionModal({
       <View style={styles.overlay}>
         <View style={styles.content}>
           <View style={styles.iconWrapper}>
-            <Ionicons
-              name="notifications"
-              size={scale(36)}
-              color={Colors.success}
-            />
+            <Ionicons name="notifications-outline" size={24} color={Colors.success} />
           </View>
 
-          <Text style={styles.title}>Stay in the loop</Text>
+          <View style={styles.text}>
+            <ThemedText style={styles.title}>Stay in the loop</ThemedText>
 
-          <Text style={styles.description}>
-            C-Ride sends notifications for new delivery requests, delivery
-            updates, and important alerts from dispatch.
-          </Text>
+            <ThemedText style={styles.description} themeColor="textSecondary">
+              C-Ride sends notifications for new delivery requests, delivery
+              updates, and important alerts from dispatch.
+            </ThemedText>
+          </View>
 
           <Button onPress={onContinue} style={styles.button}>
             Continue
@@ -59,44 +57,46 @@ const createStyles = (Colors: any) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: 'rgba(0,0,0,0.55)',
-      paddingHorizontal: scale(24),
+      backgroundColor: Colors.overlay,
+      paddingHorizontal: Spacing.four,
     },
 
     content: {
       width: '100%',
-      backgroundColor: Colors.card,
-      borderRadius: scale(16),
-      paddingHorizontal: scale(24),
-      paddingVertical: scale(32),
+      maxWidth: 420,
       alignItems: 'center',
+      gap: Spacing.four,
+      padding: Spacing.four,
+      borderRadius: 24,
+      backgroundColor: Colors.card,
     },
 
     iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       backgroundColor: Colors.successExtraLight,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(20),
+    },
+
+    text: {
+      gap: Spacing.two,
     },
 
     title: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(20),
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
       textAlign: 'center',
-      marginBottom: scale(10),
     },
 
     description: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(14),
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
-      lineHeight: normalize(22),
-      marginBottom: scale(28),
     },
 
     button: {

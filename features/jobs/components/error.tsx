@@ -1,14 +1,8 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 type ErrorContentProps = {
   error?: Error;
@@ -21,56 +15,34 @@ export default function ErrorContent({
   refreshing = false,
   onRefresh,
 }: ErrorContentProps) {
-  const { Colors, isDark } = useTheme();
+  const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
   return (
     <ScrollView
       style={{ backgroundColor: Colors.background }}
-      contentContainerStyle={[
-        styles.container,
-        { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
-      ]}
+      contentContainerStyle={styles.container}
       showsVerticalScrollIndicator={false}
       refreshControl={
         onRefresh ? (
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={isDark ? '#A7F3D0' : '#6EE7B7'}
+            tintColor={Colors.textMuted}
           />
         ) : undefined
       }
     >
-      <View
-        style={[styles.iconWrapper, { backgroundColor: Colors.errorLight }]}
-      >
-        <Ionicons
-          name="warning-outline"
-          size={scale(36)}
-          color={Colors.error}
-        />
+      <View style={styles.iconWrapper}>
+        <Ionicons name="warning-outline" size={28} color={Colors.error} />
       </View>
-      <View style={{ alignItems: 'center' }}>
-        <Text
-          style={{
-            color: Colors.error,
-            fontFamily: Fonts.brandMedium,
-            fontSize: scale(16),
-          }}
-        >
-          Failed to load jobs
-        </Text>
-        <Text
-          style={{
-            ...styles.loadingText,
-            color: Colors.textMuted,
-            fontFamily: Fonts.brandRegular,
-          }}
-        >
-          {error?.message ?? `Failed to load jobs. Please try again.`}
-        </Text>
+
+      <View style={styles.textGroup}>
+        <ThemedText style={styles.title}>Failed to load jobs</ThemedText>
+        <ThemedText style={styles.message} themeColor="textMuted">
+          {error?.message ?? 'Failed to load jobs. Please try again.'}
+        </ThemedText>
       </View>
     </ScrollView>
   );
@@ -79,41 +51,39 @@ export default function ErrorContent({
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
-      paddingHorizontal: scale(20),
-      paddingVertical: scale(24),
-      backgroundColor: Colors.background,
-      gap: scale(16),
-    },
-    header: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+      flexGrow: 1,
+      justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(8),
+      gap: Spacing.three,
+      paddingHorizontal: Spacing.four,
+      paddingVertical: Spacing.five,
     },
 
     iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
+      width: 64,
+      height: 64,
+      borderRadius: 999,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(16),
+      backgroundColor: Colors.errorLight,
+    },
+
+    textGroup: {
+      alignItems: 'center',
+      gap: Spacing.one,
     },
 
     title: {
-      fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
-      textAlign: 'center',
-    },
-    subtitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandRegular,
+      fontSize: 16,
+      lineHeight: 22,
       textAlign: 'center',
     },
 
-    loadingText: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
+    message: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
       textAlign: 'center',
     },
   });

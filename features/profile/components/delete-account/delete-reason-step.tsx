@@ -1,11 +1,11 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import Input from '@/components/ui/input/input';
 
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-import { normalize, scale } from '@/utils/scaling';
 
 import { DELETE_REASONS } from './data';
 import DeleteStepHeader from './delete-step-header';
@@ -29,45 +29,45 @@ export default function DeleteReasonStep({
     <>
       <DeleteStepHeader
         icon="chatbubble-ellipses-outline"
-        title="Why Are You Leaving?"
+        title="Why are you leaving?"
         description="We're sorry to see you go. Tell us why so we can improve C-Ride."
       />
 
-      <View style={styles.reasonsContainer}>
-        {DELETE_REASONS.map((item) => {
+      <View style={styles.card}>
+        {DELETE_REASONS.map((item, index) => {
           const isSelected = selectedReason === item;
 
           return (
-            <TouchableOpacity
+            <Pressable
               key={item}
-              activeOpacity={0.8}
               onPress={() => setSelectedReason(item)}
-              style={[
-                styles.reasonButton,
-                isSelected && {
-                  borderColor: Colors.error,
-                  backgroundColor: Colors.errorLight,
-                },
+              accessibilityRole="radio"
+              accessibilityState={{ selected: isSelected }}
+              style={({ pressed }) => [
+                styles.row,
+                index === DELETE_REASONS.length - 1 && styles.lastRow,
+                pressed && styles.pressed,
               ]}
             >
-              <Text
-                style={[
-                  styles.reasonText,
-                  isSelected && {
-                    color: Colors.error,
-                    fontFamily: Fonts.brandSemiBold,
-                  },
-                ]}
+              <ThemedText
+                style={[styles.reasonText, isSelected && styles.reasonSelected]}
+                themeColor={isSelected ? 'error' : 'text'}
               >
                 {item}
-              </Text>
-            </TouchableOpacity>
+              </ThemedText>
+
+              <Ionicons
+                name={isSelected ? 'radio-button-on' : 'radio-button-off'}
+                size={20}
+                color={isSelected ? Colors.error : Colors.textMuted}
+              />
+            </Pressable>
           );
         })}
       </View>
 
       {selectedReason === 'Other' && (
-        <View style={{ width: '100%' }}>
+        <View style={styles.field}>
           <Input
             placeholder="Enter your reason"
             value={customReason}
@@ -81,24 +81,46 @@ export default function DeleteReasonStep({
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    reasonsContainer: {
+    card: {
       width: '100%',
-      gap: scale(10),
-      marginBottom: scale(12),
-    },
-
-    reasonButton: {
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: Colors.border,
-      borderRadius: scale(12),
-      paddingVertical: scale(14),
-      paddingHorizontal: scale(14),
-      width: '100%',
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+      marginBottom: 12,
+    },
+
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
+    },
+
+    lastRow: {
+      borderBottomWidth: 0,
+    },
+
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
     reasonText: {
+      flex: 1,
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    reasonSelected: {
+      fontFamily: Fonts.brandMedium,
+    },
+
+    field: {
+      width: '100%',
+      marginTop: Spacing.one,
     },
   });

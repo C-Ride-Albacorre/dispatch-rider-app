@@ -1,7 +1,5 @@
 import { useRef, useEffect } from 'react';
-import { Animated, Easing } from 'react-native';
-import { scale } from '@/utils/scaling';
-import { Colors } from '@/constants/theme';
+import { Animated, Easing, StyleSheet } from 'react-native';
 
 export default function TypingDot({
   delay,
@@ -52,11 +50,10 @@ export default function TypingDot({
   );
 }
 
-const styles = {
+const styles = StyleSheet.create({
   dot: {
-    width: scale(6),
-    height: scale(6),
-    borderRadius: scale(3),
-    backgroundColor: Colors.textMuted,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-};
+});

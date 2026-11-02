@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import { useTheme } from '@/hooks/use-theme';
-import { scale } from '@/utils/scaling';
+import { Spacing } from '@/constants/theme';
 
 type ModalPosition = 'center' | 'bottom';
 
@@ -141,10 +141,6 @@ export default function AppModal({
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    // =====================================
-    // OVERLAY
-    // =====================================
-
     overlay: {
       flex: 1,
     },
@@ -160,88 +156,43 @@ const createStyles = (Colors: any) =>
 
     backdrop: {
       ...StyleSheet.absoluteFill,
-      backgroundColor: 'rgba(0, 0, 0, 0.55)',
+      backgroundColor: Colors.overlay,
     },
-
-    // =====================================
-    // MODAL CONTAINER
-    // =====================================
 
     modalContainer: {
       overflow: 'hidden',
     },
 
-    // =====================================
-    // COMMON MODAL CONTENT
-    // =====================================
-
     modalContent: {
-      backgroundColor: Colors.background,
-
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: 10,
-      },
-      shadowOpacity: 0.15,
-      shadowRadius: scale(20),
-
-      elevation: scale(10),
+      backgroundColor: Colors.card,
     },
 
     modalPadding: {
-      padding: scale(24),
+      padding: Spacing.four,
     },
 
-    // =====================================
-    // CENTER MODAL
-    // =====================================
-
+    // Height comes from the children, so no flex here
     centerModalContainer: {
       width: '90%',
-      maxWidth: scale(420),
+      maxWidth: 420,
       alignSelf: 'center',
-
-      // No height and no flex here.
-      // The modal gets its height from its children.
     },
 
     centerModalContent: {
-      borderRadius: scale(24),
-
-      // IMPORTANT:
-      // Do not use flex: 1 here.
-      // Height is determined by the children.
+      borderRadius: 24,
     },
-
-    // =====================================
-    // BOTTOM SHEET
-    // =====================================
 
     bottomModalContainer: {
       width: '100%',
-
       minHeight: '50%',
       maxHeight: '90%',
-
-      borderTopLeftRadius: scale(24),
-      borderTopRightRadius: scale(24),
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
     },
 
     bottomModalContent: {
       flex: 1,
-
-      borderTopLeftRadius: scale(24),
-      borderTopRightRadius: scale(24),
-
-      shadowColor: '#000',
-      shadowOffset: {
-        width: 0,
-        height: -5,
-      },
-      shadowOpacity: 0.15,
-      shadowRadius: scale(20),
-
-      elevation: scale(10),
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
     },
   });

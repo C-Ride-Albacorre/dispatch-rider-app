@@ -1,8 +1,8 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 const REVIEWS: any[] = [
 //   {
@@ -39,14 +39,19 @@ export default function Reviews() {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
-
   if (REVIEWS.length === 0) {
     return (
       <View style={styles.reviewSection}>
-        <Text style={styles.sectionTitle}>Recent Reviews</Text>
+        <ThemedText style={styles.sectionTitle}>Recent reviews</ThemedText>
         <View style={styles.noReviews}>
-          <Ionicons name="chatbubble-ellipses-outline" size={scale(24)} color={Colors.textSecondary} />
-          <Text style={styles.noReviewsText}>No reviews yet</Text>
+          <Ionicons
+            name="chatbubble-ellipses-outline"
+            size={20}
+            color={Colors.textMuted}
+          />
+          <ThemedText style={styles.noReviewsText} themeColor="textMuted">
+            No reviews yet
+          </ThemedText>
         </View>
       </View>
     );
@@ -54,17 +59,21 @@ export default function Reviews() {
 
   return (
     <View style={styles.reviewSection}>
-      <Text style={styles.sectionTitle}>Recent Reviews</Text>
+      <ThemedText style={styles.sectionTitle}>Recent reviews</ThemedText>
 
       <View style={styles.reviewList}>
         {REVIEWS.map((review) => (
           <View key={review.id} style={styles.reviewItem}>
             <View style={styles.reviewContent}>
-              <Text style={styles.reviewAuthor}>{review.author}</Text>
+              <ThemedText style={styles.reviewAuthor}>{review.author}</ThemedText>
 
-              <Text style={styles.reviewText}>{review.text}</Text>
+              <ThemedText style={styles.reviewText} themeColor="textSecondary">
+                {review.text}
+              </ThemedText>
 
-              <Text style={styles.reviewTime}>{review.time}</Text>
+              <ThemedText style={styles.reviewTime} themeColor="textMuted">
+                {review.time}
+              </ThemedText>
             </View>
 
             <View style={styles.reviewRating}>
@@ -72,7 +81,7 @@ export default function Reviews() {
                 <Ionicons
                   key={index}
                   name={index < review.rating ? 'star' : 'star-outline'}
-                  size={scale(16)}
+                  size={16}
                   color={Colors.primary}
                 />
               ))}
@@ -87,63 +96,73 @@ export default function Reviews() {
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     sectionTitle: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
 
     reviewSection: {
-      gap: scale(12),
+      gap: 12,
     },
 
     reviewList: {
-      gap: scale(16),
+      gap: Spacing.two,
     },
+
     reviewItem: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      gap: scale(8),
-      padding: scale(12),
-      borderRadius: scale(12),
+      gap: Spacing.two,
+      padding: 14,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
     },
+
     reviewContent: {
       flex: 1,
-      gap: scale(4),
+      gap: Spacing.one,
     },
+
     reviewAuthor: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 15,
+      lineHeight: 20,
     },
+
     reviewText: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
+
     reviewTime: {
-      fontSize: normalize(10),
       fontFamily: Fonts.brandRegular,
-      color: Colors.text,
+      fontSize: 12,
+      lineHeight: 17,
     },
+
     reviewRating: {
       flexDirection: 'row',
-      gap: scale(4),
+      gap: 2,
     },
-
 
     noReviews: {
-      flexDirection: 'column',
       alignItems: 'center',
-
-        gap: scale(8),
-
+      gap: Spacing.two,
+      padding: Spacing.four,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
     },
-    noReviewsText: {
-      fontSize: normalize(12),
-        fontFamily: Fonts.brandRegular,
 
-        color: Colors.textSecondary,
+    noReviewsText: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
     },
   });

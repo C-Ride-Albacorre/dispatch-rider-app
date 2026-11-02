@@ -1,100 +1,127 @@
-import { Colors } from '@/constants/theme';
-import { normalize, scale } from '@/utils/scaling';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Button from '../ui/buttons/button';
 
 export default function Footer() {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
+
   return (
     <View style={styles.footer}>
-      <Text style={styles.footerTitle}>Performance Incentive</Text>
+      <View style={styles.text}>
+        <ThemedText style={styles.title}>Performance incentive</ThemedText>
 
-      <Text style={styles.footerText}>
-        Complete 10 more deliveries this week to unlock{' '}
-        <Text style={styles.bonusText}>NGN15,000</Text> bonus!
-      </Text>
+        <ThemedText style={styles.body} themeColor="textSecondary">
+          Complete 10 more deliveries this week to unlock{' '}
+          <ThemedText style={styles.bonus} themeColor="primary">
+            NGN15,000
+          </ThemedText>{' '}
+          bonus!
+        </ThemedText>
+      </View>
 
-      <View style={styles.incentiveProgress}>
-        <View style={styles.incentiveHeader}>
-          <View style={styles.incentiveInfo}>
-            <Ionicons name="trophy-outline" size={24} color={Colors.primary} />
-            <Text style={styles.incentiveProgressText}>
+      <View style={styles.progress}>
+        <View style={styles.progressHeader}>
+          <View style={styles.inline}>
+            <Ionicons name="trophy-outline" size={18} color={Colors.primary} />
+            <ThemedText style={styles.secondary} themeColor="textSecondary">
               Progress: 77/87 deliveries
-            </Text>
+            </ThemedText>
           </View>
 
-          <Text style={styles.incentiveProgressText}>88.5%</Text>
+          <ThemedText style={styles.value}>88.5%</ThemedText>
         </View>
 
-        <View style={styles.incentiveProgressBar}>
-          <View style={styles.incentiveProgressFill}></View>
+        <View style={styles.track}>
+          <View style={styles.fill} />
         </View>
       </View>
 
-      <Button>View Performance Details</Button>
+      <Button>View performance details</Button>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  footer: {
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 44,
-    backgroundColor: Colors.text,
-    gap: 24,
-    marginTop: 32,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    footer: {
+      gap: Spacing.four,
+      padding: Spacing.four,
+      marginTop: Spacing.five,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      borderWidth: 1,
+      borderBottomWidth: 0,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+    },
 
-  footerTitle: {
-    fontSize: normalize(18),
-    fontWeight: 'bold',
-    color: Colors.background,
-  },
+    text: {
+      gap: Spacing.two,
+    },
 
-  footerText: {
-    fontSize: normalize(16),
-    color: Colors.background,
-    lineHeight: normalize(28),
-  },
+    title: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+    },
 
-  incentiveProgress: {
-    gap: 24,
-  },
+    body: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
+    },
 
-  incentiveHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+    bonus: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
+    },
 
-  incentiveInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
+    progress: {
+      gap: 12,
+    },
 
-  incentiveProgressText: {
-    fontSize: normalize(14),
-    color: Colors.background,
-  },
+    progressHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
 
-  incentiveProgressBar: {
-    height: scale(10),
-    backgroundColor: Colors.inputBackground,
-    borderRadius: scale(5),
-    overflow: 'hidden',
-  },
+    inline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
 
-  incentiveProgressFill: {
-    height: '100%',
-    width: '88.5%',
-    backgroundColor: Colors.primary,
-    borderRadius: scale(5),
-  },
+    secondary: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
 
-  bonusText: {
-    fontWeight: 'bold',
-    color: Colors.primary,
-  },
-});
+    value: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    track: {
+      height: 6,
+      borderRadius: 3,
+      overflow: 'hidden',
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    fill: {
+      height: '100%',
+      width: '88.5%',
+      borderRadius: 3,
+      backgroundColor: Colors.primary,
+    },
+  });

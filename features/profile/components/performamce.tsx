@@ -1,8 +1,8 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -41,8 +41,10 @@ function MetricBar({
   return (
     <View style={styles.metricItem}>
       <View style={styles.metricHeader}>
-        <Text style={styles.metricTitle}>{title}</Text>
-        <Text style={styles.metricValue}>{value}</Text>
+        <ThemedText style={styles.metricTitle} themeColor="textSecondary">
+          {title}
+        </ThemedText>
+        <ThemedText style={styles.metricValue}>{value}</ThemedText>
       </View>
 
       <View style={styles.metricProgressBarContainer}>
@@ -69,7 +71,7 @@ export default function DriverPerformance({
   return (
     <View style={styles.metricsContainer}>
       <MetricBar
-        title="Overall Rating"
+        title="Overall rating"
         value={`${rating.toFixed(1)}/5.0`}
         percent={rating * 20}
         color={Colors.success}
@@ -81,35 +83,40 @@ export default function DriverPerformance({
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     metricsContainer: {
-      gap: scale(16),
+      gap: Spacing.three,
     },
 
     metricItem: {
-      gap: scale(8),
+      gap: Spacing.two,
     },
+
     metricHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
     },
+
     metricTitle: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
-      color: Colors.text,
+      fontSize: 13,
+      lineHeight: 18,
     },
+
     metricValue: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 13,
+      lineHeight: 18,
     },
+
     metricProgressBarContainer: {
-      height: scale(6),
-      borderRadius: scale(3),
-      backgroundColor: Colors.border,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: Colors.backgroundTertiary,
       overflow: 'hidden',
     },
+
     metricProgressBar: {
       height: '100%',
-      borderRadius: scale(3),
+      borderRadius: 3,
     },
   });

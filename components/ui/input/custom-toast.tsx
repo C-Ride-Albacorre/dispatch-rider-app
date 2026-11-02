@@ -1,16 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
   Easing,
-  FadeIn,
-  FadeOut,
   SlideInDown,
   SlideOutUp,
 } from 'react-native-reanimated';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { scale } from '@/utils/scaling';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info';
 
@@ -20,31 +18,25 @@ type CustomToastProps = {
   message?: string;
 };
 
-const toastConfig = {
-  success: {
-    icon: 'checkmark-circle' as const,
-    color: '#22C55E',
-    background: '#F0FDF4',
-    darkBackground: '#102A1A',
-  },
-  error: {
-    icon: 'close-circle' as const,
-    color: '#EF4444',
-    background: '#FEF2F2',
-    darkBackground: '#301315',
-  },
-  warning: {
-    icon: 'warning' as const,
-    color: '#F59E0B',
-    background: '#FFFBEB',
-    darkBackground: '#30250D',
-  },
-  info: {
-    icon: 'information-circle' as const,
-    color: '#3B82F6',
-    background: '#EFF6FF',
-    darkBackground: '#101F35',
-  },
+const toastIcons = {
+  success: 'checkmark-circle',
+  error: 'close-circle',
+  warning: 'warning',
+  info: 'information-circle',
+} as const;
+
+/** Accent colour and tinted background for each toast type */
+const toastTone = (type: ToastType, Colors: any) => {
+  switch (type) {
+    case 'error':
+      return { color: Colors.error, background: Colors.errorLight };
+    case 'warning':
+      return { color: Colors.warning, background: Colors.warningLight };
+    case 'info':
+      return { color: Colors.info, background: Colors.infoLight };
+    default:
+      return { color: Colors.success, background: Colors.successExtraLight };
+  }
 };
 
 export default function CustomToast({
@@ -52,9 +44,9 @@ export default function CustomToast({
   title,
   message,
 }: CustomToastProps) {
-  const { Colors, isDark } = useTheme();
+  const { Colors } = useTheme();
 
-  const config = toastConfig[type];
+  const tone = toastTone(type, Colors);
 
   return (
     <Animated.View
@@ -63,58 +55,31 @@ export default function CustomToast({
       style={[
         styles.wrapper,
         {
-          backgroundColor: isDark ? config.darkBackground : config.background,
+          backgroundColor: Colors.card,
+          borderColor: Colors.border,
+          shadowColor: Colors.black,
         },
       ]}
     >
-      {/* Accent */}
-      <View
-        style={[
-          styles.accent,
-          {
-            backgroundColor: config.color,
-          },
-        ]}
-      />
-
       {/* Icon */}
-      <View
-        style={[
-          styles.iconContainer,
-          {
-            backgroundColor: `${config.color}18`,
-          },
-        ]}
-      >
-        <Ionicons name={config.icon} size={scale(22)} color={config.color} />
+      <View style={[styles.iconContainer, { backgroundColor: tone.background }]}>
+        <Ionicons name={toastIcons[type]} size={20} color={tone.color} />
       </View>
 
       {/* Content */}
       <View style={styles.content}>
-        <Text
-          style={[
-            styles.title,
-            {
-              color: Colors.text,
-            },
-          ]}
-          numberOfLines={1}
-        >
+        <ThemedText style={styles.title} numberOfLines={1}>
           {title}
-        </Text>
+        </ThemedText>
 
         {!!message && (
-          <Text
-            style={[
-              styles.message,
-              {
-                color: Colors.textSecondary,
-              },
-            ]}
+          <ThemedText
+            style={styles.message}
+            themeColor="textSecondary"
             numberOfLines={2}
           >
             {message}
-          </Text>
+          </ThemedText>
         )}
       </View>
     </Animated.View>
@@ -124,71 +89,43 @@ export default function CustomToast({
 const styles = StyleSheet.create({
   wrapper: {
     width: '92%',
-    minHeight: scale(70),
-
     alignSelf: 'center',
-
     flexDirection: 'row',
     alignItems: 'center',
-
-    borderRadius: scale(18),
-
-    paddingVertical: scale(12),
-    paddingHorizontal: scale(14),
-
+    gap: 12,
+    padding: 14,
+    borderRadius: 16,
+    borderWidth: 1,
     overflow: 'hidden',
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: scale(8),
-    },
-    shadowOpacity: 0.14,
-    shadowRadius: scale(18),
-
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
     elevation: 8,
   },
 
-  accent: {
-    position: 'absolute',
-
-    left: 0,
-    top: 0,
-    bottom: 0,
-
-    width: scale(4),
-
- 
-  },
-
   iconContainer: {
-    width: scale(42),
-    height: scale(42),
-
-    borderRadius: scale(14),
-
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-
-    marginRight: scale(11),
   },
 
   content: {
     flex: 1,
-    paddingRight: scale(4),
+    gap: 2,
+    paddingRight: Spacing.one,
   },
 
   title: {
-    fontSize: scale(12),
     fontFamily: Fonts.brandSemiBold,
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   message: {
-    marginTop: scale(3),
-
-    fontSize: scale(12),
-    lineHeight: scale(17),
-
     fontFamily: Fonts.brandRegular,
+    fontSize: 13,
+    lineHeight: 18,
   },
 });

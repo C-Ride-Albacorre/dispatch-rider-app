@@ -1,15 +1,15 @@
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
 import Input from '@/components/ui/input/input';
 import Select from '@/components/ui/input/select';
-import { Colors, Fonts } from '@/constants/theme';
-import { normalize, scale } from '@/utils/scaling';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Fonts, Spacing } from '@/constants/theme';
+import StepCard, { StepActions, stepActionStyles } from '@/features/onboarding/components/step-card';
+import { useTheme } from '@/hooks/use-theme';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Controller, useForm } from 'react-hook-form';
 import {
   ActivityIndicator,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -17,7 +17,6 @@ import { vehicleInfoAction } from '../../action';
 import { VehicleInfoFormValues, vehicleInfoSchema } from '../../schema';
 import { useOnboardingStore } from '../../store';
 import { useVehicleTypeConfigs } from '../../use-fetch';
-import { useTheme } from '@/hooks/use-theme';
 
 export default function VehicleInfo({
   goToStep,
@@ -93,30 +92,22 @@ export default function VehicleInfo({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.textContainer}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="car-outline" size={24} color={Colors.primary} />
-        </View>
-
-        <View style={styles.mainTextContainer}>
-          <Text style={styles.mainText}>Vehicle Information</Text>
-
-          <Text style={styles.subText}>Tell us about your vehicle</Text>
-        </View>
-      </View>
-
+    <StepCard
+      icon="car-outline"
+      title="Vehicle Information"
+      subtitle="Tell us about your vehicle"
+    >
       <View style={styles.form}>
         <View style={styles.vehicleTypeContainer}>
-          <Text style={styles.vehicleTypeLabel}>Vehicle Type</Text>
+          <ThemedText style={styles.vehicleTypeLabel}>Vehicle Type</ThemedText>
 
           {isLoadingVehicleTypes ? (
             <ActivityIndicator color={Colors.primary} />
           ) : isVehicleTypesError ? (
             <TouchableOpacity onPress={() => refetchVehicleTypes()}>
-              <Text style={styles.errorText}>
+              <ThemedText style={styles.errorText} themeColor="error">
                 Failed to load vehicle types. Tap to retry.
-              </Text>
+              </ThemedText>
             </TouchableOpacity>
           ) : (
             <Controller
@@ -130,11 +121,16 @@ export default function VehicleInfo({
                       activeOpacity={0.8}
                       onPress={() => onChange(type.id)}
                       style={[
-                        styles.largeVehicles,
+                        styles.vehicleOption,
                         value === type.id && styles.selectedVehicleType,
                       ]}
                     >
-                      <Text style={styles.largeMainText}>{type.name}</Text>
+                      <ThemedText
+                        style={styles.vehicleOptionText}
+                        themeColor={value === type.id ? 'text' : 'textSecondary'}
+                      >
+                        {type.name}
+                      </ThemedText>
                     </TouchableOpacity>
                   ))}
                 </View>
@@ -143,9 +139,9 @@ export default function VehicleInfo({
           )}
 
           {errors.vehicleTypeConfigId?.message && (
-            <Text style={styles.errorText}>
+            <ThemedText style={styles.errorText} themeColor="error">
               {errors.vehicleTypeConfigId.message}
-            </Text>
+            </ThemedText>
           )}
         </View>
 
@@ -216,120 +212,79 @@ export default function VehicleInfo({
           )}
         />
 
-        <View style={styles.buttonContainer}>
+        <StepActions>
           <Button
+            size="lg"
             disabled={currentStep - 1 <= resumeStep}
             onPress={handlePreviousStep}
             variant="outline"
+            style={stepActionStyles.button}
           >
             Previous
           </Button>
           <Button
+            size="lg"
             disabled={!isValid || isSubmitting}
             loading={isSubmitting}
             onPress={handleSubmit(onSubmit)}
+            style={stepActionStyles.button}
           >
             Continue
           </Button>
-        </View>
+        </StepActions>
       </View>
-    </View>
+    </StepCard>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      borderRadius: scale(12),
-      padding: scale(20),
-      gap: scale(32),
-    },
-
-    textContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(16),
+    form: {
+      gap: Spacing.three,
     },
 
     errorText: {
-      fontSize: normalize(12),
-      color: Colors.error,
       fontFamily: Fonts.brandMedium,
-    },
-
-    iconContainer: {
-      width: scale(48),
-      height: scale(48),
-      borderRadius: scale(12),
-      backgroundColor: Colors.primaryLight,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    mainTextContainer: {
-      flex: 1,
-    },
-
-    mainText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-
-    subText: {
-      fontSize: normalize(12),
-      color: Colors.textSecondary,
-      fontFamily: Fonts.brandRegular,
-    },
-
-    form: {
-      gap: scale(32),
-    },
-
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: scale(16),
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     vehicleTypeContainer: {
-      gap: scale(12),
+      gap: Spacing.two,
     },
 
     vehicleTypeLabel: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandMedium,
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     vehicleTypeOptions: {
       flexDirection: 'row',
-      gap: scale(12),
+      gap: 12,
     },
 
-    largeVehicles: {
+    vehicleOption: {
+      flex: 1,
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: scale(8),
-      padding: scale(14),
+      gap: Spacing.two,
+      padding: 14,
       borderWidth: 1,
       borderColor: Colors.border,
-      borderRadius: scale(8),
-      flex: 1,
+      borderRadius: 12,
+      backgroundColor: Colors.card,
     },
 
-    largeMainText: {
-      fontSize: normalize(14),
+    vehicleOptionText: {
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     selectedVehicleType: {
       borderColor: Colors.primary,
-      backgroundColor: Colors.primaryLight,
+      backgroundColor: Colors.primaryExtraLight,
     },
   });

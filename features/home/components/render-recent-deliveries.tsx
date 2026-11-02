@@ -1,8 +1,9 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { RecentDelivery } from '../use-fetch';
 
 export default function RenderRecentDeliveries({
@@ -16,139 +17,99 @@ export default function RenderRecentDeliveries({
 
   const styles = createStyles(Colors);
 
+  const customerName =
+    delivery.customer.firstName + ' ' + delivery.customer.lastName;
+
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <Pressable
       onPress={onPress}
       key={delivery.assignmentId}
-      style={styles.deliveriesListItem}
+      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      accessibilityRole="button"
+      accessibilityLabel={`Delivery for ${customerName}`}
     >
       <View style={styles.statusIcon}>
-        <Text style={styles.statusIconText}>✓</Text>
+        <Ionicons name="checkmark" size={18} color={Colors.success} />
       </View>
 
       <View style={styles.customerDetails}>
-        <Text
+        <ThemedText
           style={styles.customerName}
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {delivery.customer.firstName + ' ' + delivery.customer.lastName}
-        </Text>
+          {customerName}
+        </ThemedText>
 
-        <Text style={styles.orderNumber}>{delivery.orderNumber}</Text>
+        <ThemedText style={styles.secondary} themeColor="textSecondary">
+          {delivery.orderNumber}
+        </ThemedText>
 
-        <Text style={styles.timeAgo}>{formatDate(delivery.deliveredAt)}</Text>
-
-        {/* <View style={styles.ratingContainer}>
-          <View style={styles.stars}>
-            {Array.from({ length: delivery.rating }).map((_, index) => (
-              <Ionicons key={index} name="star" size={12} color="gold" />
-            ))}
-
-            {Array.from({ length: 5 - delivery.rating }).map((_, index) => (
-              <Ionicons
-                key={index}
-                name="star-outline"
-                size={12}
-                color={Colors.textMuted}
-              />
-            ))}
-
-          
-          </View>
-        </View> */}
+        <ThemedText style={styles.meta} themeColor="textMuted">
+          {formatDate(delivery.deliveredAt)}
+        </ThemedText>
       </View>
 
-      <View style={styles.deliveryFare}>
-        <Text style={styles.amount}>₦ {delivery.deliveryFee}</Text>
-      </View>
-    </TouchableOpacity>
+      <ThemedText style={styles.amount}>₦ {delivery.deliveryFee}</ThemedText>
+    </Pressable>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    deliveriesListItem: {
-      gap: scale(12),
-      backgroundColor: Colors.inputBackground,
-      borderRadius: scale(12),
+    card: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(16),
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
     },
 
-    deliveryItemIcon: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(8),
-      backgroundColor: Colors.successExtraLight,
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
     statusIcon: {
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(20),
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: Colors.successExtraLight,
-    },
-
-    statusIconText: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandBold,
-      color: Colors.success,
     },
 
     customerDetails: {
       flex: 1,
+      gap: 2,
     },
 
     customerName: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 15,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
 
-    ratingContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(8),
-    },
-
-    stars: {
-      flexDirection: 'row',
-      gap: scale(4),
-    },
-
-    timeAgo: {
-      fontSize: normalize(10),
+    secondary: {
       fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
+      fontSize: 13,
+      lineHeight: 18,
     },
 
-    deliveryFare: {
-      alignItems: 'flex-end',
+    meta: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     amount: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
-    },
-
-    tip: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.success,
-    },
-    orderNumber: {
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
+      marginLeft: Spacing.one,
     },
   });

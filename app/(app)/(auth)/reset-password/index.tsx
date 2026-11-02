@@ -1,25 +1,16 @@
-import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
-import IconButton from '@/components/ui/buttons/icon-button';
-import ReturnButton from '@/components/ui/buttons/return-button';
-import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
+import { Spacing } from '@/constants/theme';
 import { ResetPasswordAction } from '@/features/auth/action';
+import AuthScreen, { FormError } from '@/features/auth/components/auth-screen';
 import { ResetPasswordSchema } from '@/features/auth/schema';
 import { useTheme } from '@/hooks/use-theme';
-import { scale } from '@/utils/scaling';
 import { clearResetToken, getResetToken } from '@/utils/token-storage';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('');
@@ -34,8 +25,6 @@ export default function ResetPassword() {
   const router = useRouter();
 
   const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
 
   const goToLogin = async () => {
     await clearResetToken();
@@ -98,102 +87,68 @@ export default function ResetPassword() {
         setShowSuccessModal={setSuccessModalVisible}
       />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      <AuthScreen
+        title="Set a new password"
+        subtitle="Choose a new password for your account."
+        onBack={goToLogin}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          bounces={false}
-          scrollEnabled={true}
+        <View style={styles.form}>
+          <FormError message={error} />
+
+          <Input
+            label="Password"
+            placeholder="********"
+            value={password}
+            onChangeText={(text) => {
+              setPassword(text);
+              if (error) setError('');
+            }}
+            secureTextEntry={!showPassword}
+            rightIcon={
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={18}
+                color={Colors.textMuted}
+              />
+            }
+            onRightIconPress={() => setShowPassword(!showPassword)}
+          />
+
+          <Input
+            label="Confirm Password"
+            placeholder="********"
+            value={confirmPassword}
+            onChangeText={(text) => {
+              setConfirmPassword(text);
+              if (error) setError('');
+            }}
+            secureTextEntry={!showPassword}
+            rightIcon={
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={18}
+                color={Colors.textMuted}
+              />
+            }
+            onRightIconPress={() => setShowPassword(!showPassword)}
+          />
+        </View>
+
+        <Button
+          size="lg"
+          loading={loading}
+          disabled={loading}
+          onPress={handleResetPassword}
         >
-          <View>
-            <IconButton icon="chevron-back" size="md" variant="soft" onPress={goToLogin} accessibilityLabel="Go back" />
-
-            <AuthPageHeader />
-          </View>
-
-          <View style={styles.form}>
-            {error && <ErrorMessage message={error} />}
-
-            <Input
-              label="Password"
-              placeholder="********"
-              value={password}
-              onChangeText={(text) => {
-                setPassword(text);
-                if (error) setError('');
-              }}
-              secureTextEntry={!showPassword}
-              rightIcon={
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color="#999"
-                />
-              }
-              onRightIconPress={() => setShowPassword(!showPassword)}
-            />
-
-            <Input
-              label="Confirm Password"
-              placeholder="********"
-              value={confirmPassword}
-              onChangeText={(text) => {
-                setConfirmPassword(text);
-                if (error) setError('');
-              }}
-              secureTextEntry={!showPassword}
-              rightIcon={
-                <Ionicons
-                  name={showPassword ? 'eye-off' : 'eye'}
-                  size={24}
-                  color="#999"
-                />
-              }
-              onRightIconPress={() => setShowPassword(!showPassword)}
-            />
-            <Button
-              loading={loading}
-              disabled={loading}
-              onPress={handleResetPassword}
-            >
-              {loading ? 'Resetting...' : 'Reset Password'}
-            </Button>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          {loading ? 'Resetting...' : 'Reset Password'}
+        </Button>
+      </AuthScreen>
     </>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    keyboardSafeArea: {
-      flex: 1,
-    },
-
-    returnBtn: {
-      alignSelf: 'flex-start',
-      padding: 8,
-      borderRadius: 40,
-      backgroundColor: Colors.light,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-
-    container: {
-      padding: scale(20),
-      flexGrow: 1,
-      gap: scale(24),
-    },
-
-    returnIcon: {
-      color: Colors.textSecondary,
-    },
-
-    form: {
-      gap: scale(24),
-    },
-  });
+const styles = StyleSheet.create({
+  form: {
+    gap: Spacing.three,
+  },
+});

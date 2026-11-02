@@ -1,9 +1,9 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useEffect, useRef, useState } from 'react';
 import {
   NativeSyntheticEvent,
   StyleSheet,
-  Text,
   TextInput,
   TextInputKeyPressEventData,
   View,
@@ -11,8 +11,6 @@ import {
   Animated,
 } from 'react-native';
 
-import ErrorMessage from '../error/error-message';
-import { normalize, scale } from '@/utils/scaling';
 import { useTheme } from '@/hooks/use-theme';
 
 interface OtpInputProps {
@@ -26,8 +24,6 @@ interface OtpInputProps {
   /** Called on every change */
   onChange?: (otp: string) => void;
 }
-
-const CELL_SIZE = 52;
 
 export default function OtpInput({
   label,
@@ -228,9 +224,11 @@ export default function OtpInput({
 
   return (
     <View style={styles.wrapper}>
-      {hasError && <ErrorMessage message={errorMessage} />}
-
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && (
+        <ThemedText style={styles.label} themeColor="textSecondary">
+          {label}
+        </ThemedText>
+      )}
 
       {/**
        * ==================================================
@@ -322,6 +320,12 @@ export default function OtpInput({
           );
         })}
       </Animated.View>
+
+      {hasError && (
+        <ThemedText style={styles.errorText} themeColor="error">
+          {errorMessage}
+        </ThemedText>
+      )}
     </View>
   );
 }
@@ -329,77 +333,58 @@ export default function OtpInput({
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     wrapper: {
-      gap: 12,
-      alignItems: 'center',
       width: '100%',
-    },
-
-    field: {
-      width: '100%',
-      gap: scale(6),
-    },
-
-    labelContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(2),
     },
 
     label: {
-      fontSize: normalize(16),
-      color: Colors.text,
       fontFamily: Fonts.brandMedium,
-    },
-
-    required: {
-      color: Colors.error,
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandBold,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.two,
     },
 
     row: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: scale(8),
+      justifyContent: 'center',
+      gap: Spacing.two,
     },
 
     cell: {
-      width: CELL_SIZE,
-      height: CELL_SIZE,
-
-      borderRadius: scale(12),
-
-      backgroundColor: Colors.inputBackground,
-
+      flex: 1,
+      maxWidth: 56,
+      aspectRatio: 1,
+      borderRadius: 16,
       justifyContent: 'center',
       alignItems: 'center',
-
-      borderWidth: 1,
-      borderColor: 'transparent',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
+      backgroundColor: Colors.inputBackground,
     },
 
     cellFocused: {
+      borderWidth: 1.5,
       borderColor: Colors.primary,
-    },
-
-    cellError: {
-      borderColor: Colors.error,
-
-      backgroundColor: Colors.errorLight,
     },
 
     cellFilled: {
       borderColor: Colors.border,
     },
 
+    cellError: {
+      borderColor: Colors.error,
+      backgroundColor: Colors.errorLight,
+    },
+
     cellText: {
-      fontSize: 22,
-      fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
-      color: Colors.text,
-      textAlign: 'center',
       width: '100%',
       height: '100%',
-      // Vertically center on Android (padding trick)
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 22,
+      color: Colors.text,
+      textAlign: 'center',
+      // Vertically center on Android
       paddingTop: 0,
       paddingBottom: 0,
       includeFontPadding: false,
@@ -412,29 +397,10 @@ const createStyles = (Colors: any) =>
       opacity: 0,
     },
 
-    input: {
-      width: '100%',
-      height: '100%',
-
-      textAlign: 'center',
-
-      color: Colors.text,
-
-      fontSize: normalize(22),
-
-      fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
-
-      includeFontPadding: false,
-      paddingVertical: 0,
-    },
-
     errorText: {
-      fontSize: normalize(13),
-
-      color: Colors.error,
-
-      fontFamily: Fonts.brandMedium,
-
-      marginLeft: scale(4),
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: Spacing.one,
     },
   });

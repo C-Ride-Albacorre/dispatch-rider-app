@@ -1,178 +1,227 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+
+type IconName = keyof typeof Ionicons.glyphMap;
 
 export default function Earnings() {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
+
   return (
-    <View style={styles.earningsContainer}>
-      <View style={styles.earningsDetails}>
-        <View style={styles.earningsHeader}>
-          <Text style={styles.earningsHeaderText}>Earnings Overview</Text>
+    <View style={styles.container}>
+      <View style={styles.section}>
+        <SectionHeader title="Earnings overview" subtitle="How your earnings are trending" />
 
-          <View style={styles.filterContainer}>
-            <Text style={styles.filterText}>This Week</Text>
-          </View>
-        </View>
-
-        <View style={styles.earningsDetails}>
-          <View
-            style={[
-              styles.earningItem,
-              { backgroundColor: Colors.successExtraLight },
-            ]}
-          >
-            <View style={styles.earningDetail}>
-              <Text style={styles.earningDetailText}>This Month</Text>
-
-              <Text style={styles.earningDetailValue}>₦ 12,500</Text>
-            </View>
-
-            <Ionicons
-              name="trending-up-outline"
-              size={16}
-              color={Colors.success}
-            />
-          </View>
-
-          <View
-            style={[
-              styles.earningItem,
-              { backgroundColor: Colors.primaryLight },
-            ]}
-          >
-            <View style={styles.earningDetail}>
-              <Text style={styles.earningDetailText}>This Week</Text>
-
-              <Text style={styles.earningDetailValue}>₦ 42,500</Text>
-            </View>
-
-            <Ionicons
-              name="trending-up-outline"
-              size={16}
-              color={Colors.success}
-            />
-          </View>
-
-          <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
-            <View style={styles.earningDetail}>
-              <Text style={styles.earningDetailText}>This Month</Text>
-
-              <Text style={styles.earningDetailValue}>₦ 112,500</Text>
-            </View>
-
-            <Ionicons
-              name="trending-up-outline"
-              size={16}
-              color={Colors.success}
-            />
-          </View>
+        <View style={styles.list}>
+          <SummaryTile label="This month" value="₦ 12,500" tint={Colors.successExtraLight} />
+          <SummaryTile label="This week" value="₦ 42,500" tint={Colors.primaryExtraLight} />
+          <SummaryTile label="This month" value="₦ 112,500" tint={Colors.backgroundTertiary} />
         </View>
       </View>
-      <View style={styles.earningsDetails}>
-        <View style={styles.earningsHeader}>
-          <Text style={styles.earningsHeaderText}>Earnings Overview</Text>
 
-          <View style={styles.filterContainer}>
-            <Text style={styles.filterText}>This Week</Text>
+      <View style={styles.section}>
+        <SectionHeader title="Earnings breakdown" subtitle="Where this week's money came from" />
+
+        <View style={styles.card}>
+          <BreakdownRow icon="cash-outline" label="Base earnings" value="₦ 12,500" />
+          <BreakdownRow icon="trophy-outline" label="Performance bonus" value="₦ 28,500" />
+          <BreakdownRow icon="cash-outline" label="Tips" value="₦ 12,500" />
+
+          <View style={[styles.row, styles.total]}>
+            <ThemedText style={styles.cardTitle}>Total this week</ThemedText>
+            <ThemedText style={styles.cardTitle} themeColor="primary">
+              ₦285,400
+            </ThemedText>
           </View>
-        </View>
-
-        <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
-          <View style={styles.earningDetail}>
-            <Ionicons name="cash-outline" size={16} color={Colors.primary} />
-            <Text style={styles.earningDetailText}>Base Earnings</Text>
-          </View>
-
-          <Text style={styles.earningDetailValue}>₦ 12,500</Text>
-        </View>
-
-        <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
-          <View style={styles.earningDetail}>
-            <Ionicons name="trophy-outline" size={16} color={Colors.primary} />
-            <Text style={styles.earningDetailText}>Performance Bonus</Text>
-          </View>
-
-          <Text style={styles.earningDetailValue}>₦ 28,500</Text>
-        </View>
-
-        <View style={[styles.earningItem, { backgroundColor: Colors.light }]}>
-          <View style={styles.earningDetail}>
-            <Ionicons name="cash-outline" size={16} color={Colors.primary} />
-            <Text style={styles.earningDetailText}>Tips</Text>
-          </View>
-
-          <Text style={styles.earningDetailValue}>₦ 12,500</Text>
-        </View>
-
-        <View
-          style={[styles.earningItem, { backgroundColor: Colors.primaryLight }]}
-        >
-          <View style={styles.earningDetail}>
-            <Text style={styles.earningDetailText}>Total This Week</Text>
-          </View>
-
-          <Text style={styles.earningDetailValue}>₦285,400</Text>
         </View>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  earningsContainer: {
-    gap: 32,
-  },
-  earningsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-  earningsHeaderText: {
-    fontSize: 16,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: Colors.inputBackground,
-    borderRadius: 10,
-  },
+  return (
+    <View style={styles.sectionHeader}>
+      <View style={styles.flex}>
+        <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
+        <ThemedText style={styles.sectionSubtitle} themeColor="textMuted">
+          {subtitle}
+        </ThemedText>
+      </View>
 
-  filterText: {
-    fontSize: 12,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.textSecondary,
-  },
-  earningsDetails: {
-    gap: 12,
-  },
-  earningItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 12,
-    padding: 16,
-    borderRadius: 14,
-  },
+      <View style={styles.pill}>
+        <ThemedText style={styles.pillText} themeColor="textSecondary">
+          This week
+        </ThemedText>
+      </View>
+    </View>
+  );
+}
 
-  earningDetail: {
-    gap: 8,
-  },
+function SummaryTile({ label, value, tint }: { label: string; value: string; tint: string }) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-  earningDetailText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+  return (
+    <View style={[styles.tile, { backgroundColor: tint }]}>
+      <View style={styles.tileText}>
+        <ThemedText style={styles.label} themeColor="textMuted">
+          {label}
+        </ThemedText>
+        <ThemedText style={styles.tileValue}>{value}</ThemedText>
+      </View>
 
-  earningDetailValue: {
-    fontSize: 14,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
-});
+      <Ionicons name="trending-up-outline" size={18} color={Colors.success} />
+    </View>
+  );
+}
+
+function BreakdownRow({ icon, label, value }: { icon: IconName; label: string; value: string }) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
+
+  return (
+    <View style={styles.row}>
+      <View style={styles.rowLabel}>
+        <Ionicons name={icon} size={16} color={Colors.primary} />
+        <ThemedText style={styles.body} themeColor="textSecondary">
+          {label}
+        </ThemedText>
+      </View>
+
+      <ThemedText style={styles.value}>{value}</ThemedText>
+    </View>
+  );
+}
+
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+
+    container: {
+      gap: Spacing.four,
+    },
+
+    section: {
+      gap: Spacing.three,
+    },
+
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      gap: Spacing.two,
+    },
+
+    sectionTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+    },
+
+    sectionSubtitle: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
+    },
+
+    pill: {
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 2,
+      borderRadius: 999,
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    pillText: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+    },
+
+    list: {
+      gap: Spacing.two,
+    },
+
+    tile: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
+    },
+
+    tileText: {
+      gap: 2,
+    },
+
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+
+    tileValue: {
+      fontFamily: Fonts.brandBold,
+      fontSize: 20,
+      lineHeight: 26,
+    },
+
+    card: {
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: 12,
+    },
+
+    rowLabel: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
+
+    body: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    value: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    total: {
+      paddingTop: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
+    },
+
+    cardTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
+  });

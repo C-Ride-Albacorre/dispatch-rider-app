@@ -1,35 +1,12 @@
-import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
-
 import Button from '@/components/ui/buttons/button';
-import IconButton from '@/components/ui/buttons/icon-button';
-
 import OtpInput from '@/components/ui/input/otp-input';
-
-import { Fonts } from '@/constants/theme';
-
+import AuthScreen from '@/features/auth/components/auth-screen';
 import ExpiredTokenModal from '@/features/verify/components/expired-token-modal';
-import { useTheme } from '@/hooks/use-theme';
-
 import { useAuthStore } from '@/store/auth-store';
-
 import { maskEmail } from '@/utils/mask';
-import { normalize, scale } from '@/utils/scaling';
-
-import Ionicons from '@expo/vector-icons/Ionicons';
-
 import { useRouter } from 'expo-router';
-
 import { useEffect, useState } from 'react';
-
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
 
 const onBoardingSteps = [
   'Set up your profile',
@@ -50,10 +27,6 @@ export default function ResetVerifyEmailScreen() {
   const [resending, setResending] = useState(false);
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
 
   const router = useRouter();
 
@@ -129,118 +102,33 @@ export default function ResetVerifyEmailScreen() {
         setShowExpiredModal={setShowExpiredModal}
       />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      <AuthScreen
+        title="Verify your email"
+        subtitle={`We sent a six digit code to ${maskEmail(verificationEmail || '')}`}
+        onBack={() => router.back()}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          bounces={false}
-          scrollEnabled={true}
-        >
-          <View>
-            <IconButton
-              icon="chevron-back"
-              size="md"
-              onPress={() => router.back()}
-              accessibilityLabel="Go back"
-            />
+        <OtpInput
+          errorMessage={errorMessage}
+          onComplete={(otp) => {
+            setCode(otp);
+          }}
+          onChange={(otp) => {
+            setCode(otp);
 
-            <AuthPageHeader />
-          </View>
+            if (errorMessage) {
+              setErrorMessage('');
+            }
+          }}
+        />
 
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>Verify your email</Text>
+        <Button size="lg" disabled={loading} loading={loading} onPress={handleVerify}>
+          {loading ? 'Verifying...' : 'Verify Email'}
+        </Button>
 
-            <Text style={styles.subtitle}>
-              We sent a six digit code to {maskEmail(verificationEmail || '')}
-            </Text>
-          </View>
-
-          <OtpInput
-            errorMessage={errorMessage}
-            onComplete={(otp) => {
-              setCode(otp);
-            }}
-            onChange={(otp) => {
-              setCode(otp);
-
-              if (errorMessage) {
-                setErrorMessage('');
-              }
-            }}
-          />
-
-          <Button disabled={loading} loading={loading} onPress={handleVerify}>
-            {loading ? 'Verifying...' : 'Verify Email'}
-          </Button>
-
-          <View style={styles.resendContainer}>
-            {/* <TouchableOpacity>
-              <Link href="/(app)/(auth)/forgot-password" asChild>
-                <Text style={styles.resendText}>Change Email</Text>
-              </Link>
-            </TouchableOpacity> */}
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {/* <Button variant="text" size="sm" onPress={() => router.push('/(app)/(auth)/forget-password')}>
+          Change Email
+        </Button> */}
+      </AuthScreen>
     </>
   );
 }
-
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    keyboardSafeArea: {
-      flex: 1,
-      backgroundColor: Colors.background,
-    },
-
-    container: {
-      paddingHorizontal: scale(20),
-      paddingBottom: scale(20),
-      paddingTop: scale(12),
-      flexGrow: 1,
-      gap: scale(24),
-    },
-
-    returnIcon: {
-      color: Colors.textSecondary,
-    },
-
-    textContainer: {
-      gap: 8,
-      alignItems: 'center',
-      marginVertical: scale(20),
-    },
-
-    title: {
-      fontSize: normalize(26),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-
-    subtitle: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
-      textAlign: 'center',
-    },
-
-    resendContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: scale(20),
-      gap: scale(16),
-    },
-
-    resendText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
-    },
-
-    disabledResendText: {
-      color: Colors.textSecondary,
-    },
-  });

@@ -1,41 +1,19 @@
-import AuthPageHeader from '@/components/layout/auth-header';
-
-import Button from '@/components/ui/buttons/button';
-
-import ErrorMessage from '@/components/ui/error/error-message';
-
-import Input from '@/components/ui/input/input';
-
-import PhoneInput from '@/components/ui/input/phone-input';
-
-import { Fonts } from '@/constants/theme';
-
-import { registerAction } from '@/features/auth/action';
-
-import { getPasswordStrength } from '@/utils/password-strength';
-
-import Ionicons from '@expo/vector-icons/Ionicons';
-
-import { useRouter } from 'expo-router';
-
-import { useState } from 'react';
-
-import { Controller, useForm } from 'react-hook-form';
-
-import { zodResolver } from '@hookform/resolvers/zod';
-
 import SuccessModal from '@/components/layout/success-modal';
+import { ThemedText } from '@/components/themed-text';
+import Button from '@/components/ui/buttons/button';
+import Input from '@/components/ui/input/input';
+import PhoneInput from '@/components/ui/input/phone-input';
+import { Fonts, Spacing } from '@/constants/theme';
+import { registerAction } from '@/features/auth/action';
+import AuthScreen, { AuthSwitch, FormError } from '@/features/auth/components/auth-screen';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { getPasswordStrength } from '@/utils/password-strength';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { StyleSheet, View } from 'react-native';
 import { RegisterPayload, RegisterSchema } from '../schema';
 
 export default function RegisterForm() {
@@ -52,8 +30,6 @@ export default function RegisterForm() {
   const [nextSteps, setNextSteps] = useState<string[]>([]);
 
   const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
 
   const {
     control,
@@ -111,190 +87,132 @@ export default function RegisterForm() {
         setShowSuccessModal={setShowSuccessModal}
       />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-      >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          bounces={false}
-          scrollEnabled={true}
-          showsVerticalScrollIndicator={false}
-        >
-          <View>
-            <AuthPageHeader />
-          </View>
+      <AuthScreen title="Become a rider" subtitle="Begin your journey with care">
+        <FormError message={errorMessage} />
 
-          {errorMessage && <ErrorMessage message={errorMessage} />}
-
-          <View style={styles.form}>
-            {/* FIRST NAME */}
-            <Controller
-              control={control}
-              name="firstName"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="First Name"
-                  placeholder="John"
-                  value={value}
-                  onChangeText={onChange}
-                  error={errors.firstName?.message}
-                />
-              )}
-            />
-
-            {/* LAST NAME */}
-            <Controller
-              control={control}
-              name="lastName"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Last Name"
-                  placeholder="Doe"
-                  value={value}
-                  onChangeText={onChange}
-                  error={errors.lastName?.message}
-                />
-              )}
-            />
-
-            {/* EMAIL */}
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Email"
-                  placeholder="john@mail.com"
-                  value={value}
-                  onChangeText={onChange}
-                  error={errors.email?.message}
-                />
-              )}
-            />
-
-            {/* PHONE */}
-            <Controller
-              control={control}
-              name="phoneNumber"
-              render={({ field: { onChange, value } }) => (
-                <PhoneInput
-                  label="Phone Number"
-                  placeholder="(000) 000-0000"
-                  value={value}
-                  onChangePhone={onChange}
-                  errorMessage={errors.phoneNumber?.message}
-                />
-              )}
-            />
-
-            {/* PASSWORD */}
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { onChange, value } }) => (
-                <Input
-                  label="Password"
-                  placeholder="********"
-                  value={value}
-                  secureTextEntry={!showPassword}
-                  onChangeText={onChange}
-                  rightIcon={
-                    <Ionicons
-                      name={showPassword ? 'eye-off' : 'eye'}
-                      size={22}
-                      color="#999"
-                    />
-                  }
-                  onRightIconPress={() => setShowPassword(!showPassword)}
-                  error={errors.password?.message}
-                />
-              )}
-            />
-
-            {/* PASSWORD STRENGTH */}
-            {password.length > 0 && (
-              <Text
-                style={{
-                  color: passwordStrength.color,
-
-                  fontSize: 13,
-
-                  fontFamily: Fonts.brandMedium,
-                }}
-              >
-                Password Strength: {passwordStrength.label}
-              </Text>
+        <View style={styles.form}>
+          {/* FIRST NAME */}
+          <Controller
+            control={control}
+            name="firstName"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                label="First Name"
+                placeholder="John"
+                value={value}
+                onChangeText={onChange}
+                error={errors.firstName?.message}
+              />
             )}
+          />
 
-            {/* SUBMIT */}
-            <Button
-              size="lg"
-              loading={loading}
-              disabled={loading}
-              onPress={handleSubmit(onSubmit)}
-            >
-              {loading ? 'Creating Account...' : 'Register'}
-            </Button>
+          {/* LAST NAME */}
+          <Controller
+            control={control}
+            name="lastName"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                label="Last Name"
+                placeholder="Doe"
+                value={value}
+                onChangeText={onChange}
+                error={errors.lastName?.message}
+              />
+            )}
+          />
 
-            {/* FOOTER */}
-            <View style={styles.action}>
-              <Text style={styles.actionText}>Already have an account?</Text>
+          {/* EMAIL */}
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                label="Email"
+                placeholder="john@mail.com"
+                value={value}
+                onChangeText={onChange}
+                error={errors.email?.message}
+              />
+            )}
+          />
 
-              <TouchableOpacity
-                onPress={() => router.push('/(app)/(auth)/login')}
-              >
-                <Text style={styles.actionLink}>Login</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          {/* PHONE */}
+          <Controller
+            control={control}
+            name="phoneNumber"
+            render={({ field: { onChange, value } }) => (
+              <PhoneInput
+                label="Phone Number"
+                placeholder="(000) 000-0000"
+                value={value}
+                onChangePhone={onChange}
+                errorMessage={errors.phoneNumber?.message}
+              />
+            )}
+          />
+
+          {/* PASSWORD */}
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { onChange, value } }) => (
+              <Input
+                label="Password"
+                placeholder="********"
+                value={value}
+                secureTextEntry={!showPassword}
+                onChangeText={onChange}
+                rightIcon={
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color={Colors.textMuted}
+                  />
+                }
+                onRightIconPress={() => setShowPassword(!showPassword)}
+                error={errors.password?.message}
+              />
+            )}
+          />
+
+          {/* PASSWORD STRENGTH */}
+          {password.length > 0 && (
+            <ThemedText style={[styles.strength, { color: passwordStrength.color }]}>
+              Password Strength: {passwordStrength.label}
+            </ThemedText>
+          )}
+        </View>
+
+        {/* SUBMIT */}
+        <Button
+          size="lg"
+          loading={loading}
+          disabled={loading}
+          onPress={handleSubmit(onSubmit)}
+        >
+          {loading ? 'Creating Account...' : 'Register'}
+        </Button>
+
+        {/* FOOTER */}
+        <AuthSwitch
+          prompt="Already have an account?"
+          action="Login"
+          onPress={() => router.push('/(app)/(auth)/login')}
+        />
+      </AuthScreen>
     </>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    keyboardSafeArea: {
-      flex: 1,
-      backgroundColor: Colors.background,
-    },
+const styles = StyleSheet.create({
+  form: {
+    gap: Spacing.three,
+  },
 
-    container: {
-      padding: scale(20),
-      flexGrow: 1,
-      gap: scale(32),
-    },
-
-    form: {
-      // marginTop: 20,
-      gap: scale(24),
-    },
-
-    action: {
-      flexDirection: 'row',
-
-      justifyContent: 'center',
-
-      gap: scale(4),
-    },
-
-    actionText: {
-      color: Colors.text,
-
-      fontFamily: Fonts.brandMedium,
-
-      fontSize: normalize(16),
-    },
-
-    actionLink: {
-      color: Colors.primary,
-
-      fontFamily: Fonts.brandSemiBold,
-
-      fontSize: normalize(16),
-    },
-  });
+  strength: {
+    fontFamily: Fonts.brandMedium,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: -Spacing.two,
+  },
+});

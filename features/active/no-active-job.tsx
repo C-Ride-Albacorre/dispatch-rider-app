@@ -1,102 +1,115 @@
+import ScreenHeader from '@/components/layout/screen-header';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { StyleSheet, View } from 'react-native';
 
+/** Active tab when the rider has no delivery in progress */
 export default function NoActiveJob() {
-  const { Colors, isDark } = useTheme();
+  const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-      ]}
-    >
-      <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
-        <View
-          style={[
-            styles.iconWrapper,
-            {
-              backgroundColor: Colors.successExtraLight,
-            },
-          ]}
-        >
-          <Ionicons
-            name="bicycle-outline"
-            size={scale(36)}
-            color={Colors.success}
-          />
+    <ThemedView style={styles.flex}>
+      <StatusBar style="auto" />
+      <ScreenHeader title="Active" />
+
+      <View style={styles.content}>
+        <View style={styles.card}>
+          <View style={styles.iconCircle}>
+            <Ionicons name="bicycle-outline" size={20} color={Colors.success} />
+          </View>
+
+          <View style={styles.text}>
+            <ThemedText style={styles.title}>
+              You currently have no active job
+            </ThemedText>
+
+            <ThemedText style={styles.message} themeColor="textMuted">
+              Accept a new job to start delivering and earning.
+            </ThemedText>
+          </View>
+
+          <Button
+            variant="green"
+            size="lg"
+            style={styles.button}
+            onPress={() => router.push('/(app)/(protected)/(tabs)/jobs')}
+            leftIcon={
+              <Ionicons
+                name="chevron-back-outline"
+                size={16}
+                color={Colors.white}
+              />
+            }
+          >
+            Browse jobs
+          </Button>
         </View>
-
-        <View style={{ gap: scale(8), marginBottom: scale(16) }}>
-          <Text style={styles.title}>You currently have no active job</Text>
-
-          <Text style={styles.subtitle}>
-            Accept a new job to start delivering and earning.
-          </Text>
-        </View>
-
-        <Button
-          variant="green"
-          style={{
-            width: '100%',
-          }}
-          onPress={() => router.push('/(app)/(protected)/(tabs)/jobs')}
-          // onPress={() => {
-          //   router.push('/active-order');
-          // }}
-        leftIcon={
-            <Ionicons
-              name="chevron-back-outline"
-              size={16}
-              color={isDark ? Colors.text : Colors.background}
-            />
-          }
-        >
-          Browse Jobs
-        </Button>
       </View>
-    </View>
+    </ThemedView>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
+    flex: {
       flex: 1,
-      paddingHorizontal: scale(16),
-      paddingVertical: scale(12),
-      gap: scale(12),
+    },
+
+    content: {
+      flex: 1,
+      justifyContent: 'center',
+      paddingHorizontal: Spacing.three,
+      paddingBottom: Spacing.six,
+    },
+
+    card: {
+      alignItems: 'center',
+      gap: Spacing.three,
+      paddingVertical: Spacing.four,
+      paddingHorizontal: Spacing.three,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+    },
+
+    iconCircle: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: Colors.successExtraLight,
+    },
+
+    text: {
+      alignItems: 'center',
+      gap: Spacing.one,
     },
 
     title: {
-      fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
       textAlign: 'center',
-      color: Colors.text,
-    },
-    subtitle: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandRegular,
-      textAlign: 'center',
-      color: Colors.textMuted,
     },
 
-    iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: scale(16),
+    message: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: 'center',
+    },
+
+    button: {
+      alignSelf: 'stretch',
     },
   });

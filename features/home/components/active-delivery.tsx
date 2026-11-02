@@ -1,12 +1,12 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { ActiveOrderProps } from '@/store/driver-jobs-store';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -69,7 +69,7 @@ export default function ActiveDelivery({
   etaVendor: number | null;
   etaCustomer: number | null;
 }) {
-  const { Colors, isDark } = useTheme();
+  const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
@@ -88,7 +88,7 @@ export default function ActiveDelivery({
   const nextStop = toCustomer
     ? {
         icon: 'home-outline' as const,
-        label: 'DROP-OFF',
+        label: 'Drop-off',
         title: 'Customer',
         address: [
           activeOrder.dropoff_location?.address,
@@ -99,7 +99,7 @@ export default function ActiveDelivery({
       }
     : {
         icon: 'storefront-outline' as const,
-        label: 'PICKUP',
+        label: 'Pickup',
         title: activeOrder.store_name,
         address: activeOrder.pickup_location?.address,
       };
@@ -118,342 +118,356 @@ export default function ActiveDelivery({
   };
 
   return (
-    <Animated.View style={pressStyle}>
-      <Pressable
-        onPress={openActiveTab}
-        onPressIn={() => {
-          pressScale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
-        }}
-        onPressOut={() => {
-          pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
-        }}
-        style={styles.card}
-      >
-        {/* Header: live status + order ref */}
-        <View style={styles.header}>
+    <View style={styles.container}>
+      <View style={styles.sectionHeader}>
+        <View style={styles.flex}>
           <View style={styles.liveRow}>
             <LiveDot color={Colors.success} />
-            <Text style={styles.sectionTitle}>Active Delivery</Text>
+            <ThemedText style={styles.sectionTitle}>Active delivery</ThemedText>
           </View>
-
-          <View style={styles.statusPill}>
-            <Ionicons
-              name={toCustomer ? 'navigate' : 'bicycle'}
-              size={scale(12)}
-              color={Colors.success}
-            />
-            <Text style={styles.statusPillText}>{statusLabel}</Text>
-          </View>
+          <ThemedText style={styles.sectionSubtitle} themeColor="textMuted">
+            Tap to pick up where you left off
+          </ThemedText>
         </View>
 
-        {/* Store summary */}
-        <View style={styles.storeRow}>
-          {activeOrder.store_logo ? (
-            <Image
-              source={{ uri: activeOrder.store_logo }}
-              style={styles.storeLogo}
-            />
-          ) : (
-            <View style={[styles.storeLogo, styles.storeLogoPlaceholder]}>
-              <Ionicons
-                name="storefront"
-                size={scale(18)}
-                color={Colors.primary}
-              />
-            </View>
-          )}
-
-          <View style={styles.storeText}>
-            <Text style={styles.storeName} numberOfLines={1}>
-              {activeOrder.store_name}
-            </Text>
-            <Text style={styles.storeMeta} numberOfLines={1}>
-              #{orderRef} • {itemCount} {itemCount === 1 ? 'item' : 'items'}
-            </Text>
-          </View>
-
-          <Text style={styles.amount}>
-            ₦{(activeOrder.total_amount || 0).toLocaleString()}
-          </Text>
-        </View>
-
-        {/* Progress stepper */}
-        <View style={styles.stepper}>
-          {STEPS.map((step, index) => {
-            const done = index < currentStep;
-            const current = index === currentStep;
-            const reached = done || current;
-
-            return (
-              <View key={step} style={styles.step}>
-                <View style={styles.stepTrack}>
-                  <View
-                    style={[
-                      styles.stepBar,
-                      reached && { backgroundColor: Colors.success },
-                    ]}
-                  />
-                </View>
-                <View style={styles.stepLabelRow}>
-                  {done ? (
-                    <Ionicons
-                      name="checkmark-circle"
-                      size={scale(12)}
-                      color={Colors.success}
-                    />
-                  ) : null}
-                  <Text
-                    style={[
-                      styles.stepLabel,
-                      reached && styles.stepLabelActive,
-                    ]}
-                  >
-                    {step}
-                  </Text>
-                </View>
-              </View>
-            );
-          })}
-        </View>
-
-        {/* Next stop */}
-        <View style={styles.nextStop}>
-          <View style={styles.nextStopIcon}>
-            <Ionicons
-              name={nextStop.icon}
-              size={scale(18)}
-              color={Colors.primary}
-            />
-          </View>
-
-          <View style={styles.nextStopText}>
-            <Text style={styles.nextStopLabel}>NEXT STOP • {nextStop.label}</Text>
-            <Text style={styles.nextStopTitle} numberOfLines={1}>
-              {nextStop.title}
-            </Text>
-            {nextStop.address ? (
-              <Text style={styles.nextStopAddress} numberOfLines={1}>
-                {nextStop.address}
-              </Text>
-            ) : null}
-          </View>
-
-          <View style={styles.etaBox}>
-            <Text style={styles.etaValue}>{eta ?? '--'}</Text>
-            <Text style={styles.etaLabel}>ETA</Text>
-          </View>
-        </View>
-
-        {/* CTA */}
-        <View style={styles.cta}>
-          <Text style={[styles.ctaText, { color: isDark ? '#1A1A1A' : Colors.text }]}>
-            Continue delivery
-          </Text>
+        <View style={styles.statusPill}>
           <Ionicons
-            name="arrow-forward"
-            size={scale(16)}
-            color={isDark ? '#1A1A1A' : Colors.text}
+            name={toCustomer ? 'navigate' : 'bicycle'}
+            size={12}
+            color={Colors.success}
           />
+          <ThemedText style={styles.statusPillText} themeColor="success">
+            {statusLabel}
+          </ThemedText>
         </View>
-      </Pressable>
-    </Animated.View>
+      </View>
+
+      <Animated.View style={pressStyle}>
+        <Pressable
+          onPress={openActiveTab}
+          onPressIn={() => {
+            pressScale.value = withSpring(0.98, { damping: 15, stiffness: 300 });
+          }}
+          onPressOut={() => {
+            pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
+          }}
+          style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel="Continue delivery"
+        >
+          {/* Store summary */}
+          <View style={styles.storeRow}>
+            {activeOrder.store_logo ? (
+              <Image
+                source={{ uri: activeOrder.store_logo }}
+                style={styles.storeLogo}
+              />
+            ) : (
+              <View style={styles.storeLogo}>
+                <Ionicons
+                  name="storefront-outline"
+                  size={20}
+                  color={Colors.textMuted}
+                />
+              </View>
+            )}
+
+            <View style={styles.storeText}>
+              <ThemedText style={styles.storeName} numberOfLines={1}>
+                {activeOrder.store_name}
+              </ThemedText>
+              <ThemedText
+                style={styles.meta}
+                themeColor="textMuted"
+                numberOfLines={1}
+              >
+                #{orderRef} · {itemCount} {itemCount === 1 ? 'item' : 'items'}
+              </ThemedText>
+            </View>
+
+            <ThemedText style={styles.amount}>
+              ₦{(activeOrder.total_amount || 0).toLocaleString()}
+            </ThemedText>
+          </View>
+
+          {/* Progress stepper */}
+          <View style={styles.stepper}>
+            {STEPS.map((step, index) => {
+              const done = index < currentStep;
+              const current = index === currentStep;
+              const reached = done || current;
+
+              return (
+                <View key={step} style={styles.step}>
+                  <View
+                    style={[styles.stepBar, reached && styles.stepBarDone]}
+                  />
+                  <View style={styles.stepLabelRow}>
+                    {done ? (
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={12}
+                        color={Colors.success}
+                      />
+                    ) : null}
+                    <ThemedText
+                      style={[
+                        styles.stepLabel,
+                        reached && styles.stepLabelActive,
+                      ]}
+                      themeColor={reached ? 'text' : 'textMuted'}
+                    >
+                      {step}
+                    </ThemedText>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+
+          {/* Next stop */}
+          <View style={styles.nextStop}>
+            <View style={styles.nextStopIcon}>
+              <Ionicons name={nextStop.icon} size={18} color={Colors.primary} />
+            </View>
+
+            <View style={styles.nextStopText}>
+              <ThemedText style={styles.nextStopLabel} themeColor="textMuted">
+                Next stop · {nextStop.label}
+              </ThemedText>
+              <ThemedText style={styles.nextStopTitle} numberOfLines={1}>
+                {nextStop.title}
+              </ThemedText>
+              {nextStop.address ? (
+                <ThemedText
+                  style={styles.meta}
+                  themeColor="textSecondary"
+                  numberOfLines={1}
+                >
+                  {nextStop.address}
+                </ThemedText>
+              ) : null}
+            </View>
+
+            <View style={styles.etaBox}>
+              <ThemedText style={styles.etaValue} themeColor="success">
+                {eta ?? '--'}
+              </ThemedText>
+              <ThemedText style={styles.etaLabel} themeColor="textMuted">
+                ETA
+              </ThemedText>
+            </View>
+          </View>
+
+          {/* CTA: the whole card is the press target */}
+          <View style={styles.cta}>
+            <ThemedText style={styles.ctaText} themeColor="onPrimary">
+              Continue delivery
+            </ThemedText>
+            <Ionicons name="arrow-forward" size={16} color={Colors.onPrimary} />
+          </View>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 }
 
 const liveDotStyles = StyleSheet.create({
   wrapper: {
-    width: scale(12),
-    height: scale(12),
+    width: 12,
+    height: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
   ring: {
     position: 'absolute',
-    width: scale(12),
-    height: scale(12),
-    borderRadius: scale(6),
+    width: 12,
+    height: 12,
+    borderRadius: 6,
   },
   dot: {
-    width: scale(8),
-    height: scale(8),
-    borderRadius: scale(4),
+    width: 8,
+    height: 8,
+    borderRadius: 4,
   },
 });
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    card: {
-      backgroundColor: Colors.card,
-      borderRadius: scale(16),
-      padding: scale(16),
-      borderWidth: 1,
-      borderColor: Colors.success + '55',
-      gap: scale(16),
-      elevation: 2,
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.05,
-      shadowRadius: 10,
+    container: {
+      gap: Spacing.three,
     },
 
-    header: {
+    flex: {
+      flex: 1,
+    },
+
+    sectionHeader: {
       flexDirection: 'row',
+      alignItems: 'flex-end',
       justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: scale(8),
+      gap: Spacing.two,
     },
 
     liveRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(8),
+      gap: Spacing.two,
     },
 
     sectionTitle: {
-      fontSize: normalize(16),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+    },
+
+    sectionSubtitle: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
     },
 
     statusPill: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(4),
-      paddingVertical: scale(4),
-      paddingHorizontal: scale(10),
+      gap: Spacing.one,
+      paddingVertical: 2,
+      paddingHorizontal: Spacing.two,
       borderRadius: 999,
       backgroundColor: Colors.successExtraLight,
     },
 
     statusPillText: {
-      fontSize: normalize(11),
       fontFamily: Fonts.brandMedium,
-      color: Colors.success,
+      fontSize: 11,
+      lineHeight: 16,
+    },
+
+    card: {
+      gap: Spacing.three,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
     storeRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(10),
+      gap: 12,
     },
 
     storeLogo: {
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(10),
-      backgroundColor: Colors.backgroundTertiary,
-    },
-
-    storeLogoPlaceholder: {
-      backgroundColor: Colors.primaryLight,
+      width: 44,
+      height: 44,
+      borderRadius: 12,
       alignItems: 'center',
       justifyContent: 'center',
+      backgroundColor: Colors.backgroundTertiary,
     },
 
     storeText: {
       flex: 1,
-      gap: scale(2),
+      gap: 2,
     },
 
     storeName: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 15,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
 
-    storeMeta: {
-      fontSize: normalize(11),
+    meta: {
       fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     amount: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     stepper: {
       flexDirection: 'row',
-      gap: scale(6),
+      gap: Spacing.one,
     },
 
     step: {
       flex: 1,
-      gap: scale(6),
-    },
-
-    stepTrack: {
-      height: scale(4),
-      borderRadius: scale(2),
-      backgroundColor: Colors.border,
-      overflow: 'hidden',
+      gap: 6,
     },
 
     stepBar: {
-      flex: 1,
-      borderRadius: scale(2),
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    stepBarDone: {
+      backgroundColor: Colors.success,
     },
 
     stepLabelRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(3),
+      gap: Spacing.one,
     },
 
     stepLabel: {
-      fontSize: normalize(10),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
+      fontSize: 11,
+      lineHeight: 16,
     },
 
     stepLabelActive: {
       fontFamily: Fonts.brandMedium,
-      color: Colors.text,
     },
 
     nextStop: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(12),
-      padding: scale(12),
-      borderRadius: scale(12),
-      backgroundColor: Colors.inputBackground,
+      gap: 12,
+      padding: 12,
+      borderRadius: 12,
+      backgroundColor: Colors.backgroundSecondary,
     },
 
     nextStopIcon: {
-      width: scale(36),
-      height: scale(36),
-      borderRadius: scale(18),
-      backgroundColor: Colors.primaryLight,
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: Colors.primaryExtraLight,
       alignItems: 'center',
       justifyContent: 'center',
     },
 
     nextStopText: {
       flex: 1,
-      gap: scale(2),
+      gap: 2,
     },
 
     nextStopLabel: {
-      fontSize: normalize(9),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.textMuted,
-      letterSpacing: 0.5,
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
     },
 
     nextStopTitle: {
-      fontSize: normalize(13),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-      textTransform: 'capitalize',
-    },
-
-    nextStopAddress: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
 
@@ -462,29 +476,30 @@ const createStyles = (Colors: any) =>
     },
 
     etaValue: {
-      fontSize: normalize(15),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.success,
+      fontSize: 15,
+      lineHeight: 20,
     },
 
     etaLabel: {
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
     },
 
     cta: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: scale(8),
-      paddingVertical: scale(12),
-      borderRadius: scale(10),
+      gap: Spacing.two,
+      height: 44,
+      borderRadius: 999,
       backgroundColor: Colors.primary,
     },
 
     ctaText: {
-      fontSize: normalize(13),
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
     },
   });

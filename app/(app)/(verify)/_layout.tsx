@@ -10,9 +10,6 @@ export default function VerifyLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        sceneContainerStyle: {
-          backgroundColor: '#000000',
-        },
         contentStyle: {
           backgroundColor: Colors.background,
           paddingTop: insets.top,

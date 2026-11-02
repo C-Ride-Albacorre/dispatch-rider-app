@@ -1,13 +1,13 @@
 import AppModal from '@/components/layout/app-modal';
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
-import { normalize, scale } from '@/utils/scaling';
 import { saveActiveOrder } from '@/utils/token-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useAcceptJob } from '../use-fetch';
 
@@ -81,18 +81,21 @@ export default function ConfirmRequest({
     >
       <View style={styles.confirmRequestModal}>
         <View style={styles.confirmRequestIconWrapper}>
-          <Ionicons
-            name="bicycle-outline"
-            size={scale(32)}
-            color={Colors.primary}
-          />
+          <Ionicons name="bicycle-outline" size={28} color={Colors.primary} />
         </View>
 
-        <Text style={styles.confirmRequestTitle}>Confirm Request</Text>
+        <View style={styles.textGroup}>
+          <ThemedText style={styles.confirmRequestTitle}>
+            Confirm Request
+          </ThemedText>
 
-        <Text style={styles.confirmRequestDescription}>
-          Are you sure you want to confirm this request?
-        </Text>
+          <ThemedText
+            style={styles.confirmRequestDescription}
+            themeColor="textSecondary"
+          >
+            Are you sure you want to confirm this request?
+          </ThemedText>
+        </View>
 
         <View style={styles.actionContainer}>
           <Button
@@ -123,44 +126,49 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     confirmRequestModal: {
       alignItems: 'center',
-      paddingVertical: scale(8),
+      gap: Spacing.three,
+      paddingVertical: Spacing.two,
     },
 
     confirmRequestIconWrapper: {
-      width: scale(64),
-      height: scale(64),
-      borderRadius: scale(32),
-      backgroundColor: Colors.primaryLight,
+      width: 64,
+      height: 64,
+      borderRadius: 999,
+      backgroundColor: Colors.primaryExtraLight,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(16),
+    },
+
+    textGroup: {
+      alignItems: 'center',
+      gap: Spacing.one,
     },
 
     confirmRequestTitle: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(18),
-      color: Colors.text,
-      marginBottom: scale(8),
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
 
     confirmRequestDescription: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
-      lineHeight: normalize(20),
-      marginBottom: scale(24),
     },
 
     actionContainer: {
       flexDirection: 'row',
-      gap: scale(12),
+      gap: 12,
       width: '100%',
+      marginTop: Spacing.two,
     },
 
     cancelBtn: {
       flex: 1,
     },
+
     confirmRequestButton: {
       flex: 1,
     },

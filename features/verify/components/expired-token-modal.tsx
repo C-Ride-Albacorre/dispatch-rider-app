@@ -1,12 +1,11 @@
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { clearVerificationData } from '@/utils/token-storage';
 import { useRouter } from 'expo-router';
 import LottieView from 'lottie-react-native';
-import { StyleSheet } from 'react-native';
-import { Modal, Text, View } from 'react-native';
+import { Modal, StyleSheet, View } from 'react-native';
 
 export default function ExpiredTokenModal({
   showExpiredModal,
@@ -33,14 +32,17 @@ export default function ExpiredTokenModal({
             style={styles.animation}
           />
 
-          <Text style={styles.title}>Session Expired</Text>
+          <View style={styles.text}>
+            <ThemedText style={styles.title}>Session Expired</ThemedText>
 
-          <Text style={styles.description}>
-            Your verification session has expired. Please login again to
-            continue.
-          </Text>
+            <ThemedText style={styles.description} themeColor="textMuted">
+              Your verification session has expired. Please login again to
+              continue.
+            </ThemedText>
+          </View>
 
           <Button
+            size="lg"
             onPress={() => {
               setShowExpiredModal(false);
 
@@ -61,36 +63,43 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.5)',
+      backgroundColor: Colors.overlay,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: scale(20),
+      padding: Spacing.three,
     },
 
     content: {
-      backgroundColor: Colors.background,
+      backgroundColor: Colors.card,
+      borderWidth: 1,
+      borderColor: Colors.border,
       width: '100%',
-      borderRadius: scale(16),
-      padding: scale(24),
-      gap: scale(20),
+      borderRadius: 24,
+      padding: Spacing.four,
+      gap: Spacing.four,
     },
+
     animation: {
-      width: scale(170),
-      height: scale(170),
+      width: 140,
+      height: 140,
       alignSelf: 'center',
     },
 
+    text: {
+      gap: Spacing.one,
+    },
+
     title: {
-      fontSize: normalize(20),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
       textAlign: 'center',
     },
+
     description: {
-      fontSize: normalize(15),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
-      lineHeight: normalize(22),
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
     },
   });

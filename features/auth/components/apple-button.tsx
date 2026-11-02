@@ -1,29 +1,17 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Button from '@/components/ui/buttons/button';
+import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Fonts } from '@/constants/theme';
 
 export default function AppleButton() {
+  const { Colors } = useTheme();
+
   return (
-    <TouchableOpacity style={style.button}>
-      <Ionicons name="logo-apple" size={20} color="#fff" />
-      <Text style={style.buttonText}>Continue with Apple</Text>
-    </TouchableOpacity>
+    <Button
+      size="lg"
+      variant="inverted"
+      leftIcon={<Ionicons name="logo-apple" size={20} color={Colors.background} />}
+    >
+      Continue with Apple
+    </Button>
   );
 }
-
-const style = StyleSheet.create({
-  button: {
-    backgroundColor: '#000',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
-  },
-});

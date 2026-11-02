@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -8,10 +8,10 @@ import AppModal from '@/components/layout/app-modal';
 import Button from '@/components/ui/buttons/button';
 import Input from '@/components/ui/input/input';
 
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { normalize, scale } from '@/utils/scaling';
 import { useDeclineJob } from './use-fetch';
 
 // import { useDeclineJob } from '../jobs/use-fetch';
@@ -115,52 +115,59 @@ export default function ConfirmDeclineRequest({
         <View style={styles.confirmRequestIconWrapper}>
           <Ionicons
             name="alert-circle-outline"
-            size={scale(32)}
+            size={24}
             color={Colors.error}
           />
         </View>
 
-        <Text style={styles.confirmRequestTitle}>Decline Request</Text>
+        <ThemedText style={styles.confirmRequestTitle}>Decline request</ThemedText>
 
-        <Text style={styles.confirmRequestDescription}>
+        <ThemedText
+          style={styles.confirmRequestDescription}
+          themeColor="textSecondary"
+        >
           Why are you declining this request?
-        </Text>
+        </ThemedText>
 
         <View style={styles.reasonsContainer}>
           {DECLINE_REASONS.map((item) => {
             const isSelected = selectedReason === item;
 
             return (
-              <TouchableOpacity
+              <Pressable
                 key={item}
-                activeOpacity={0.8}
                 onPress={() => setSelectedReason(item)}
-                style={[
+                style={({ pressed }) => [
                   styles.reasonButton,
-                  isSelected && {
-                    borderColor: Colors.error,
-                    backgroundColor: Colors.errorLight,
+                  isSelected && styles.reasonButtonSelected,
+                  pressed && !isSelected && {
+                    backgroundColor: Colors.backgroundSecondary,
                   },
                 ]}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: isSelected }}
               >
-                <Text
-                  style={[
-                    styles.reasonText,
-                    isSelected && {
-                      color: Colors.error,
-                      fontFamily: Fonts.brandSemiBold,
-                    },
-                  ]}
+                <ThemedText
+                  style={styles.reasonText}
+                  themeColor={isSelected ? 'error' : 'text'}
                 >
                   {item}
-                </Text>
-              </TouchableOpacity>
+                </ThemedText>
+
+                {isSelected && (
+                  <Ionicons
+                    name="checkmark-circle"
+                    size={18}
+                    color={Colors.error}
+                  />
+                )}
+              </Pressable>
             );
           })}
         </View>
 
         {selectedReason === 'Other' && (
-          <View style={{ width: '100%' }}>
+          <View style={styles.customReason}>
             <Input
               placeholder="Enter custom reason"
               value={customReason}
@@ -172,6 +179,7 @@ export default function ConfirmDeclineRequest({
         <View style={styles.actionContainer}>
           <Button
             variant="outline"
+            size="lg"
             onPress={() => setShowConfirmDeclineModal(false)}
             style={styles.cancelBtn}
             disabled={isPending}
@@ -181,6 +189,7 @@ export default function ConfirmDeclineRequest({
 
           <Button
             variant="red"
+            size="lg"
             loading={isPending}
             disabled={isPending}
             onPress={handleDecline}
@@ -198,61 +207,74 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     confirmRequestModal: {
       alignItems: 'center',
-      paddingVertical: scale(8),
+      paddingVertical: Spacing.two,
     },
 
     confirmRequestIconWrapper: {
-      width: scale(64),
-      height: scale(64),
-      borderRadius: scale(32),
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       backgroundColor: Colors.errorLight,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(16),
+      marginBottom: Spacing.three,
     },
 
     confirmRequestTitle: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(18),
-      color: Colors.text,
-      marginBottom: scale(8),
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+      marginBottom: Spacing.one,
     },
 
     confirmRequestDescription: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
-      lineHeight: normalize(20),
-      marginBottom: scale(20),
+      marginBottom: Spacing.four,
     },
 
     reasonsContainer: {
       width: '100%',
-      gap: scale(10),
-      marginBottom: scale(20),
+      gap: Spacing.two,
     },
 
     reasonButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: Spacing.two,
       borderWidth: 1,
       borderColor: Colors.border,
-      borderRadius: scale(12),
-      paddingVertical: scale(14),
-      paddingHorizontal: scale(14),
+      borderRadius: 16,
+      padding: 14,
       width: '100%',
+      backgroundColor: Colors.card,
+    },
+
+    reasonButtonSelected: {
+      borderColor: Colors.error,
+      backgroundColor: Colors.errorLight,
     },
 
     reasonText: {
-      fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.text,
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    customReason: {
+      width: '100%',
+      marginTop: 12,
     },
 
     actionContainer: {
       flexDirection: 'row',
-      gap: scale(12),
+      gap: 12,
       width: '100%',
-      marginTop: scale(20),
+      marginTop: Spacing.four,
     },
 
     cancelBtn: {

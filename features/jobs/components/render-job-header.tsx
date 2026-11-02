@@ -1,12 +1,9 @@
-
-import { JobProps } from '../types';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { StyleSheet } from 'react-native';
-import { normalize, scale } from '@/utils/scaling';
-import { Fonts } from '@/constants/theme';
-
-import { Text, View, Animated, Easing } from 'react-native';
 import { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { JobProps } from '../types';
 
 export default function RenderJobHeader({ jobs }: { jobs: JobProps[] }) {
   const { Colors } = useTheme();
@@ -41,7 +38,7 @@ export default function RenderJobHeader({ jobs }: { jobs: JobProps[] }) {
 
   return (
     <View style={styles.header}>
-      <Text style={styles.title}>Available Jobs</Text>
+      <ThemedText style={styles.title}>Available Jobs</ThemedText>
 
       <View style={styles.searchStatus}>
         <View style={styles.signal}>
@@ -49,11 +46,7 @@ export default function RenderJobHeader({ jobs }: { jobs: JobProps[] }) {
             style={[
               styles.beam,
               {
-                transform: [
-                  {
-                    scale: pulse,
-                  },
-                ],
+                transform: [{ scale: pulse }],
                 opacity: pulse.interpolate({
                   inputRange: [1, 1.8],
                   outputRange: [0.5, 0],
@@ -65,16 +58,9 @@ export default function RenderJobHeader({ jobs }: { jobs: JobProps[] }) {
           <View style={styles.dot} />
         </View>
 
-        <Text
-          style={[
-            styles.subtitle,
-            {
-              color: Colors.success,
-            },
-          ]}
-        >
+        <ThemedText style={styles.subtitle} themeColor="success">
           {jobs.length} request nearby
-        </Text>
+        </ThemedText>
       </View>
     </View>
   );
@@ -86,52 +72,53 @@ const createStyles = (Colors: any) =>
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-
-      paddingVertical: scale(16),
+      gap: Spacing.two,
+      paddingBottom: 12,
     },
 
     title: {
-      fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
 
+    // Live status pill
     searchStatus: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(8),
+      gap: 6,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      backgroundColor: Colors.successExtraLight,
     },
 
     subtitle: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     signal: {
-      width: scale(14),
-      height: scale(14),
-
+      width: 12,
+      height: 12,
       alignItems: 'center',
       justifyContent: 'center',
     },
 
     dot: {
-      width: scale(7),
-      height: scale(7),
-
-      borderRadius: scale(4),
-
+      width: 6,
+      height: 6,
+      borderRadius: 999,
       backgroundColor: Colors.success,
     },
 
     beam: {
       position: 'absolute',
-
-      width: scale(14),
-      height: scale(14),
-
-      borderRadius: scale(7),
-
+      width: 12,
+      height: 12,
+      borderRadius: 999,
       backgroundColor: Colors.success,
     },
   });

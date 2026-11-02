@@ -1,6 +1,5 @@
-import { useLocalSearchParams } from 'expo-router';
-
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { router, useLocalSearchParams } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 
 import {
   ActivityIndicator,
@@ -8,7 +7,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 
@@ -22,19 +20,19 @@ import { useChat } from '@/hooks/use-chat-socket';
 
 import { ChatBubble } from '@/features/chat/components/chat-bubble';
 
-import { Fonts } from '@/constants/theme';
+import ScreenHeader from '@/components/layout/screen-header';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Fonts, Spacing } from '@/constants/theme';
 import { ChatInput } from '@/features/chat/components/chat-input';
 import { ConnectionStatus } from '@/features/chat/components/connection-status';
 import TypingDot from '@/features/chat/components/typing-dot';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 
 export default function ChatScreen() {
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
-
-  const insets = useSafeAreaInsets();
 
   const { orderId: rawOrderId } = useLocalSearchParams<{
     orderId: string | string[];
@@ -76,8 +74,17 @@ export default function ChatScreen() {
   //   }
   // }, [messages.length]);
 
+  const goBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/active');
+  };
+
   if (!orderId) {
-    return <ActivityIndicator />;
+    return (
+      <ThemedView style={styles.centered}>
+        <ActivityIndicator color={Colors.primary} />
+      </ThemedView>
+    );
   }
 
   return (
@@ -90,13 +97,16 @@ export default function ChatScreen() {
 
       <KeyboardAvoidingView
         style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        <SafeAreaView edges={['top']} style={[styles.wrapperContainer, { paddingTop: insets.top + scale(16) }]}>
-          <View style={styles.connectionStatusContainer}>
-            <ConnectionStatus isConnected={isConnected} />
-          </View>
+        <StatusBar style="auto" />
+        <View style={styles.wrapperContainer}>
+          <ScreenHeader
+            title="Chat with customer"
+            onBack={goBack}
+            right={<ConnectionStatus isConnected={isConnected} />}
+          />
 
           <View style={styles.container}>
             <FlatList
@@ -127,7 +137,9 @@ export default function ChatScreen() {
                   <TypingDot delay={360} Colors={Colors} />
                 </View>
 
-                <Text style={styles.typingText}>Customer is typing</Text>
+                <ThemedText style={styles.typingText} themeColor="textMuted">
+                  Customer is typing…
+                </ThemedText>
               </View>
             )}
 
@@ -137,7 +149,7 @@ export default function ChatScreen() {
               onPickImage={sendImage}
             />
           </View>
-        </SafeAreaView>
+        </View>
       </KeyboardAvoidingView>
     </>
   );
@@ -145,94 +157,68 @@ export default function ChatScreen() {
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
     keyboardSafeArea: {
       flex: 1,
       backgroundColor: Colors.background,
-     
     },
 
     wrapperContainer: {
       flex: 1,
-      backgroundColor: Colors.backgroundSecondary,
-      flexDirection: 'column',
-    },
-
-    connectionStatusContainer: {
-      paddingHorizontal: scale(16),
-      paddingVertical: scale(8),
       backgroundColor: Colors.background,
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.border,
     },
 
     container: {
       flex: 1,
       position: 'relative',
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: Colors.border,
     },
 
     list: {
       flexGrow: 1,
       justifyContent: 'flex-end',
-      paddingHorizontal: scale(16),
-      paddingTop: scale(16),
-      paddingBottom: scale(12),
-    },
-
-    typingContainer: {
-      paddingHorizontal: scale(16),
-      paddingBottom: scale(8),
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.three,
+      paddingBottom: 12,
     },
 
     typingWrapper: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: scale(16),
-      paddingBottom: scale(10),
-
       position: 'absolute',
-      bottom: scale(100),
+      bottom: 100,
       left: 0,
       right: 0,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.three,
+      paddingBottom: Spacing.two,
     },
 
     typingBubble: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'center',
-
-      width: scale(50),
-      height: scale(34),
-
-      borderRadius: scale(18),
-
-      backgroundColor: Colors.background,
-
-      marginRight: scale(10),
-
-      shadowColor: '#000',
-      shadowOpacity: 0.08,
-      shadowRadius: 8,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-
-      elevation: 4,
-    },
-
-    dot: {
-      width: scale(6),
-      height: scale(6),
-      borderRadius: scale(3),
+      width: 52,
+      height: 34,
+      borderRadius: 18,
+      borderBottomLeftRadius: 4,
+      backgroundColor: Colors.backgroundElement,
     },
 
     dotMiddle: {
-      width: scale(5),
+      width: 5,
     },
 
     typingText: {
-      color: Colors.textMuted,
-      fontFamily: Fonts.brandMedium,
-      fontSize: normalize(12),
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
+      fontStyle: 'italic',
     },
   });

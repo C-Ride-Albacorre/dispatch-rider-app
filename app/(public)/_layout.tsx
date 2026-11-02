@@ -1,29 +1,22 @@
+import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
 
 export default function PublicLayout() {
+  const { Colors } = useTheme();
+
   return (
     <Stack
       screenOptions={{
-        sceneContainerStyle: {
-          backgroundColor: '#000000',
+        headerShown: false,
+        contentStyle: {
+          backgroundColor: Colors.background,
+          maxWidth: 600,
+          alignSelf: 'center',
+          width: '100%',
         },
-        maxWidth: 600,
-        alignSelf: 'center',
-        width: '100%',
       }}
     >
-      <Stack.Screen
-        name="index"
-        options={{
-          headerShown: false,
-          contentStyle: {
-            backgroundColor: 'white',
-            maxWidth: 600,
-            alignSelf: 'center',
-            width: '100%',
-          },
-        }}
-      />
+      <Stack.Screen name="index" />
     </Stack>
   );
 }

@@ -1,9 +1,9 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 export default function LoadingJobs() {
   const { Colors } = useTheme();
@@ -36,31 +36,16 @@ export default function LoadingJobs() {
       animation.stop();
     };
   }, []);
+
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          opacity: fadeAnim,
-        },
-      ]}
-    >
-      <View
-        style={[
-          styles.iconWrapper,
-          { backgroundColor: Colors.successExtraLight },
-        ]}
-      >
-        <Ionicons
-          name="location-outline"
-          size={scale(36)}
-          color={Colors.success}
-        />
+    <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
+      <View style={styles.iconWrapper}>
+        <Ionicons name="location-outline" size={28} color={Colors.success} />
       </View>
 
-      <Text style={[styles.loadingText, { color: Colors.success }]}>
+      <ThemedText style={styles.loadingText} themeColor="success">
         Finding orders close to you...
-      </Text>
+      </ThemedText>
     </Animated.View>
   );
 }
@@ -71,19 +56,22 @@ const createStyles = (Colors: any) =>
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      backgroundColor: Colors.background,
-      gap: scale(16),
+      gap: Spacing.three,
+      paddingHorizontal: Spacing.four,
     },
+
     loadingText: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
+      width: 64,
+      height: 64,
+      borderRadius: 999,
       justifyContent: 'center',
       alignItems: 'center',
+      backgroundColor: Colors.successExtraLight,
     },
   });

@@ -1,10 +1,10 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -42,7 +42,6 @@ function MenuRow({
   const styles = createStyles(Colors);
 
   const isDanger = tone === 'danger';
-  const accent = isDanger ? Colors.error : Colors.primary;
 
   const rotation = useSharedValue(0);
 
@@ -66,34 +65,37 @@ function MenuRow({
         }}
         android_ripple={{ color: Colors.border }}
         style={({ pressed }) => [styles.rowHeader, pressed && styles.pressed]}
+        accessibilityRole="button"
       >
-        <View
-          style={[
-            styles.iconWrapper,
-            { backgroundColor: isDanger ? Colors.errorLight : Colors.primaryLight },
-          ]}
-        >
-          <Ionicons name={icon} size={scale(18)} color={accent} />
-        </View>
+        <Ionicons
+          name={icon}
+          size={20}
+          color={isDanger ? Colors.error : Colors.textMuted}
+        />
 
         <View style={styles.rowText}>
-          <Text
-            style={[styles.rowTitle, isDanger && { color: Colors.error }]}
+          <ThemedText
+            style={styles.rowTitle}
+            themeColor={isDanger ? 'error' : 'text'}
           >
             {title}
-          </Text>
+          </ThemedText>
 
           {subtitle ? (
-            <Text style={styles.rowSubtitle} numberOfLines={1}>
+            <ThemedText
+              style={styles.rowSubtitle}
+              themeColor="textMuted"
+              numberOfLines={1}
+            >
               {subtitle}
-            </Text>
+            </ThemedText>
           ) : null}
         </View>
 
         <Animated.View style={expandable ? chevronStyle : undefined}>
           <Ionicons
-            name="chevron-forward-outline"
-            size={scale(18)}
+            name="chevron-forward"
+            size={18}
             color={isDanger ? Colors.error : Colors.textMuted}
           />
         </Animated.View>
@@ -128,12 +130,14 @@ export default function ProfileMenu({
 
   return (
     <View style={styles.wrapper}>
-      <Text style={styles.groupLabel}>ACCOUNT</Text>
+      <ThemedText style={styles.groupLabel} themeColor="textMuted">
+        Account
+      </ThemedText>
 
       <Animated.View layout={LinearTransition.duration(220)} style={styles.card}>
         <MenuRow
           icon="stats-chart-outline"
-          title="Performance Metrics"
+          title="Performance metrics"
           subtitle="Your rating and delivery performance"
           expandable
           expanded={showPerformance}
@@ -165,22 +169,23 @@ export default function ProfileMenu({
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     wrapper: {
-      gap: scale(8),
+      gap: Spacing.two,
     },
 
     groupLabel: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.textMuted,
-      letterSpacing: 0.6,
-      paddingHorizontal: scale(4),
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+      paddingHorizontal: Spacing.one,
     },
 
     card: {
-      borderRadius: scale(12),
+      borderRadius: 20,
       borderWidth: 1,
       borderColor: Colors.border,
-      backgroundColor: Colors.background,
+      backgroundColor: Colors.card,
       overflow: 'hidden',
     },
 
@@ -189,50 +194,39 @@ const createStyles = (Colors: any) =>
     },
 
     rowDivider: {
-      borderBottomWidth: 1,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: Colors.border,
     },
 
     rowHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(12),
-      paddingHorizontal: scale(14),
-      paddingVertical: scale(14),
+      gap: Spacing.three,
+      padding: Spacing.three,
     },
 
     pressed: {
       backgroundColor: Colors.backgroundSecondary,
     },
 
-    iconWrapper: {
-      width: scale(36),
-      height: scale(36),
-      borderRadius: scale(10),
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-
     rowText: {
       flex: 1,
-      gap: scale(2),
     },
 
     rowTitle: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandMedium,
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     rowSubtitle: {
-      fontSize: normalize(11),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     rowBody: {
-      paddingHorizontal: scale(14),
-      paddingBottom: scale(16),
-      paddingTop: scale(2),
+      paddingHorizontal: Spacing.three,
+      paddingBottom: Spacing.three,
     },
   });

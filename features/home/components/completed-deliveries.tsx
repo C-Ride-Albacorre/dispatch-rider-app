@@ -1,60 +1,84 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function CompletedDeliveries() {
-  return (
-    <View style={styles.completedDeliveries}>
-      <View style={styles.completedHeader}>
-        <Text style={styles.completedHeaderText}>
-          Todays Completed Deliveries
-        </Text>
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-        <View style={styles.filterContainer}>
-          <Text style={styles.filterText}>This Week</Text>
+  return (
+    <View style={styles.container}>
+      <View style={styles.sectionHeader}>
+        <View style={styles.flex}>
+          <ThemedText style={styles.sectionTitle}>
+            Today&apos;s completed deliveries
+          </ThemedText>
+          <ThemedText style={styles.sectionSubtitle} themeColor="textMuted">
+            What you&apos;ve dropped off so far
+          </ThemedText>
+        </View>
+
+        <View style={[styles.pill, { backgroundColor: Colors.backgroundTertiary }]}>
+          <ThemedText style={styles.pillText} themeColor="textSecondary">
+            This week
+          </ThemedText>
         </View>
       </View>
 
-      <View style={styles.completedList}>
-        <View style={styles.deliveryInfo}>
-          <View style={styles.deliveryIdContainer}>
-            <Text style={styles.deliveryIdText}>CR-2847</Text>
-            <View style={styles.deliveryStatus}>
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <View style={styles.badges}>
+            <View style={[styles.pill, { backgroundColor: Colors.primaryExtraLight }]}>
+              <ThemedText style={styles.pillText} themeColor="primary">
+                CR-2847
+              </ThemedText>
+            </View>
+            <View style={[styles.pill, { backgroundColor: Colors.successExtraLight }]}>
               <Ionicons
                 name="checkmark-done-outline"
-                size={16}
+                size={12}
                 color={Colors.success}
               />
-              <Text style={styles.deliveryStatusText}>Delivered</Text>
+              <ThemedText style={styles.pillText} themeColor="success">
+                Delivered
+              </ThemedText>
             </View>
           </View>
 
-          <Text style={styles.deliveryTimeText}>18 mins ago</Text>
+          <ThemedText style={styles.meta} themeColor="textMuted">
+            18 mins ago
+          </ThemedText>
         </View>
 
-        <View style={styles.customerDetails}>
-          <Text style={styles.customerLabel}>Customer</Text>
-
-          <View style={styles.customerInfo}>
-            <Text style={styles.customerName}>Funke Adeleke</Text>
-
-            <Text style={styles.customerEmail}>funkeakindele@gmail.com</Text>
-            <Text style={styles.customerPhone}>08012345678</Text>
-          </View>
+        <View style={styles.customer}>
+          <ThemedText style={styles.label} themeColor="textMuted">
+            Customer
+          </ThemedText>
+          <ThemedText style={styles.cardTitle}>Funke Adeleke</ThemedText>
+          <ThemedText style={styles.secondary} themeColor="textSecondary">
+            funkeakindele@gmail.com
+          </ThemedText>
+          <ThemedText style={styles.secondary} themeColor="textSecondary">
+            08012345678
+          </ThemedText>
         </View>
 
-        <View style={styles.earningsInfo}>
-          <Text style={styles.earningsAmount}>₦ 6500</Text>
+        <View style={[styles.row, styles.footer]}>
+          <ThemedText style={styles.amount}>₦ 6500</ThemedText>
 
-          <View style={styles.earningsDetails}>
-            <View style={styles.rating}>
-              <Ionicons name="cash" size={16} color={Colors.primary} />
-              <Text style={styles.ratingText}> ₦1,000 tip</Text>
+          <View style={styles.badges}>
+            <View style={styles.stat}>
+              <Ionicons name="cash-outline" size={16} color={Colors.success} />
+              <ThemedText style={styles.secondary} themeColor="success">
+                ₦1,000 tip
+              </ThemedText>
             </View>
 
-            <View style={styles.rating}>
+            <View style={styles.stat}>
               <Ionicons name="star" size={16} color={Colors.primary} />
-              <Text style={styles.ratingText}>5.0</Text>
+              <ThemedText style={styles.secondary}>5.0</ThemedText>
             </View>
           </View>
         </View>
@@ -63,162 +87,120 @@ export default function CompletedDeliveries() {
   );
 }
 
-const styles = StyleSheet.create({
-  completedDeliveries: {
-    gap: 16,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
 
-  completedHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+    container: {
+      gap: Spacing.three,
+    },
 
-  completedHeaderText: {
-    fontSize: 16,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
-  filterContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    backgroundColor: Colors.inputBackground,
-    borderRadius: 10,
-  },
+    sectionHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'flex-end',
+      gap: Spacing.two,
+    },
 
-  filterText: {
-    fontSize: 12,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.textSecondary,
-  },
+    sectionTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+    },
 
-  completedList: {
-    gap: 32,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: Colors.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
+    sectionSubtitle: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
+    },
 
-  deliveryIdContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
+    card: {
+      gap: Spacing.three,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
 
-  deliveryIdText: {
-    fontSize: 12,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    backgroundColor: Colors.primary,
-    borderRadius: 25,
-  },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
 
-  deliveryInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+    badges: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
 
-  deliveryStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: Colors.successExtraLight,
+    pill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.one,
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 2,
+      borderRadius: 999,
+    },
 
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
+    pillText: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+    },
 
-  deliveryStatusText: {
-    fontSize: 12,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.success,
-  },
+    customer: {
+      gap: 2,
+    },
 
-  deliveryTimeText: {
-    fontSize: 12,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.one,
+    },
 
-  customerLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    cardTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
 
-  customerInfo: {
-    gap: 4,
-  },
+    secondary: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
 
-  customerName: {
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    meta: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
 
-  customerEmail: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    footer: {
+      paddingTop: Spacing.three,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
+    },
 
-  customerPhone: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    amount: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
 
-  customerDetails: {
-    gap: 4,
-  },
-
-  earningsInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  earningsAmount: {
-    fontSize: 16,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.primary,
-  },
-
-  earningsDetails: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 24,
-  },
-
-  rating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-
-  ratingText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.success,
-  },
-
-  tipText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.success,
-  },
-});
+    stat: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.one,
+    },
+  });

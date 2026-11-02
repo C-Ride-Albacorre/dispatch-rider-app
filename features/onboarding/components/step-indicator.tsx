@@ -1,8 +1,8 @@
-import { Colors, Fonts } from '@/constants/theme';
-import { StyleSheet, Text, View } from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { StyleSheet, View } from 'react-native';
 
 const STEPS = [
   { label: 'Personal\nInfo' },
@@ -27,12 +27,12 @@ export default function StepIndicator({
     <View style={styles.wrapper}>
       {/* Progress line + percentage */}
       <View style={styles.progressRow}>
-        <Text style={styles.stepCount}>
+        <ThemedText style={styles.stepCount} themeColor="textSecondary">
           Step {current} of {total}
-        </Text>
-        <Text style={styles.percentText}>
+        </ThemedText>
+        <ThemedText style={styles.percentText} themeColor="primary">
           {Math.round(((current - 1) / (total - 1)) * 100)}% Complete
-        </Text>
+        </ThemedText>
       </View>
       <View style={styles.trackBg}>
         <View style={[styles.trackFill, { width: `${progress}%` }]} />
@@ -55,25 +55,26 @@ export default function StepIndicator({
                 ]}
               >
                 {isCompleted ? (
-                  <Ionicons name="checkmark" size={16} color={Colors.success} />
+                  <Ionicons name="checkmark" size={16} color={Colors.white} />
                 ) : (
-                  <Text
+                  <ThemedText
                     style={[styles.pillNum, isActive && styles.pillNumActive]}
+                    themeColor={isActive ? 'onPrimary' : 'textMuted'}
                   >
                     {stepNum}
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
-              <Text
+              <ThemedText
                 style={[
                   styles.stepLabel,
-                  isActive && styles.stepLabelActive,
-                  isCompleted && styles.stepLabelCompleted,
+                  (isActive || isCompleted) && styles.stepLabelActive,
                 ]}
+                themeColor={isActive ? 'text' : isCompleted ? 'success' : 'textMuted'}
                 numberOfLines={2}
               >
                 {step.label}
-              </Text>
+              </ThemedText>
             </View>
           );
         })}
@@ -84,87 +85,89 @@ export default function StepIndicator({
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    wrapper: { gap: scale(12), marginBottom: scale(24) },
+    wrapper: {
+      gap: 12,
+      marginBottom: Spacing.four,
+    },
 
-  progressRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  stepCount: {
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
-  percentText: {
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
-    color: Colors.success,
-  },
+    progressRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+    },
 
-  trackBg: {
-    height: scale(6),
-    backgroundColor: Colors.border,
-    borderRadius: scale(99),
-    overflow: 'hidden',
-  },
-  trackFill: {
-    height: '100%',
-    backgroundColor: Colors.success,
-    borderRadius: scale(99),
-  },
+    stepCount: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 17,
+    },
 
-  stepsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: scale(4),
-  },
-  stepItem: {
-    alignItems: 'center',
-    gap: scale(6),
-    flex: 1,
-  },
+    percentText: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 12,
+      lineHeight: 17,
+    },
 
-  pill: {
-    width: scale(44),
-    height: scale(44),
-    borderRadius: scale(12),
-    borderWidth: scale(1.5),
-    borderColor: Colors.border,
-    backgroundColor: Colors.inputBackground,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pillActive: {
-    borderColor: Colors.primary,
-    backgroundColor: `${Colors.primary}18`,
-  },
-  pillCompleted: {
-    borderColor: Colors.success,
-    backgroundColor: Colors.successExtraLight,
-  },
+    trackBg: {
+      height: 6,
+      backgroundColor: Colors.backgroundTertiary,
+      borderRadius: 999,
+      overflow: 'hidden',
+    },
 
-  pillNum: {
-    fontSize: normalize(15),
-    fontFamily: Fonts.brandMedium,
-    color: '#9ca3af',
-  },
-  pillNumActive: {
-    color: Colors.primary,
-    fontFamily: Fonts.brandSemiBold ?? Fonts.brandMedium,
-  },
+    trackFill: {
+      height: '100%',
+      backgroundColor: Colors.primary,
+      borderRadius: 999,
+    },
 
-  stepLabel: {
-    fontSize: normalize(10),
-    fontFamily: Fonts.brandRegular,
-    color: '#9ca3af',
-    textAlign: 'center',
-  },
-  stepLabelActive: {
-    color: Colors.text,
-    fontFamily: Fonts.brandMedium,
-  },
-  stepLabelCompleted: {
-    color: Colors.success,
-  },
-});
+    stepsRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginTop: Spacing.one,
+    },
+
+    stepItem: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 6,
+    },
+
+    pill: {
+      width: 36,
+      height: 36,
+      borderRadius: 999,
+      backgroundColor: Colors.backgroundTertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    pillActive: {
+      backgroundColor: Colors.primary,
+    },
+
+    pillCompleted: {
+      backgroundColor: Colors.success,
+    },
+
+    pillNum: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    pillNumActive: {
+      fontFamily: Fonts.brandSemiBold,
+    },
+
+    stepLabel: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+      textAlign: 'center',
+    },
+
+    stepLabelActive: {
+      fontFamily: Fonts.brandMedium,
+    },
+  });

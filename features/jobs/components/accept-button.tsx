@@ -1,10 +1,10 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { LayoutChangeEvent, Pressable, StyleSheet, View, ViewStyle } from 'react-native';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -94,8 +94,6 @@ export default function AcceptButton({
     onPress();
   };
 
-  const textColor = isDark ? '#1A1A1A' : Colors.text;
-
   return (
     <Animated.View style={[pressStyle, style]}>
       <Pressable
@@ -108,6 +106,8 @@ export default function AcceptButton({
           pressScale.value = withSpring(1, { damping: 12, stiffness: 250 });
         }}
         style={[styles.button, { backgroundColor: Colors.primary }]}
+        accessibilityRole="button"
+        accessibilityLabel={label}
       >
         <Animated.View
           pointerEvents="none"
@@ -120,10 +120,10 @@ export default function AcceptButton({
         />
 
         <View style={styles.content}>
-          <Ionicons name="flash" size={scale(14)} color={textColor} />
-          <Text style={[styles.text, { color: textColor }]}>
-            {label} • ₦{(amount || 0).toLocaleString()}
-          </Text>
+          <Ionicons name="flash" size={16} color={Colors.onPrimary} />
+          <ThemedText style={styles.text} themeColor="onPrimary" numberOfLines={1}>
+            {label} · ₦{(amount || 0).toLocaleString()}
+          </ThemedText>
         </View>
       </Pressable>
     </Animated.View>
@@ -131,28 +131,30 @@ export default function AcceptButton({
 }
 
 const styles = StyleSheet.create({
+  // Same footprint as the shared Button (size md, pill)
   button: {
-    borderRadius: scale(8),
-    paddingVertical: scale(12),
-    paddingHorizontal: scale(16),
+    height: 52,
+    borderRadius: 999,
+    paddingHorizontal: Spacing.four,
     overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   fill: {
-    borderTopRightRadius: scale(8),
-    borderBottomRightRadius: scale(8),
+    borderTopRightRadius: 999,
+    borderBottomRightRadius: 999,
   },
 
   content: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: scale(6),
+    gap: 6,
   },
 
   text: {
     fontFamily: Fonts.brandSemiBold,
-    fontSize: normalize(13),
+    fontSize: 14,
+    lineHeight: 20,
   },
 });

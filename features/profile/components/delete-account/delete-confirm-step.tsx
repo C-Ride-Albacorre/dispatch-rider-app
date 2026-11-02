@@ -1,11 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import Input from '@/components/ui/input/input';
 
 import { Fonts } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-
-import { normalize, scale } from '@/utils/scaling';
 
 import { DELETE_CONFIRMATION_PHRASE } from './data';
 import DeleteStepHeader from './delete-step-header';
@@ -17,23 +15,22 @@ export default function DeleteConfirmStep({
   confirmationText: string;
   setConfirmationText: (value: string) => void;
 }) {
-  const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
-
   return (
     <>
       <DeleteStepHeader
         icon="trash-outline"
-        title="Confirm Deletion"
+        title="Confirm deletion"
         description="This is your last chance. Once deleted, your account and data cannot be recovered."
       />
 
-      <View style={{ width: '100%' }}>
-        <Text style={styles.instruction}>
-          Type <Text style={styles.phrase}>{DELETE_CONFIRMATION_PHRASE}</Text>{' '}
+      <View style={styles.field}>
+        <ThemedText style={styles.instruction} themeColor="textSecondary">
+          Type{' '}
+          <ThemedText style={styles.phrase} themeColor="error">
+            {DELETE_CONFIRMATION_PHRASE}
+          </ThemedText>{' '}
           to confirm
-        </Text>
+        </ThemedText>
 
         <Input
           placeholder={DELETE_CONFIRMATION_PHRASE}
@@ -47,17 +44,21 @@ export default function DeleteConfirmStep({
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    instruction: {
-      fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
-      marginBottom: scale(10),
-    },
+const styles = StyleSheet.create({
+  field: {
+    width: '100%',
+  },
 
-    phrase: {
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.error,
-    },
-  });
+  instruction: {
+    fontFamily: Fonts.brandRegular,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+
+  phrase: {
+    fontFamily: Fonts.brandSemiBold,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});

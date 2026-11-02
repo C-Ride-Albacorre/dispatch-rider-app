@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
 import * as Haptics from 'expo-haptics';
 
@@ -10,10 +10,10 @@ import { useRouter } from 'expo-router';
 
 import AppModal from '@/components/layout/app-modal';
 
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 type AppRoutes =
@@ -115,24 +115,26 @@ export default function SuccessModal({
           style={styles.animation}
         />
 
-        <View>
-          <Text style={styles.title}>{title}</Text>
+        <View style={styles.text}>
+          <ThemedText style={styles.title}>{title}</ThemedText>
 
-          {description && <Text style={styles.description}>{description}</Text>}
+          {description && (
+            <ThemedText style={styles.description} themeColor="textSecondary">
+              {description}
+            </ThemedText>
+          )}
         </View>
 
         {nextSteps && nextSteps.length > 0 && (
           <View style={styles.stepsContainer}>
             {nextSteps?.map((step, index) => (
               <View key={index} style={styles.stepContainer}>
-                <View>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={Colors.success}
-                  />
-                </View>
-                <Text style={styles.stepText}>{step}</Text>
+                <Ionicons
+                  name="checkmark-circle"
+                  size={16}
+                  color={Colors.success}
+                />
+                <ThemedText style={styles.stepText}>{step}</ThemedText>
               </View>
             ))}
           </View>
@@ -169,54 +171,56 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     content: {
       width: '100%',
+      gap: Spacing.four,
     },
 
     animation: {
-      width: scale(170),
-      height: scale(170),
+      width: 150,
+      height: 150,
       alignSelf: 'center',
       backgroundColor: 'transparent',
     },
 
+    text: {
+      gap: Spacing.two,
+    },
+
     title: {
-      fontSize: normalize(20),
-      textAlign: 'center',
       fontFamily: Fonts.brandSemiBold,
-      marginBottom: scale(18),
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+      textAlign: 'center',
     },
 
     description: {
-      fontSize: normalize(12),
-      lineHeight: scale(20),
       fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
-      marginBottom: scale(24),
-      color: Colors.textSecondary,
     },
 
     stepsContainer: {
-      marginBottom: scale(28),
-      gap: scale(20),
-      backgroundColor: Colors.primaryLight,
-      padding: scale(16),
-      borderRadius: 12,
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: Colors.primaryExtraLight,
     },
 
     stepContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(8),
+      gap: Spacing.two,
     },
 
     stepText: {
-      fontSize: normalize(12),
+      flex: 1,
       fontFamily: Fonts.brandRegular,
-      lineHeight: scale(24),
-      color: Colors.text,
+      fontSize: 13,
+      lineHeight: 18,
     },
 
     buttonContainer: {
-      marginTop: scale(4),
+      marginTop: Spacing.one,
     },
   });

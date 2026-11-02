@@ -1,18 +1,15 @@
-import { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 
 import AppModal from '@/components/layout/app-modal';
 import Button from '@/components/ui/buttons/button';
-import Input from '@/components/ui/input/input';
 
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { normalize, scale } from '@/utils/scaling';
-import { useDeclineJob, usePickupJob } from './use-fetch';
+import { usePickupJob } from './use-fetch';
 
 export default function ConfirmPickup({
   showConfirmPickupModal,
@@ -78,20 +75,24 @@ export default function ConfirmPickup({
         <View style={styles.confirmRequestIconWrapper}>
           <Ionicons
             name="cube-outline"
-            size={scale(32)}
+            size={24}
             color={Colors.success}
           />
         </View>
 
-        <Text style={styles.confirmRequestTitle}>Confirm Pickup</Text>
+        <ThemedText style={styles.confirmRequestTitle}>Confirm pickup</ThemedText>
 
-        <Text style={styles.confirmRequestDescription}>
+        <ThemedText
+          style={styles.confirmRequestDescription}
+          themeColor="textSecondary"
+        >
           Are you sure you want to confirm the pickup?
-        </Text>
+        </ThemedText>
 
         <View style={styles.actionContainer}>
           <Button
             variant="outline"
+            size="lg"
             onPress={() => setShowConfirmPickupModal(false)}
             style={styles.cancelBtn}
             disabled={isPending}
@@ -101,6 +102,7 @@ export default function ConfirmPickup({
 
           <Button
             variant="green"
+            size="lg"
             loading={isPending}
             disabled={isPending}
             onPress={handlePickup}
@@ -118,61 +120,40 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     confirmRequestModal: {
       alignItems: 'center',
-      paddingVertical: scale(8),
+      paddingVertical: Spacing.two,
     },
 
     confirmRequestIconWrapper: {
-      width: scale(64),
-      height: scale(64),
-      borderRadius: scale(32),
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       backgroundColor: Colors.successExtraLight,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(16),
+      marginBottom: Spacing.three,
     },
 
     confirmRequestTitle: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(18),
-      color: Colors.text,
-      marginBottom: scale(8),
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+      marginBottom: Spacing.one,
     },
 
     confirmRequestDescription: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
-      lineHeight: normalize(20),
-      marginBottom: scale(20),
-    },
-
-    reasonsContainer: {
-      width: '100%',
-      gap: scale(10),
-      marginBottom: scale(20),
-    },
-
-    reasonButton: {
-      borderWidth: 1,
-      borderColor: Colors.border,
-      borderRadius: scale(12),
-      paddingVertical: scale(14),
-      paddingHorizontal: scale(14),
-      width: '100%',
-    },
-
-    reasonText: {
-      fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.text,
+      marginBottom: Spacing.four,
     },
 
     actionContainer: {
       flexDirection: 'row',
-      gap: scale(12),
+      gap: 12,
       width: '100%',
-      marginTop: scale(20),
+      marginTop: Spacing.four,
     },
 
     cancelBtn: {

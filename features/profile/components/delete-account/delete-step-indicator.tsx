@@ -1,13 +1,12 @@
-import { Fragment } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Fragment } from 'react';
+import { StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import IconButton from '@/components/ui/buttons/icon-button';
 
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-import { normalize, scale } from '@/utils/scaling';
 
 export default function DeleteStepIndicator({
   current,
@@ -26,7 +25,15 @@ export default function DeleteStepIndicator({
 
   return (
     <View style={styles.container}>
-      <IconButton icon="close" size="md" variant="soft" onPress={onClose} disabled={disabled} style={styles.closeButton} accessibilityLabel="Close" />
+      <IconButton
+        icon="close"
+        size="md"
+        variant="soft"
+        onPress={onClose}
+        disabled={disabled}
+        style={styles.closeButton}
+        accessibilityLabel="Close"
+      />
 
       <View style={styles.stepsRow}>
         {Array.from({ length: total }, (_, index) => {
@@ -38,35 +45,19 @@ export default function DeleteStepIndicator({
           return (
             <Fragment key={stepNum}>
               {index > 0 && (
-                <View
-                  style={[
-                    styles.connector,
-                    isReached && { backgroundColor: Colors.error },
-                  ]}
-                />
+                <View style={[styles.connector, isReached && styles.reached]} />
               )}
 
-              <View
-                style={[
-                  styles.stepCircle,
-                  isReached && { backgroundColor: Colors.error },
-                ]}
-              >
+              <View style={[styles.stepCircle, isReached && styles.reached]}>
                 {isCompleted ? (
-                  <Ionicons
-                    name="checkmark"
-                    size={scale(14)}
-                    color={Colors.white}
-                  />
+                  <Ionicons name="checkmark" size={14} color={Colors.white} />
                 ) : (
-                  <Text
-                    style={[
-                      styles.stepNum,
-                      isActive && { color: Colors.white },
-                    ]}
+                  <ThemedText
+                    style={styles.stepNum}
+                    themeColor={isActive ? 'white' : 'textSecondary'}
                   >
                     {stepNum}
-                  </Text>
+                  </ThemedText>
                 )}
               </View>
             </Fragment>
@@ -81,7 +72,7 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       width: '100%',
-      marginBottom: scale(24),
+      marginBottom: Spacing.four,
     },
 
     stepsRow: {
@@ -91,30 +82,34 @@ const createStyles = (Colors: any) =>
     },
 
     stepCircle: {
-      width: scale(32),
-      height: scale(32),
-      borderRadius: scale(16),
-      backgroundColor: Colors.border,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: Colors.backgroundTertiary,
       justifyContent: 'center',
       alignItems: 'center',
     },
 
+    reached: {
+      backgroundColor: Colors.error,
+    },
+
     stepNum: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
+      fontSize: 13,
+      lineHeight: 18,
     },
 
     connector: {
       flex: 1,
-      height: scale(2),
-      marginHorizontal: scale(8),
-      borderRadius: scale(1),
-      backgroundColor: Colors.border,
+      height: 2,
+      marginHorizontal: Spacing.two,
+      borderRadius: 1,
+      backgroundColor: Colors.backgroundTertiary,
     },
 
     closeButton: {
       alignSelf: 'flex-end',
-      marginBottom: scale(16),
+      marginBottom: Spacing.three,
     },
   });

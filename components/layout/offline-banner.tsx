@@ -1,17 +1,11 @@
 import React from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { normalize, scale } from '@/utils/scaling';
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import Button from '@/components/ui/buttons/button';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { Color } from 'expo-router';
 
 type OfflineBannerProps = {
   onRetry?: () => Promise<void> | void;
@@ -24,160 +18,96 @@ export default function OfflineBanner({
 }: OfflineBannerProps) {
   const insets = useSafeAreaInsets();
 
+  const { Colors } = useTheme();
 
-  const {Colors }= useTheme()
-
-  const styles =   createStyles(Colors)
+  const styles = createStyles(Colors);
 
   return (
     <View
       pointerEvents="box-none"
-      style={[
-        styles.container,
-        {
-          paddingTop: insets.top + 8,
-        },
-      ]}
+      style={[styles.container, { paddingTop: insets.top + Spacing.two }]}
     >
       <View style={styles.banner}>
         <View style={styles.iconContainer}>
-          <Ionicons
-            name="cloud-offline-outline"
-            size={20}
-            color={Colors.background}
-          />
+          <Ionicons name="cloud-offline-outline" size={18} color={Colors.error} />
         </View>
 
         <View style={styles.content}>
-          <Text style={styles.title}>
-            No internet connection
-          </Text>
+          <ThemedText style={styles.title}>No internet connection</ThemedText>
 
-          <Text style={styles.message}>
-            Some features may be unavailable. We'll reconnect
+          <ThemedText style={styles.message} themeColor="textMuted">
+            Some features may be unavailable. We&apos;ll reconnect
             automatically.
-          </Text>
+          </ThemedText>
         </View>
 
         {onRetry && (
-          <Pressable 
+          <Button
+            size="xs"
+            variant="inverted"
             onPress={onRetry}
             disabled={isRetrying}
-            style={({ pressed }) => [
-              styles.retryButton,
-              pressed && styles.retryButtonPressed,
-              isRetrying && styles.retryButtonDisabled,
-            ]}
+            loading={isRetrying}
           >
-            {isRetrying ? (
-              <ActivityIndicator
-                size="small"
-                color={Colors.background}
-              />
-            ) : (
-              <Text style={styles.retryText}>
-                Retry
-              </Text>
-            )}
-          </Pressable>
+            Retry
+          </Button>
         )}
       </View>
     </View>
   );
 }
 
-const createStyles = (Colors : any)=> StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 9999,
-    elevation: 9999,
-    paddingHorizontal:scale(12),
-    pointerEvents: 'box-none',
-  },
-
-  banner: {
-    minHeight: scale(64),
-    borderRadius: scale(14),
-    backgroundColor: Colors.backgroundSecondary,
-
-    flexDirection: 'row',
-    alignItems: 'center',
-
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(10),
-
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: scale(3),
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 9999,
+      elevation: 9999,
+      paddingHorizontal: Spacing.three,
     },
-    shadowOpacity: scale(0.2),
-    shadowRadius: scale(6),
 
-    elevation: scale(6),
-  },
+    banner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      shadowColor: Colors.black,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+      elevation: 6,
+    },
 
-  iconContainer: {
-    width: scale(36),
-    height: scale(36),
-    borderRadius: scale(18),
+    iconContainer: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: Colors.errorLight,
+    },
 
-    alignItems: 'center',
+    content: {
+      flex: 1,
+      gap: 2,
+    },
 
-    justifyContent: 'center',
+    title: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
+    },
 
-    backgroundColor: Colors.textMuted,
-
-    marginRight: scale(10),
-  },
-
-  content: {
-    flex: 1,
-    paddingRight: scale(8),
-  },
-
-  title: {
-    color: Colors.text,
-    fontSize: normalize(13),
-    fontFamily: Fonts.brandMedium
-  },
-
-  message: {
-    color: Colors.textMuted,
-      fontSize: normalize(11),
-      
-    fontFamily: Fonts.brandRegular,
-    lineHeight: scale(16),
-    marginTop: scale(2),
-  },
-
-  retryButton: {
-    minWidth: scale(52),
-    height: scale(34),
-
-    paddingHorizontal: scale(10),
-
-    alignItems: 'center',
-    justifyContent: 'center',
-
-    borderRadius: scale(8),
-    backgroundColor: Colors.text,
-  },
-
-  retryButtonPressed: {
-    opacity: 0.7,
-  },
-
-  retryButtonDisabled: {
-    opacity: 0.6,
-  },
-
-  retryText: {
-    color: Colors.background,
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandMedium
-  },
-});
+    message: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
+  });

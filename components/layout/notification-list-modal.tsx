@@ -1,24 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import {
-  FlatList,
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { FlatList, Modal, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import {
   useNotificationStore,
   type NotificationItem,
 } from '@/store/notification-store';
 import { handleNotificationNavigation } from '@/utils/notification-navigation';
-import { normalize, scale } from '@/utils/scaling';
 import IconButton from '../ui/buttons/icon-button';
-import { is } from 'zod/v4/locales';
 
 type NotificationListModalProps = {
   visible: boolean;
@@ -53,55 +45,57 @@ export default function NotificationListModal({
 
     return (
       <Pressable
-        style={[
-          styles.notificationItem,
-          !isViewed && { backgroundColor: Colors.primaryLight + '20' }, isViewed && { backgroundColor: Colors.backgroundTertiary + '70' },
+        style={({ pressed }) => [
+          styles.card,
+          !isViewed && styles.cardUnread,
+          pressed && styles.pressed,
         ]}
         onPress={() => handleNotificationPress(item)}
       >
         <View style={[styles.unreadIndicator, isViewed && { opacity: 0 }]}>
-          <View
-            style={[styles.unreadDot, { backgroundColor: Colors.error }]}
-          />
+          <View style={styles.unreadDot} />
         </View>
 
         <View style={styles.notificationContent}>
           <View style={styles.titleRow}>
-            <Text
+            <ThemedText
               style={[
-                styles.notificationTitle, { textTransform: 'capitalize',},
-                !isViewed && { fontFamily: Fonts.brandSemiBold, maxWidth: scale(240) },
-                isViewed && { fontFamily: Fonts.brandMedium, maxWidth: scale(240) },
+                styles.notificationTitle,
+                isViewed && { fontFamily: Fonts.brandMedium },
               ]}
               numberOfLines={1}
             >
               {item.notification?.title?.toLocaleLowerCase() || 'Notification'}
-            </Text>
+            </ThemedText>
 
-            <Text style={styles.timestamp}>
+            <ThemedText style={styles.meta} themeColor="textMuted">
               {getTimeAgo(
                 item.sentTime ? parseInt(String(item.sentTime)) : Date.now(),
               )}
-            </Text>
+            </ThemedText>
           </View>
 
-          <Text style={styles.notificationBody} numberOfLines={2}>
+          <ThemedText
+            style={styles.notificationBody}
+            themeColor="textSecondary"
+            numberOfLines={2}
+          >
             {item.notification?.body || 'No message'}
-          </Text>
+          </ThemedText>
 
           {item.data?.type && (
             <View style={styles.typeTag}>
-              <Text style={styles.typeTagText}>
+              <ThemedText style={styles.typeTagText} themeColor="primary">
                 {getNotificationType(String(item.data.type))}
-              </Text>
+              </ThemedText>
             </View>
           )}
         </View>
 
         <Ionicons
           name="chevron-forward"
-          size={scale(20)}
-          color={Colors.textSecondary}
+          size={18}
+          color={Colors.textMuted}
           style={styles.chevron}
         />
       </Pressable>
@@ -110,30 +104,23 @@ export default function NotificationListModal({
 
   const renderEmpty = () => (
     <View style={styles.emptyContainer}>
-      <View
-        style={[
-          styles.iconWrapper,
-          { backgroundColor: Colors.backgroundSecondary },
-        ]}
-      >
+      <View style={styles.iconWrapper}>
         <Ionicons
           name="notifications-outline"
-          size={scale(48)}
+          size={20}
           color={Colors.textMuted}
         />
       </View>
 
-      <Text style={styles.emptyText}>No notifications yet</Text>
+      <ThemedText style={styles.emptyTitle}>No notifications yet</ThemedText>
+      <ThemedText style={styles.emptyMessage} themeColor="textMuted">
+        Job offers and updates will show up here.
+      </ThemedText>
     </View>
   );
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      statusBarTranslucent
-    >
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       {/* Overlay Background */}
       <Pressable style={styles.overlay} onPress={onClose} />
 
@@ -146,9 +133,20 @@ export default function NotificationListModal({
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>Notifications</Text>
+          <View style={styles.flex}>
+            <ThemedText style={styles.headerTitle}>Notifications</ThemedText>
+            <ThemedText style={styles.headerSubtitle} themeColor="textMuted">
+              Tap one to open it
+            </ThemedText>
+          </View>
 
-          <IconButton icon="close" size="md" variant="soft" onPress={onClose} style={styles.closeButton} accessibilityLabel="Close" />
+          <IconButton
+            icon="close"
+            iconSize={18}
+            variant="soft"
+            onPress={onClose}
+            accessibilityLabel="Close"
+          />
         </View>
 
         {/* Notifications List */}
@@ -196,138 +194,164 @@ function getNotificationType(type: string): string {
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+
     container: {
       flex: 1,
       backgroundColor: Colors.background,
       zIndex: 1000,
     },
 
-    iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: scale(16),
-    },
-
     header: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
-      paddingHorizontal: scale(16),
-      paddingVertical: scale(16),
-      borderBottomWidth: 1,
+      gap: Spacing.three,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: Spacing.three,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: Colors.border,
     },
 
     headerTitle: {
-      fontSize: normalize(18),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
 
-    closeButton: {
-      padding: scale(8),
+    headerSubtitle: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
     },
 
     listContent: {
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(12),
       flexGrow: 1,
+      gap: Spacing.two,
+      padding: Spacing.three,
     },
 
-    notificationItem: {
+    card: {
       flexDirection: 'row',
       alignItems: 'flex-start',
-      gap: scale(12),
-      padding: scale(12),
-      marginBottom: scale(8),
-      backgroundColor: Colors.card,
-      borderRadius: scale(16),
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
+    cardUnread: {
+      backgroundColor: Colors.primaryExtraLight,
+      borderColor: Colors.primaryLight,
+    },
+
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
     unreadIndicator: {
-      width: scale(12),
-      height: scale(12),
-      marginTop: scale(4),
+      width: 8,
+      height: 20,
       justifyContent: 'center',
       alignItems: 'center',
     },
 
     unreadDot: {
-      width: scale(8),
-      height: scale(8),
-      borderRadius: scale(4),
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: Colors.primary,
     },
 
     notificationContent: {
       flex: 1,
-      gap: scale(6),
+      gap: 2,
     },
 
     titleRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      gap: scale(8),
+      gap: Spacing.two,
     },
 
     notificationTitle: {
       flex: 1,
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+      textTransform: 'capitalize',
     },
 
-    timestamp: {
-      fontSize: normalize(10),
+    meta: {
       fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     notificationBody: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
-      lineHeight: scale(18),
+      fontSize: 13,
+      lineHeight: 18,
     },
 
     typeTag: {
       alignSelf: 'flex-start',
-      paddingHorizontal: scale(8),
-      paddingVertical: scale(4),
-      backgroundColor: Colors.primary + '15',
-      borderRadius: scale(6),
+      marginTop: Spacing.one,
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 2,
+      borderRadius: 999,
+      backgroundColor: Colors.primaryLight,
     },
 
     typeTagText: {
-      fontSize: normalize(10),
       fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
+      fontSize: 11,
+      lineHeight: 16,
     },
 
     chevron: {
-      marginTop: scale(4),
+      marginTop: 1,
     },
 
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      gap: scale(12),
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.four,
     },
 
-    emptyText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
+    iconWrapper: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: Spacing.one,
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    emptyTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
+
+    emptyMessage: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+      textAlign: 'center',
     },
 
     overlay: {
       ...StyleSheet.absoluteFill,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      backgroundColor: Colors.overlay,
     },
   });

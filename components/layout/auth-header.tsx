@@ -1,43 +1,58 @@
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
+import { Image, StyleSheet, View } from 'react-native';
 
+type AuthPageHeaderProps = {
+  title?: string;
+  subtitle?: React.ReactNode;
+};
 
-
-import { Colors, Fonts } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { scale } from '@/utils/scaling';
-import { create } from 'axios';
-import { Image, StyleSheet, Text, View } from 'react-native';
-
-export default function AuthPageHeader() {
-
-  const {Colors} = useTheme()
-
-  const styles = createStyles(Colors);
+/** Logo, title and subtitle at the top of the auth and verify screens */
+export default function AuthPageHeader({
+  title,
+  subtitle = 'Begin your journey with care',
+}: AuthPageHeaderProps) {
   return (
-    <View style={styles.container}>
+    <View style={styles.hero}>
       <Image
-        source={require('@/assets/images/c-ride.png')}
-        style={styles.icon}
+        source={require('@/assets/images/splash-icon.png')}
+        style={styles.logo}
         resizeMode="contain"
       />
-      <Text style={styles.title}>Begin your journey with care</Text>
+      {!!title && <ThemedText style={styles.title}>{title}</ThemedText>}
+      {!!subtitle && (
+        <ThemedText style={styles.subtitle} themeColor="textMuted">
+          {subtitle}
+        </ThemedText>
+      )}
     </View>
   );
 }
 
-const createStyles = (Colors: any) => StyleSheet.create({
-  container: {
+const styles = StyleSheet.create({
+  hero: {
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: Spacing.one,
   },
 
-  icon: {
-    width: scale(80),
-    height: scale(48),
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: Spacing.two,
   },
 
   title: {
-    fontFamily: Fonts.brandMedium,
-    fontSize: 16,
-    color: Colors.textSecondary,
+    fontFamily: Fonts.brandSemiBold,
+    fontSize: 26,
+    lineHeight: 32,
+    letterSpacing: -0.3,
+    textAlign: 'center',
+  },
+
+  subtitle: {
+    fontFamily: Fonts.brandRegular,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
   },
 });

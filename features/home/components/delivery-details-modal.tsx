@@ -4,16 +4,16 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 
 import AppModal from '@/components/layout/app-modal';
+import { ThemedText } from '@/components/themed-text';
 import IconButton from '@/components/ui/buttons/icon-button';
-import { Fonts } from '@/constants/theme';
+import Button from '@/components/ui/buttons/button';
+import { Fonts, Spacing } from '@/constants/theme';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 
 import Avatar from '@/components/ui/avatar';
 import { Ionicons } from '@expo/vector-icons';
@@ -85,141 +85,124 @@ export default function DeliveryDetailsModal({
       isPadding={false}
     >
       <View style={styles.container}>
-        {/* -------------------------------- */}
-        {/* HEADER */}
-        {/* -------------------------------- */}
-
+        {/* Header */}
         <View style={styles.header}>
           <View style={styles.dragHandle} />
 
           <View style={styles.headerRow}>
-            <View style={styles.headerTitleContainer}>
-              <Text style={styles.title}>Delivery Details</Text>
+            <View style={styles.flex}>
+              <ThemedText style={styles.title}>Delivery details</ThemedText>
 
               {order?.orderNumber && (
-                <Text style={styles.orderNumber}>{order.orderNumber}</Text>
+                <ThemedText style={styles.subtitle} themeColor="textMuted">
+                  {order.orderNumber}
+                </ThemedText>
               )}
             </View>
 
-            <IconButton icon="close" size="md" variant="soft" onPress={onClose} accessibilityLabel="Close" />
+            <IconButton
+              icon="close"
+              iconSize={18}
+              variant="soft"
+              onPress={onClose}
+              accessibilityLabel="Close"
+            />
           </View>
         </View>
 
-        {/* -------------------------------- */}
-        {/* CONTENT */}
-        {/* -------------------------------- */}
-
+        {/* Content */}
         {isLoading ? (
-          <View style={styles.loadingContainer}>
+          <View style={styles.centerState}>
             <ActivityIndicator size="large" color={Colors.primary} />
 
-            <Text style={styles.loadingText}>Loading delivery details...</Text>
+            <ThemedText style={styles.stateMessage} themeColor="textMuted">
+              Loading delivery details...
+            </ThemedText>
           </View>
         ) : isError || !data || !order ? (
-          <View style={styles.errorContainer}>
-            <View style={styles.errorIcon}>
-              <Text style={styles.errorIconText}>!</Text>
+          <View style={styles.centerState}>
+            <View style={[styles.stateIcon, { backgroundColor: Colors.errorLight }]}>
+              <Ionicons name="alert-circle-outline" size={20} color={Colors.error} />
             </View>
 
-            <Text style={styles.errorTitle}>Unable to load delivery</Text>
+            <ThemedText style={styles.stateTitle}>Unable to load delivery</ThemedText>
 
-            <Text style={styles.errorText}>
-              We couldn't retrieve the delivery details. Please try again.
-            </Text>
+            <ThemedText style={styles.stateMessage} themeColor="textMuted">
+              We couldn&apos;t retrieve the delivery details. Please try again.
+            </ThemedText>
           </View>
         ) : (
           <ScrollView
-            style={styles.content}
+            style={styles.flex}
             contentContainerStyle={styles.contentContainer}
             showsVerticalScrollIndicator={false}
           >
-            {/* -------------------------------- */}
-            {/* STATUS */}
-            {/* -------------------------------- */}
-
-            <View style={styles.statusCard}>
-              <View style={styles.statusIcon}>
-                <Text style={styles.statusIconText}>✓</Text>
+            {/* Status */}
+            <View style={[styles.card, styles.row]}>
+              <View style={[styles.roundIcon, { backgroundColor: Colors.successExtraLight }]}>
+                <Ionicons name="checkmark" size={18} color={Colors.success} />
               </View>
 
-              <View style={styles.statusContent}>
-                <Text style={styles.statusLabel}>Delivery status</Text>
-
-                <Text style={styles.statusValue}>{order.orderStatus}</Text>
+              <View style={styles.flex}>
+                <ThemedText style={styles.label} themeColor="textMuted">
+                  Delivery status
+                </ThemedText>
+                <ThemedText style={styles.cardTitle}>{order.orderStatus}</ThemedText>
               </View>
 
-              <View style={styles.statusBadge}>
-                <Text style={styles.statusBadgeText}>
+              <View style={[styles.pill, { backgroundColor: Colors.successExtraLight }]}>
+                <ThemedText style={styles.pillText} themeColor="success">
                   {order.paymentStatus}
-                </Text>
+                </ThemedText>
               </View>
             </View>
 
-            {/* -------------------------------- */}
-            {/* RECIPIENT */}
-            {/* -------------------------------- */}
-
+            {/* Recipient */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Customer Details</Text>
+              <ThemedText style={styles.sectionTitle}>Customer details</ThemedText>
 
-              <View style={styles.recipientCard}>
-                {/* <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {recipientName
-                      ? recipientName.charAt(0).toUpperCase()
-                      : '?'}
-                  </Text>
-                </View> */}
-
+              <View style={[styles.card, styles.row]}>
                 <Avatar
-                  size={48}
-                  name={
-                    customer.firstName + ' ' + customer.lastName || 'Customer'
-                  }
+                  size={44}
+                  name={customer.firstName + ' ' + customer.lastName || 'Customer'}
                 />
 
-                <View style={styles.recipientInfo}>
-                  <Text style={styles.recipientName} numberOfLines={1}>
+                <View style={styles.flex}>
+                  <ThemedText style={[styles.cardTitle, styles.capitalize]} numberOfLines={1}>
                     {customer.firstName + ' ' + customer.lastName || 'Customer'}
-                  </Text>
+                  </ThemedText>
 
                   {recipientPhone ? (
-                    <Pressable
-                      onPress={handleCallRecipient}
-                      style={styles.phoneButton}
-                    >
-                      <Text style={styles.phoneIcon}>☎</Text>
-
-                      <Text style={styles.phoneText}>{recipientPhone}</Text>
+                    <Pressable onPress={handleCallRecipient} style={styles.inline} hitSlop={6}>
+                      <Ionicons name="call-outline" size={14} color={Colors.primary} />
+                      <ThemedText style={styles.secondary} themeColor="primary">
+                        {recipientPhone}
+                      </ThemedText>
                     </Pressable>
                   ) : (
-                    <Text style={styles.noPhoneText}>
+                    <ThemedText style={styles.meta} themeColor="textMuted">
                       No phone number available
-                    </Text>
+                    </ThemedText>
                   )}
                 </View>
 
                 {recipientPhone && (
-                  <Pressable
-                    onPress={handleCallRecipient}
-                    style={styles.callButton}
-                  >
-                    <Text style={styles.callButtonText}>Call</Text>
-                  </Pressable>
+                  <Button size="xs" onPress={handleCallRecipient}>
+                    Call
+                  </Button>
                 )}
               </View>
             </View>
 
-            {/* -------------------------------- */}
-            {/* DROP-OFF */}
-            {/* -------------------------------- */}
-
+            {/* Drop-off */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Drop-off location</Text>
+                <ThemedText style={styles.sectionTitle}>Drop-off location</ThemedText>
 
-                <View style={styles.destinationBadge}>
-                  <Text style={styles.destinationBadgeText}>DROP-OFF</Text>
+                <View style={[styles.pill, { backgroundColor: Colors.successExtraLight }]}>
+                  <ThemedText style={styles.pillText} themeColor="success">
+                    Drop-off
+                  </ThemedText>
                 </View>
               </View>
 
@@ -230,58 +213,44 @@ export default function DeliveryDetailsModal({
                     order.dropoffLocation?.longitude,
                   )
                 }
-                style={styles.locationCard}
+                style={({ pressed }) => [styles.card, styles.row, pressed && styles.pressed]}
               >
-                <View style={[styles.locationIcon, styles.dropoffIcon]}>
-                  <Ionicons
-                    name="location-sharp"
-                    size={20}
-                    color={Colors.success}
-                  />
+                <View style={[styles.roundIcon, { backgroundColor: Colors.successExtraLight }]}>
+                  <Ionicons name="location-outline" size={18} color={Colors.success} />
                 </View>
 
                 <View style={styles.locationContent}>
-                  <Text style={styles.locationTitle}>
+                  <ThemedText style={[styles.cardTitle, styles.capitalize]}>
                     {recipientName || 'Customer'}
-                  </Text>
+                  </ThemedText>
 
-                  <Text style={styles.locationAddress}>
-                    {order.dropoffLocation?.address ||
-                      'No drop-off address available'}
-                  </Text>
+                  <ThemedText style={styles.secondary} themeColor="textSecondary">
+                    {order.dropoffLocation?.address || 'No drop-off address available'}
+                  </ThemedText>
 
-                  {order.dropoffLocation?.city !== 'N/A' &&
-                    order.dropoffLocation?.city && (
-                      <Text style={styles.locationMeta}>
-                        {order.dropoffLocation.city}
-                        {order.dropoffLocation.state &&
-                        order.dropoffLocation.state !== 'N/A'
-                          ? `, ${order.dropoffLocation.state}`
-                          : ''}
-                      </Text>
-                    )}
+                  {order.dropoffLocation?.city !== 'N/A' && order.dropoffLocation?.city && (
+                    <ThemedText style={styles.meta} themeColor="textMuted">
+                      {order.dropoffLocation.city}
+                      {order.dropoffLocation.state && order.dropoffLocation.state !== 'N/A'
+                        ? `, ${order.dropoffLocation.state}`
+                        : ''}
+                    </ThemedText>
+                  )}
                 </View>
 
-                <View style={styles.chevron}>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={18}
-                    color={Colors.text}
-                  />
-                </View>
+                <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
               </Pressable>
             </View>
 
-            {/* -------------------------------- */}
-            {/* STORE / PICKUP */}
-            {/* -------------------------------- */}
-
+            {/* Store / pickup */}
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Pickup location</Text>
+                <ThemedText style={styles.sectionTitle}>Pickup location</ThemedText>
 
-                <View style={styles.pickupBadge}>
-                  <Text style={styles.pickupBadgeText}>PICKUP</Text>
+                <View style={[styles.pill, { backgroundColor: Colors.primaryExtraLight }]}>
+                  <ThemedText style={styles.pillText} themeColor="primary">
+                    Pickup
+                  </ThemedText>
                 </View>
               </View>
 
@@ -301,39 +270,29 @@ export default function DeliveryDetailsModal({
                           order.pickupLocation?.longitude,
                         )
                       }
-                      style={styles.locationCard}
+                      style={({ pressed }) => [styles.card, styles.row, pressed && styles.pressed]}
                     >
-                      <View style={[styles.locationIcon, styles.pickupIcon]}>
-                        <Ionicons
-                          name="location-sharp"
-                          size={20}
-                          color={Colors.primary}
-                        />
+                      <View style={[styles.roundIcon, { backgroundColor: Colors.primaryExtraLight }]}>
+                        <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
                       </View>
 
                       <View style={styles.locationContent}>
-                        <Text style={styles.locationTitle}>
+                        <ThemedText style={[styles.cardTitle, styles.capitalize]}>
                           {store.storeName}
-                        </Text>
+                        </ThemedText>
 
-                        <Text style={styles.locationAddress}>
+                        <ThemedText style={styles.secondary} themeColor="textSecondary">
                           {store.address}
-                        </Text>
+                        </ThemedText>
 
                         {store.phoneNumber && (
-                          <Text style={styles.locationMeta}>
+                          <ThemedText style={styles.meta} themeColor="textMuted">
                             {store.phoneNumber}
-                          </Text>
+                          </ThemedText>
                         )}
                       </View>
 
-                      <View style={styles.chevron}>
-                        <Ionicons
-                          name="chevron-forward"
-                          size={18}
-                          color={Colors.text}
-                        />
-                      </View>
+                      <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
                     </Pressable>
                   ),
                 )
@@ -345,79 +304,74 @@ export default function DeliveryDetailsModal({
                       order.pickupLocation?.longitude,
                     )
                   }
-                  style={styles.locationCard}
+                  style={({ pressed }) => [styles.card, styles.row, pressed && styles.pressed]}
                 >
-                  <View style={[styles.locationIcon, styles.pickupIcon]}>
-                    <Text style={styles.locationIconText}>●</Text>
+                  <View style={[styles.roundIcon, { backgroundColor: Colors.primaryExtraLight }]}>
+                    <Ionicons name="storefront-outline" size={18} color={Colors.primary} />
                   </View>
 
                   <View style={styles.locationContent}>
-                    <Text style={styles.locationTitle}>
+                    <ThemedText style={[styles.cardTitle, styles.capitalize]}>
                       {order.pickupLocation.storeName}
-                    </Text>
+                    </ThemedText>
 
-                    <Text style={styles.locationAddress}>
+                    <ThemedText style={styles.secondary} themeColor="textSecondary">
                       {order.pickupLocation.address}
-                    </Text>
+                    </ThemedText>
                   </View>
 
-                  <Text style={styles.chevron}>›</Text>
+                  <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
                 </Pressable>
               ) : (
-                <Text style={styles.emptyText}>
+                <ThemedText style={styles.secondary} themeColor="textMuted">
                   No pickup location available
-                </Text>
+                </ThemedText>
               )}
             </View>
 
-            {/* -------------------------------- */}
-            {/* DELIVERY INSTRUCTIONS */}
-            {/* -------------------------------- */}
-
+            {/* Delivery instructions */}
             {order.deliveryInstructions && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Delivery instructions</Text>
+                <ThemedText style={styles.sectionTitle}>Delivery instructions</ThemedText>
 
-                <View style={styles.instructionCard}>
-                  <Text style={styles.instructionIcon}>“</Text>
+                <View style={[styles.card, styles.instructionCard]}>
+                  <Ionicons name="chatbox-ellipses-outline" size={18} color={Colors.primary} />
 
-                  <Text style={styles.instructionText}>
+                  <ThemedText style={[styles.body, styles.flex]}>
                     {order.deliveryInstructions}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
             )}
 
-            {/* -------------------------------- */}
-            {/* DELIVERY SUMMARY */}
-            {/* -------------------------------- */}
-
+            {/* Delivery summary */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Delivery summary</Text>
+              <ThemedText style={styles.sectionTitle}>Delivery summary</ThemedText>
 
-              <View style={styles.summaryCard}>
+              <View style={styles.card}>
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Delivery fee</Text>
+                  <ThemedText style={styles.secondary} themeColor="textMuted">
+                    Delivery fee
+                  </ThemedText>
 
-                  <Text style={styles.summaryValue}>
+                  <ThemedText style={styles.cardTitle} themeColor="primary">
                     ₦ {order.deliveryFee.toLocaleString()}
-                  </Text>
+                  </ThemedText>
                 </View>
 
                 <View style={styles.summaryDivider} />
 
                 <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Delivered</Text>
+                  <ThemedText style={styles.secondary} themeColor="textMuted">
+                    Delivered
+                  </ThemedText>
 
-                  <Text style={styles.summaryValueMuted}>
+                  <ThemedText style={[styles.secondary, styles.alignRight]}>
                     {formatDate(order.deliveredAt || assignment?.deliveredAt)}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
             </View>
-
-            {/* Bottom spacing */}
-            <View style={styles.bottomSpacing} />
           </ScrollView>
         )}
       </View>
@@ -427,468 +381,215 @@ export default function DeliveryDetailsModal({
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    // ========================================
-    // CONTAINER
-    // ========================================
+    flex: {
+      flex: 1,
+    },
 
     container: {
       flex: 1,
-      backgroundColor: Colors.background,
+      backgroundColor: Colors.card,
     },
 
-    // ========================================
-    // HEADER
-    // ========================================
-
     header: {
-      paddingTop: scale(10),
-      paddingBottom: scale(14),
-      paddingHorizontal: scale(20),
-      borderBottomWidth: 1,
+      paddingTop: Spacing.three,
+      paddingHorizontal: Spacing.four,
+      paddingBottom: Spacing.three,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: Colors.border,
     },
 
     dragHandle: {
-      width: scale(40),
-      height: scale(4),
-      borderRadius: scale(10),
-      backgroundColor: Colors.border,
       alignSelf: 'center',
-      marginBottom: scale(12),
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.border,
+      marginBottom: Spacing.four,
     },
 
     headerRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
-
-    headerTitleContainer: {
-      flex: 1,
-      marginRight: scale(12),
+      alignItems: 'flex-start',
+      gap: Spacing.three,
     },
 
     title: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
 
-    orderNumber: {
-      marginTop: scale(3),
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    // ========================================
-    // CONTENT
-    // ========================================
-
-    content: {
-      flex: 1,
+    subtitle: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
     },
 
     contentContainer: {
-      paddingHorizontal: scale(20),
-      paddingTop: scale(18),
-      paddingBottom: scale(30),
+      gap: Spacing.four,
+      paddingHorizontal: Spacing.four,
+      paddingTop: Spacing.four,
+      paddingBottom: Spacing.five,
     },
 
-    // ========================================
-    // LOADING
-    // ========================================
-
-    loadingContainer: {
+    centerState: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingHorizontal: scale(30),
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.five,
     },
 
-    loadingText: {
-      marginTop: scale(12),
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    // ========================================
-    // ERROR
-    // ========================================
-
-    errorContainer: {
-      flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
-      paddingHorizontal: scale(40),
-    },
-
-    errorIcon: {
-      width: scale(48),
-      height: scale(48),
-      borderRadius: scale(24),
+    stateIcon: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: Colors.errorExtraLight,
-      marginBottom: scale(14),
+      marginBottom: Spacing.one,
     },
 
-    errorIconText: {
-      fontSize: normalize(20),
-      fontFamily: Fonts.brandBold,
-      color: Colors.error,
-    },
-
-    errorTitle: {
-      fontSize: normalize(15),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
+    stateTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
       textAlign: 'center',
-      marginBottom: scale(6),
     },
 
-    errorText: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
+    stateMessage: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
       textAlign: 'center',
-      lineHeight: normalize(18),
     },
-
-    // ========================================
-    // SECTIONS
-    // ========================================
 
     section: {
-      marginBottom: scale(22),
+      gap: 12,
     },
 
     sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: scale(4),
+      gap: Spacing.two,
     },
 
     sectionTitle: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-      marginBottom: scale(10),
-    },
-
-    // ========================================
-    // STATUS
-    // ========================================
-
-    statusCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: scale(14),
-      borderRadius: scale(16),
-      backgroundColor: Colors.inputBackground,
-      marginBottom: scale(22),
-    },
-
-    statusIcon: {
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(20),
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: Colors.successExtraLight,
-      marginRight: scale(12),
-    },
-
-    statusIconText: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandBold,
-      color: Colors.success,
-    },
-
-    statusContent: {
-      flex: 1,
-    },
-
-    statusLabel: {
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-      marginBottom: scale(2),
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
       textTransform: 'uppercase',
-      letterSpacing: 0.5,
     },
 
-    statusValue: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
+    card: {
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
     },
 
-    statusBadge: {
-      paddingHorizontal: scale(9),
-      paddingVertical: scale(5),
-      borderRadius: scale(8),
-      backgroundColor: Colors.successExtraLight,
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
-    statusBadgeText: {
-      fontSize: normalize(9),
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
+
+    inline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.one,
+      marginTop: 2,
+    },
+
+    roundIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+
+    cardTitle: {
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.success,
+      fontSize: 15,
+      lineHeight: 20,
     },
 
-    // ========================================
-    // RECIPIENT
-    // ========================================
-
-    recipientCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: scale(14),
-      borderRadius: scale(16),
-      gap: scale(8),
-      backgroundColor: Colors.inputBackground,
-    },
-
-    avatar: {
-      width: scale(44),
-      height: scale(44),
-      borderRadius: scale(22),
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: Colors.primary,
-      marginRight: scale(12),
-    },
-
-    avatarText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandBold,
-      color: '#FFFFFF',
-    },
-
-    recipientInfo: {
-      flex: 1,
-    },
-
-    recipientName: {
-      fontSize: normalize(14),
+    capitalize: {
       textTransform: 'capitalize',
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-      marginBottom: scale(5),
     },
 
-    phoneButton: {
-      flexDirection: 'row',
-      alignItems: 'center',
+    body: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
-    phoneIcon: {
-      fontSize: normalize(12),
-      color: Colors.primary,
-      marginRight: scale(5),
+    secondary: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
     },
 
-    phoneText: {
-      fontSize: normalize(12),
+    meta: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
+
+    pill: {
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 2,
+      borderRadius: 999,
+    },
+
+    pillText: {
       fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
-    },
-
-    noPhoneText: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    callButton: {
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(8),
-      borderRadius: scale(9),
-      backgroundColor: Colors.primary,
-      marginLeft: scale(8),
-    },
-
-    callButtonText: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-
-    // ========================================
-    // LOCATIONS
-    // ========================================
-
-    locationCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      padding: scale(14),
-      borderRadius: scale(16),
-      backgroundColor: Colors.inputBackground,
-    },
-
-    locationIcon: {
-      width: scale(38),
-      height: scale(38),
-      borderRadius: scale(19),
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: scale(12),
-    },
-
-    pickupIcon: {
-      backgroundColor: Colors.primaryLight,
-    },
-
-    dropoffIcon: {
-      backgroundColor: Colors.successExtraLight,
-    },
-
-    locationIconText: {
-      fontSize: normalize(13),
-      color: Colors.primary,
+      fontSize: 11,
+      lineHeight: 16,
     },
 
     locationContent: {
       flex: 1,
+      gap: 2,
     },
-
-    locationTitle: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-      marginBottom: scale(4),
-      textTransform: 'capitalize',
-    },
-
-    locationAddress: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-      lineHeight: normalize(17),
-    },
-
-    locationMeta: {
-      marginTop: scale(4),
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    chevron: {
-      fontSize: normalize(26),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-      marginLeft: scale(8),
-    },
-
-    destinationBadge: {
-      paddingHorizontal: scale(7),
-      paddingVertical: scale(4),
-      borderRadius: scale(6),
-      backgroundColor: Colors.successExtraLight,
-    },
-
-    destinationBadgeText: {
-      fontSize: normalize(8),
-      fontFamily: Fonts.brandBold,
-      color: Colors.success,
-      letterSpacing: 0.4,
-    },
-
-    pickupBadge: {
-      paddingHorizontal: scale(7),
-      paddingVertical: scale(4),
-      borderRadius: scale(6),
-      backgroundColor: Colors.primaryLight,
-    },
-
-    pickupBadgeText: {
-      fontSize: normalize(8),
-      fontFamily: Fonts.brandBold,
-      color: Colors.primary,
-      letterSpacing: 0.4,
-    },
-
-    emptyText: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    // ========================================
-    // INSTRUCTIONS
-    // ========================================
 
     instructionCard: {
       flexDirection: 'row',
-      padding: scale(14),
-      borderRadius: scale(16),
-      backgroundColor: Colors.inputBackground,
-      borderLeftWidth: scale(3),
-      borderLeftColor: Colors.primary,
-    },
-
-    instructionIcon: {
-      fontSize: normalize(26),
-      fontFamily: Fonts.brandBold,
-      color: Colors.primary,
-      marginRight: scale(8),
-      lineHeight: normalize(24),
-    },
-
-    instructionText: {
-      flex: 1,
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-      lineHeight: normalize(18),
-    },
-
-    // ========================================
-    // SUMMARY
-    // ========================================
-
-    summaryCard: {
-      padding: scale(15),
-      borderRadius: scale(16),
-      backgroundColor: Colors.inputBackground,
+      alignItems: 'flex-start',
+      gap: 12,
     },
 
     summaryRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-    },
-
-    summaryLabel: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-
-    summaryValue: {
-      fontSize: normalize(15),
-      fontFamily: Fonts.brandBold,
-      color: Colors.primary,
-    },
-
-    summaryValueMuted: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-      textAlign: 'right',
+      gap: Spacing.two,
     },
 
     summaryDivider: {
-      height: 1,
+      height: StyleSheet.hairlineWidth,
       backgroundColor: Colors.border,
-      marginVertical: scale(12),
+      marginVertical: 12,
     },
 
-    bottomSpacing: {
-      height: scale(20),
+    alignRight: {
+      textAlign: 'right',
     },
   });

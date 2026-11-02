@@ -1,10 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-import { normalize, scale } from '@/utils/scaling';
 
 import { DELETE_CONSEQUENCES } from './data';
 import DeleteStepHeader from './delete-step-header';
@@ -18,16 +17,22 @@ export default function DeleteConsequencesStep() {
     <>
       <DeleteStepHeader
         icon="warning-outline"
-        title="Delete Your Account?"
+        title="Delete your account?"
         description="This action is permanent and cannot be undone. Deleting your account will remove:"
       />
 
-      <View style={styles.list}>
-        {DELETE_CONSEQUENCES.map((item) => (
-          <View key={item.label} style={styles.item}>
-            <Ionicons name={item.icon} size={scale(18)} color={Colors.error} />
+      <View style={styles.card}>
+        {DELETE_CONSEQUENCES.map((item, index) => (
+          <View
+            key={item.label}
+            style={[
+              styles.item,
+              index === DELETE_CONSEQUENCES.length - 1 && styles.lastItem,
+            ]}
+          >
+            <Ionicons name={item.icon} size={18} color={Colors.error} />
 
-            <Text style={styles.itemText}>{item.label}</Text>
+            <ThemedText style={styles.itemText}>{item.label}</ThemedText>
           </View>
         ))}
       </View>
@@ -37,27 +42,32 @@ export default function DeleteConsequencesStep() {
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    list: {
+    card: {
       width: '100%',
-      gap: scale(10),
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
     },
 
     item: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(12),
-      borderWidth: 1,
-      borderColor: `${Colors.error}33`,
-      backgroundColor: Colors.errorLight,
-      borderRadius: scale(12),
-      paddingVertical: scale(14),
-      paddingHorizontal: scale(14),
+      gap: 12,
+      padding: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
+    },
+
+    lastItem: {
+      borderBottomWidth: 0,
     },
 
     itemText: {
       flex: 1,
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
   });

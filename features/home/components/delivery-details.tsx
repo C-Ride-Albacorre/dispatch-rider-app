@@ -1,358 +1,277 @@
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
 
 export default function DeliveryDetails() {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
+
   return (
-    <View style={styles.deliveryDetails}>
-      <View style={styles.deliveryHeader}>
-        <View style={styles.deliveryStatus}>
-          <View style={styles.dot}></View>
-          <Text style={styles.statusText}>Active Delivery</Text>
+    <View style={styles.card}>
+      <View style={styles.row}>
+        <View style={styles.inline}>
+          <View style={styles.dot} />
+          <ThemedText style={styles.cardTitle}>Active delivery</ThemedText>
         </View>
 
-        <Text style={styles.deliveryId}>CRD-2024-1234</Text>
+        <View style={styles.pill}>
+          <ThemedText style={styles.pillText} themeColor="success">
+            CRD-2024-1234
+          </ThemedText>
+        </View>
       </View>
 
-      <View style={styles.deliveryInfo}>
-        <View style={styles.deliveryRoute}>
+      <View style={styles.route}>
+        <View style={styles.routeRow}>
           <View style={styles.routeIcon}>
-            <Ionicons
-              name="navigate-outline"
-              size={20}
-              color={Colors.primary}
-            />
+            <Ionicons name="navigate-outline" size={18} color={Colors.primary} />
           </View>
-
-          <View style={styles.routeDetails}>
-            <Text style={styles.routeLabel}>Pickup</Text>
-            <Text style={styles.routeAddress}>123 Main St, Lagos</Text>
+          <View style={styles.flex}>
+            <ThemedText style={styles.label} themeColor="textMuted">
+              Pickup
+            </ThemedText>
+            <ThemedText style={styles.body}>123 Main St, Lagos</ThemedText>
           </View>
         </View>
 
-        <View style={styles.deliveryRoute}>
+        <View style={styles.routeRow}>
           <View style={styles.routeIcon}>
-            <Ionicons
-              name="location-outline"
-              size={20}
-              color={Colors.primary}
-            />
+            <Ionicons name="location-outline" size={18} color={Colors.primary} />
           </View>
-
-          <View style={styles.routeDetails}>
-            <Text style={styles.routeLabel}>Dropoff</Text>
-            <Text style={styles.routeAddress}>456 Elm St, Lagos</Text>
+          <View style={styles.flex}>
+            <ThemedText style={styles.label} themeColor="textMuted">
+              Dropoff
+            </ThemedText>
+            <ThemedText style={styles.body}>456 Elm St, Lagos</ThemedText>
           </View>
         </View>
+      </View>
 
-        <View style={styles.deliveryCustomer}>
-          <Text style={styles.customerLabel}>Customer</Text>
-
-          <View style={styles.customerInfo}>
-            <View style={styles.customerDetails}>
-              <Text style={styles.customerName}>John Doe</Text>
-              <Text style={styles.customerPhone}>+234 800 123 4567</Text>
-            </View>
-
-            <Button
-              variant="outline"
-              leftIcon={
-                <Ionicons
-                  name="call-outline"
-                  size={16}
-                  color={Colors.primary}
-                />
-              }
-            >
-              Call
-            </Button>
+      <View style={styles.block}>
+        <ThemedText style={styles.label} themeColor="textMuted">
+          Customer
+        </ThemedText>
+        <View style={styles.row}>
+          <View style={styles.flex}>
+            <ThemedText style={styles.cardTitle}>John Doe</ThemedText>
+            <ThemedText style={styles.secondary} themeColor="textSecondary">
+              +234 800 123 4567
+            </ThemedText>
           </View>
-        </View>
-
-        <View style={styles.deliveryItems}>
-          <Text style={styles.itemsLabel}>Items</Text>
-          <View style={styles.itemsList}>
-            <View style={styles.item}>
-              <Image
-                source={require('@/assets/images/item.jpg')}
-                style={styles.itemImage}
-              />
-
-              <Text style={styles.itemText}> Burger x2</Text>
-            </View>
-
-            <View style={styles.item}>
-              <Image
-                source={require('@/assets/images/item.jpg')}
-                style={styles.itemImage}
-              />
-
-              <Text style={styles.itemText}> Burger x2</Text>
-            </View>
-            <View style={styles.item}>
-              <Image
-                source={require('@/assets/images/item.jpg')}
-                style={styles.itemImage}
-              />
-
-              <Text style={styles.itemText}> Burger x2</Text>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.deliveryEarnings}>
-          <Text style={styles.earningsLabel}>Earnings</Text>
-
-          <Text style={styles.earningsAmount}>₦ 3,500</Text>
-        </View>
-
-        <View style={styles.deliveryProgress}>
-          <View style={styles.progressHeader}>
-            <Text style={styles.progressLabel}>Delivery Progress</Text>
-
-            <Text style={styles.etaText}>ETA 12mins</Text>
-          </View>
-
-          <View style={styles.progressBarContainer}>
-            <View style={styles.progressBar}></View>
-          </View>
-
-          <Text style={styles.etaText}>5 mins to pickup</Text>
-        </View>
-
-        <View style={styles.deliveryActions}>
-          <Button
-            variant="green"
-            leftIcon={
-              <Ionicons name="navigate-outline" size={16} color={Colors.text} />
-            }
-          >
-            Navigate
-          </Button>
 
           <Button
-            variant="primary"
-            leftIcon={
-              <Ionicons
-                name="checkmark-outline"
-                size={16}
-                color={Colors.text}
-              />
-            }
+            variant="outline"
+            size="sm"
+            leftIcon={<Ionicons name="call-outline" size={16} color={Colors.primary} />}
           >
-            Mark as Delivered
+            Call
           </Button>
         </View>
+      </View>
+
+      <View style={styles.block}>
+        <ThemedText style={styles.label} themeColor="textMuted">
+          Items
+        </ThemedText>
+        {[0, 1, 2].map((key) => (
+          <View key={key} style={styles.item}>
+            <Image source={require('@/assets/images/item.jpg')} style={styles.itemImage} />
+            <ThemedText style={styles.body}>Burger x2</ThemedText>
+          </View>
+        ))}
+      </View>
+
+      <View style={styles.block}>
+        <ThemedText style={styles.label} themeColor="textMuted">
+          Earnings
+        </ThemedText>
+        <ThemedText style={styles.amount} themeColor="primary">
+          ₦ 3,500
+        </ThemedText>
+      </View>
+
+      <View style={styles.block}>
+        <View style={styles.row}>
+          <ThemedText style={styles.secondary} themeColor="textSecondary">
+            Delivery progress
+          </ThemedText>
+          <ThemedText style={styles.secondary} themeColor="textSecondary">
+            ETA 12mins
+          </ThemedText>
+        </View>
+
+        <View style={styles.track}>
+          <View style={styles.bar} />
+        </View>
+
+        <ThemedText style={styles.meta} themeColor="textMuted">
+          5 mins to pickup
+        </ThemedText>
+      </View>
+
+      <View style={styles.actions}>
+        <Button
+          variant="green"
+          size="sm"
+          leftIcon={<Ionicons name="navigate-outline" size={16} color={Colors.white} />}
+        >
+          Navigate
+        </Button>
+
+        <Button
+          size="sm"
+          leftIcon={<Ionicons name="checkmark-outline" size={16} color={Colors.onPrimary} />}
+        >
+          Mark as delivered
+        </Button>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  deliveryDetails: {
-    gap: 44,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: Colors.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
 
-  deliveryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
+    card: {
+      gap: Spacing.four,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
 
-  deliveryStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
+    row: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
 
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.success,
-    marginRight: 6,
-  },
+    inline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
 
-  statusText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: Colors.success,
+    },
 
-  deliveryId: {
-    fontSize: 12,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.background,
-    padding: 4,
-    backgroundColor: Colors.success,
-    borderRadius: 25,
-  },
+    pill: {
+      paddingHorizontal: Spacing.two,
+      paddingVertical: 2,
+      borderRadius: 999,
+      backgroundColor: Colors.successExtraLight,
+    },
 
-  deliveryInfo: {
-    gap: 24,
-  },
+    pillText: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+    },
 
-  deliveryRoute: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
+    cardTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
 
-  routeIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 4,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.primaryLight,
-  },
+    route: {
+      gap: 12,
+    },
 
-  routeDetails: {
-    gap: 4,
-  },
+    routeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
 
-  routeLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    routeIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: Colors.primaryExtraLight,
+    },
 
-  routeAddress: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    block: {
+      gap: Spacing.two,
+    },
 
-  deliveryCustomer: {
-    gap: 2,
-  },
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
 
-  customerLabel: {
-    fontSize: 12,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    body: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
+    },
 
-  customerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+    secondary: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
 
-  customerDetails: {
-    gap: 4,
-  },
+    meta: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
 
-  customerName: {
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    item: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+    },
 
-  customerPhone: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    itemImage: {
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: Colors.backgroundTertiary,
+    },
 
-  deliveryItems: {
-    gap: 8,
-  },
+    amount: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+    },
 
-  itemsLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    track: {
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.backgroundTertiary,
+    },
 
-  itemsList: {
-    gap: 16,
-  },
+    bar: {
+      width: '60%',
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.primary,
+    },
 
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-
-  itemImage: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    objectFit: 'cover',
-  },
-
-  itemText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
-
-  deliveryEarnings: {
-    gap: 4,
-  },
-
-  earningsLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  earningsAmount: {
-    fontSize: 18,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.primary,
-  },
-
-  deliveryProgress: {
-    gap: 8,
-  },
-
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-
-  progressLabel: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  etaText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
-
-  progressBarContainer: {
-    width: '100%',
-    height: 8,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: 4,
-  },
-
-  progressBar: {
-    width: '60%',
-    height: '100%',
-    backgroundColor: Colors.primary,
-    borderRadius: 4,
-  },
-
-  deliveryActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-});
+    actions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: Spacing.two,
+    },
+  });

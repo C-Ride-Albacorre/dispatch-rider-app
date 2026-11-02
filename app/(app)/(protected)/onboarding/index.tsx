@@ -1,17 +1,16 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import Documents from '@/features/onboarding/components/forms/documents';
 import PersonalInfo from '@/features/onboarding/components/forms/personal-info';
 import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
 import { useTheme } from '@/hooks/use-theme';
-import { scale } from '@/utils/scaling';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
-  Text,
   View,
 } from 'react-native';
 
@@ -48,11 +47,13 @@ export default function Onboarding() {
         scrollEnabled={true}
       >
         <View style={styles.textContainer}>
-          <Text style={styles.title}>Join C-Ride as a Fulfillment Partner</Text>
+          <ThemedText style={styles.title}>
+            Join C-Ride as a Fulfillment Partner
+          </ThemedText>
 
-          <Text style={styles.subtitle}>
+          <ThemedText style={styles.subtitle} themeColor="textMuted">
             Complete your profile to start delivering with care
-          </Text>
+          </ThemedText>
         </View>
 
         <StepIndicator current={step} />
@@ -84,38 +85,32 @@ const createStyles = (Colors: any) =>
       flex: 1,
       backgroundColor: Colors.background,
     },
+
     container: {
       flexGrow: 1,
-      padding: scale(20),
-      gap: scale(24),
-      marginBottom: scale(40),
-    },
-    returnBtn: {
-      alignSelf: 'flex-start',
-      padding: scale(8),
-      borderRadius: scale(40),
-      backgroundColor: Colors.light,
-      alignItems: 'center',
-      justifyContent: 'center',
+      gap: Spacing.four,
+      padding: Spacing.three,
+      paddingBottom: Spacing.five,
     },
 
     textContainer: {
-      gap: scale(8),
       alignItems: 'center',
-      marginVertical: scale(20),
+      gap: Spacing.one,
+      marginTop: Spacing.three,
     },
 
     title: {
-      fontSize: scale(24),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 26,
+      lineHeight: 32,
+      letterSpacing: -0.3,
       textAlign: 'center',
     },
 
     subtitle: {
-      fontSize: scale(12),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
     },
   });

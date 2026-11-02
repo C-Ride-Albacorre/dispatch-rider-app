@@ -1,7 +1,6 @@
-import { Colors, Fonts } from '@/constants/theme';
+import Button from '@/components/ui/buttons/button';
 import { resendOtpAction } from '@/features/verify/action';
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 export default function ResendOTP({
   identifier,
@@ -54,31 +53,17 @@ export default function ResendOTP({
   }, [countdown]);
 
   return (
-    <TouchableOpacity
+    <Button
+      variant="text"
+      size="sm"
       onPress={handleResendOtp}
       disabled={!canResend || resending}
     >
-      <Text
-        style={[styles.resendText, !canResend && styles.disabledResendText]}
-      >
-        {resending
-          ? 'Resending...'
-          : canResend
-            ? 'Resend Code'
-            : `Resend Code in ${countdown}s`}
-      </Text>
-    </TouchableOpacity>
+      {resending
+        ? 'Resending...'
+        : canResend
+          ? 'Resend Code'
+          : `Resend Code in ${countdown}s`}
+    </Button>
   );
 }
-
-const styles = StyleSheet.create({
-  resendText: {
-    fontSize: 16,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.primary,
-  },
-
-  disabledResendText: {
-    color: Colors.textSecondary,
-  },
-});

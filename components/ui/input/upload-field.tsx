@@ -1,8 +1,8 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 type UploadFieldProps = {
   label?: string;
@@ -22,69 +22,101 @@ export default function UploadField({
   const styles = createStyles(Colors);
 
   return (
-    <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+    <View>
+      {label && (
+        <ThemedText style={styles.label} themeColor="textSecondary">
+          {label}
+        </ThemedText>
+      )}
 
-      <TouchableOpacity
-        style={[styles.uploadBox, isUploaded && styles.uploadedBox]}
+      <Pressable
+        style={({ pressed }) => [
+          styles.uploadBox,
+          isUploaded && styles.uploadedBox,
+          pressed && styles.pressed,
+        ]}
         onPress={onPress}
-        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={label ?? 'Upload file'}
       >
-        <Ionicons
-          name={isUploaded ? 'checkmark-circle' : 'cloud-upload-outline'}
-          size={20}
-          color={isUploaded ? Colors.success : Colors.textSecondary}
-        />
+        <View
+          style={[
+            styles.iconCircle,
+            {
+              backgroundColor: isUploaded
+                ? Colors.successExtraLight
+                : Colors.backgroundTertiary,
+            },
+          ]}
+        >
+          <Ionicons
+            name={isUploaded ? 'checkmark' : 'cloud-upload-outline'}
+            size={18}
+            color={isUploaded ? Colors.success : Colors.textMuted}
+          />
+        </View>
 
-        <Text
+        <ThemedText
           style={[styles.uploadText, isUploaded && styles.uploadedText]}
+          themeColor={isUploaded ? 'success' : 'textMuted'}
           numberOfLines={1}
           ellipsizeMode="middle"
         >
           {fileName || 'Tap to upload file'}
-        </Text>
-      </TouchableOpacity>
+        </ThemedText>
+      </Pressable>
     </View>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
-      gap: scale(8),
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.two,
     },
 
-  label: {
-    fontSize: normalize(14),
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    uploadBox: {
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: Spacing.two,
+      padding: Spacing.three,
+      borderWidth: 1,
+      borderStyle: 'dashed',
+      borderColor: Colors.border,
+      borderRadius: 16,
+      backgroundColor: Colors.inputBackground,
+    },
 
-  uploadBox: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderStyle: 'dashed',
-    borderRadius: scale(12),
-    padding: scale(16),
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: scale(8),
-    backgroundColor: Colors.inputBackground,
-  },
+    uploadedBox: {
+      borderStyle: 'solid',
+      borderColor: Colors.success,
+      backgroundColor: Colors.successExtraLight,
+    },
 
-  uploadedBox: {
-    borderColor: Colors.success,
-    backgroundColor: Colors.successExtraLight,
-  },
+    pressed: {
+      opacity: 0.8,
+    },
 
-  uploadText: {
-    fontSize: normalize(12),
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    iconCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
 
-  uploadedText: {
-    color: Colors.success,
-    fontFamily: Fonts.brandMedium,
-  },
-});
+    uploadText: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    uploadedText: {
+      fontFamily: Fonts.brandMedium,
+    },
+  });

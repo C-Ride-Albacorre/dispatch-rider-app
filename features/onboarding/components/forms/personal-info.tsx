@@ -2,18 +2,16 @@ import Button from '@/components/ui/buttons/button';
 import Input from '@/components/ui/input/input';
 import PhoneInput from '@/components/ui/input/phone-input';
 import Select from '@/components/ui/input/select';
-import { Colors, Fonts } from '@/constants/theme';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Spacing } from '@/constants/theme';
+import StepCard, { StepActions, stepActionStyles } from '@/features/onboarding/components/step-card';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { personalInfoAction } from '../../action';
 import { nigeriaCitiesByState, nigeriaStates } from '../../data';
 import { PersonalInfoFormValues, personalInfoSchema } from '../../schema';
-import { personalInfoAction } from '../../action';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { useOnboardingStore } from '../../store';
-import { useEffect } from 'react';
-import { useTheme } from '@/hooks/use-theme';
-import { normalize,  scale } from '@/utils/scaling';
 
 export default function PersonalInfo({
   goToStep,
@@ -59,11 +57,6 @@ export default function PersonalInfo({
     ? (nigeriaCitiesByState[selectedState] ?? [])
     : [];
 
-
-    const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
-
   const onSubmit = async (payload: PersonalInfoFormValues) => {
     try {
       setSubmitting(true);
@@ -84,19 +77,11 @@ export default function PersonalInfo({
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.textContainer}>
-        <View style={styles.iconContainer}>
-          <Ionicons name="person-outline" size={24} color={Colors.primary} />
-        </View>
-
-        <View style={styles.mainTextContainer}>
-          <Text style={styles.mainText}>Personal Information</Text>
-
-          <Text style={styles.subText}>Tell us about yourself</Text>
-        </View>
-      </View>
-
+    <StepCard
+      icon="person-outline"
+      title="Personal Information"
+      subtitle="Tell us about yourself"
+    >
       <View style={styles.form}>
         <Controller
           control={control}
@@ -192,72 +177,27 @@ export default function PersonalInfo({
           )}
         />
 
-        <View style={styles.buttonContainer}>
-          <Button variant="outline" disabled>
+        <StepActions>
+          <Button variant="outline" size="lg" disabled style={stepActionStyles.button}>
             Previous
           </Button>
           <Button
+            size="lg"
             disabled={!isValid || isSubmitting}
             loading={isSubmitting}
             onPress={handleSubmit(onSubmit)}
+            style={stepActionStyles.button}
           >
             Continue
           </Button>
-        </View>
+        </StepActions>
       </View>
-    </View>
+    </StepCard>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      borderWidth: scale(1),
-      borderColor: Colors.border,
-      borderRadius: scale(12),
-    padding: scale(20),
-    gap: scale(32),
-  },
-
-  textContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: scale(16),
-  },
-
-  iconContainer: {
-    width: scale(48),
-    height: scale(48),
-    borderRadius: scale(12),
-    backgroundColor: Colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-
-  mainTextContainer: {
-    flex: 1,
-  },
-
-  mainText: {
-    fontSize: normalize(16),
-    fontFamily: Fonts.brandBold,
-    color: Colors.text,
-  },
-
-  subText: {
-    fontSize: normalize(12),
-    color: Colors.textSecondary,
-    fontFamily: Fonts.brandRegular,
-  },
-
+const styles = StyleSheet.create({
   form: {
-    gap: scale(24),
-  },
-
-  buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: scale(16),
+    gap: Spacing.three,
   },
 });

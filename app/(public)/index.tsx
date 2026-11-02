@@ -1,18 +1,10 @@
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-import { scale, verticalScale } from '@/utils/scaling';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Link } from 'expo-router';
-import {
-  Image,
-  Linking,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -57,64 +49,63 @@ export default function Index() {
         style={[
           styles.contentContainer,
           // Keep the terms text above the Android navigation bar / iOS home indicator
-          { paddingBottom: insets.bottom + 20 },
+          { paddingBottom: insets.bottom + Spacing.four },
         ]}
       >
-        <View style={{ width: '100%' }}>
-          <View style={{ alignItems: 'center' }}>
-            <Image
-              source={require('../../assets/images/icon.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
+        <View style={styles.hero}>
+          <Image
+            source={require('../../assets/images/icon.png')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
 
-            <Animated.Text entering={FadeInDown} style={styles.tagline}>
-              <Text>Beyond Rides, We Deliver Experiences</Text>
-            </Animated.Text>
-          </View>
+          <Animated.View entering={FadeInDown}>
+            <ThemedText style={styles.tagline}>
+              Beyond Rides, We Deliver Experiences
+            </ThemedText>
+          </Animated.View>
+        </View>
 
-          {/* Buttons */}
-          <View style={styles.buttonContainer}>
-            <Animated.View entering={FadeInDown.delay(100)}>
-              <Link href={'/register'} asChild>
-                <Button size="lg" variant="outline">
-                  Become a Rider
-                </Button>
-              </Link>
-            </Animated.View>
+        {/* Buttons */}
+        <View style={styles.buttonContainer}>
+          <Animated.View entering={FadeInDown.delay(100)}>
+            <Link href={'/register'} asChild>
+              <Button size="lg" variant="outline">
+                Become a Rider
+              </Button>
+            </Link>
+          </Animated.View>
 
-            <Animated.View entering={FadeInDown.delay(200)}>
-              <Link href={'/login'} asChild>
-                <Button size="lg" variant="primary">
-                  Login
-                </Button>
-              </Link>
-            </Animated.View>
+          <Animated.View entering={FadeInDown.delay(200)}>
+            <Link href={'/login'} asChild>
+              <Button size="lg" variant="primary">
+                Login
+              </Button>
+            </Link>
+          </Animated.View>
 
-            {/* Privacy */}
-            <Animated.Text
-              entering={FadeInDown.delay(400)}
-              style={styles.privacy}
-            >
-              <Text>
-                By continuing, you agree to our{' '}
-                <Text
-                  onPress={() => openWebBrowser('https://c-ride.co/terms')}
-                  style={styles.link}
-                >
-                  Terms of Service
-                </Text>{' '}
-                and{' '}
-                <Text
-                  onPress={() => openWebBrowser('https://c-ride.co/privacy')}
-                  style={styles.link}
-                >
-                  Privacy Policy
-                </Text>
-                .
-              </Text>
-            </Animated.Text>
-          </View>
+          {/* Privacy */}
+          <Animated.View entering={FadeInDown.delay(400)}>
+            <ThemedText style={styles.privacy} themeColor="textMuted">
+              By continuing, you agree to our{' '}
+              <ThemedText
+                onPress={() => openWebBrowser('https://c-ride.co/terms')}
+                style={styles.link}
+                themeColor="primary"
+              >
+                Terms of Service
+              </ThemedText>{' '}
+              and{' '}
+              <ThemedText
+                onPress={() => openWebBrowser('https://c-ride.co/privacy')}
+                style={styles.link}
+                themeColor="primary"
+              >
+                Privacy Policy
+              </ThemedText>
+              .
+            </ThemedText>
+          </Animated.View>
         </View>
       </View>
     </ScrollView>
@@ -142,7 +133,7 @@ const createStyles = (Colors: any) =>
     // short screens; past this minimum the page scrolls instead
     imageContainer: {
       flexGrow: 1,
-      minHeight: verticalScale(220),
+      minHeight: 220,
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
@@ -158,43 +149,46 @@ const createStyles = (Colors: any) =>
       right: 0,
     },
 
-    logo: {
-      width: scale(64),
-      height: scale(64),
-      marginBottom: scale(20),
+    contentContainer: {
+      gap: Spacing.five,
+      paddingHorizontal: Spacing.four,
+      paddingTop: Spacing.three,
     },
 
-    contentContainer: {
+    hero: {
       alignItems: 'center',
-      paddingHorizontal: 30,
-      paddingTop: 20,
+      gap: Spacing.three,
+    },
+
+    logo: {
+      width: 64,
+      height: 64,
     },
 
     tagline: {
-      fontSize: 32,
-      fontFamily: Fonts.brandBold,
-      textAlign: 'center',
-      marginBottom: verticalScale(40),
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 28,
       lineHeight: 36,
-      color: Colors.text,
+      letterSpacing: -0.4,
+      textAlign: 'center',
     },
 
     buttonContainer: {
       width: '100%',
-      gap: 16,
+      gap: Spacing.three,
     },
 
     privacy: {
       fontFamily: Fonts.brandRegular,
       fontSize: 12,
-      color: Colors.textSecondary,
+      lineHeight: 17,
       textAlign: 'center',
-      lineHeight: 18,
     },
 
     link: {
-      color: Colors.primary,
-      textDecorationLine: 'underline',
       fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 17,
+      textDecorationLine: 'underline',
     },
   });

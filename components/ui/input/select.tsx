@@ -1,19 +1,18 @@
-import { Colors, Fonts } from '@/constants/theme';
-import { normalize, scale } from '@/utils/scaling';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 
 import React, { useState } from 'react';
 import {
+  FlatList,
   Modal,
+  Pressable,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
-  FlatList,
 } from 'react-native';
 
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useTheme } from '@/hooks/use-theme';
-import { Color } from 'expo-router';
 
 type Option = {
   label: string;
@@ -55,88 +54,104 @@ export default function Select({
     <View style={styles.field}>
       {/* LABEL */}
       {label && (
-        <View style={styles.labelContainer}>
-          <Text style={styles.label}>{label}</Text>
-          {required && <Text style={styles.required}>*</Text>}
-        </View>
+        <ThemedText style={styles.label} themeColor="textSecondary">
+          {label}
+          {required && (
+            <ThemedText style={styles.label} themeColor="error">
+              {' '}
+              *
+            </ThemedText>
+          )}
+        </ThemedText>
       )}
 
       {/* SELECT BOX */}
       <TouchableOpacity
-     activeOpacity={0.8}
-  disabled={disabled}
+        activeOpacity={0.8}
+        disabled={disabled}
         onPress={() => !disabled && setOpen(true)}
         style={[
           styles.inputContainer,
-          hasError && styles.errorContainer,
+          {
+            borderColor: hasError
+              ? Colors.error
+              : open
+                ? Colors.primary
+                : Colors.border,
+          },
           disabled && styles.disabledContainer,
         ]}
       >
-        <Text
-    style={[
-      styles.text,
-      !selectedLabel && styles.placeholder,
-      disabled && styles.disabledText,
-    ]}
-  >
-    {selectedLabel || placeholder}
-  </Text>
+        <ThemedText
+          style={styles.text}
+          themeColor={selectedLabel && !disabled ? 'text' : 'textMuted'}
+          numberOfLines={1}
+        >
+          {selectedLabel || placeholder}
+        </ThemedText>
 
-      <Ionicons
-    name="chevron-down"
-    size={20}
-    color={
-      disabled
-        ? Colors.textSecondary + '66'
-        : Colors.textSecondary
-    }
-  />
+        <Ionicons name="chevron-down" size={18} color={Colors.textMuted} />
       </TouchableOpacity>
 
       {/* ERROR */}
-      {hasError && <Text style={styles.errorText}>{error}</Text>}
+      {hasError && (
+        <ThemedText style={styles.errorText} themeColor="error">
+          {error}
+        </ThemedText>
+      )}
 
-      {/* MODAL DROPDOWN */}
+      {/* OPTIONS SHEET */}
       <Modal
         visible={open}
         transparent
         animationType="fade"
         onRequestClose={() => setOpen(false)}
       >
-        <TouchableOpacity
-          style={styles.overlay}
-          activeOpacity={1}
-          onPress={() => setOpen(false)}
-        >
-          <View style={styles.dropdown}>
+        <View style={styles.root}>
+          <Pressable style={styles.overlay} onPress={() => setOpen(false)} />
+
+          <View style={styles.sheet}>
+            <View style={styles.handle} />
+
+            {label && <ThemedText style={styles.sheetTitle}>{label}</ThemedText>}
+
             <FlatList
               data={options}
               keyExtractor={(item) => item.value}
+              contentContainerStyle={styles.list}
               renderItem={({ item }) => {
                 const isSelected = item.value === value;
 
                 return (
-                  <TouchableOpacity
-                    style={[styles.option, isSelected && styles.selectedOption]}
+                  <Pressable
+                    style={({ pressed }) => [
+                      styles.option,
+                      isSelected && styles.selectedOption,
+                      pressed && styles.pressedOption,
+                    ]}
                     onPress={() => {
                       onChange(item.value);
                       setOpen(false);
                     }}
                   >
-                    <Text
+                    <ThemedText
                       style={[
                         styles.optionText,
                         isSelected && styles.selectedOptionText,
                       ]}
                     >
                       {item.label}
-                    </Text>
-                  </TouchableOpacity>
+                    </ThemedText>
+
+                    {isSelected && (
+                      <Ionicons name="checkmark" size={18} color={Colors.primary} />
+                    )}
+                  </Pressable>
                 );
               }}
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     </View>
   );
@@ -146,109 +161,115 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     field: {
       width: '100%',
-      gap: scale(6),
-    },
-
-    labelContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(2),
     },
 
     label: {
-      fontSize: normalize(14),
-      color: Colors.text,
       fontFamily: Fonts.brandMedium,
-    },
-
- disabledContainer: {
-  backgroundColor: Colors.inputBackground ,
-  opacity: 0.6,
-},
-
-disabledText: {
-  color: Colors.textSecondary,
-},
-    required: {
-      color: Colors.error,
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandBold,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.two,
     },
 
     inputContainer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-
+      gap: Spacing.two,
+      height: 52,
+      paddingHorizontal: Spacing.three,
+      borderRadius: 16,
+      borderWidth: StyleSheet.hairlineWidth,
       backgroundColor: Colors.inputBackground,
-      borderRadius: scale(12),
+    },
 
-      paddingHorizontal: scale(12),
-      minHeight: scale(56),
-
-      fontFamily: Fonts.brandRegular,
-
-      fontSize: normalize(14),
-
-      borderWidth: 1,
-      borderColor: 'transparent',
+    disabledContainer: {
+      opacity: 0.6,
     },
 
     text: {
-      fontSize: normalize(14),
+      flex: 1,
       fontFamily: Fonts.brandRegular,
-      color: Colors.text,
-    },
-
-    placeholder: {
-      color: '#999',
-         fontSize: normalize(14),
-    },
-
-    errorContainer: {
-      borderColor: Colors.error,
-      backgroundColor: Colors.errorLight,
+      fontSize: 15,
+      lineHeight: 20,
     },
 
     errorText: {
-      fontSize: normalize(12),
-      color: Colors.error,
-      fontFamily: Fonts.brandMedium,
-      marginLeft: scale(4),
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: Spacing.one,
+    },
+
+    root: {
+      flex: 1,
+      justifyContent: 'flex-end',
     },
 
     overlay: {
-      flex: 1,
-      backgroundColor: 'rgba(0,0,0,0.3)',
-      justifyContent: 'center',
-      padding: scale(20),
+      ...StyleSheet.absoluteFill,
+      backgroundColor: Colors.overlay,
     },
 
-    dropdown: {
-      backgroundColor: Colors.background,
-      borderRadius: scale(12),
-      maxHeight: 300,
-      paddingVertical: scale(8),
+    sheet: {
+      maxHeight: '70%',
+      paddingTop: Spacing.three,
+      paddingBottom: Spacing.five,
+      borderTopLeftRadius: 28,
+      borderTopRightRadius: 28,
+      backgroundColor: Colors.card,
+    },
+
+    handle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.border,
+      marginBottom: Spacing.four,
+    },
+
+    sheetTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+      paddingHorizontal: Spacing.four,
+      marginBottom: Spacing.three,
+    },
+
+    list: {
+      paddingHorizontal: Spacing.three,
+      gap: Spacing.one,
     },
 
     option: {
-      padding: scale(14),
-      backgroundColor: Colors.background,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.three,
+      paddingVertical: 14,
+      borderRadius: 12,
     },
 
     selectedOption: {
-      backgroundColor: Colors.backgroundTertiary,
+      backgroundColor: Colors.primaryExtraLight,
+    },
+
+    pressedOption: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
     optionText: {
-      fontSize: normalize(14),
+      flex: 1,
       fontFamily: Fonts.brandRegular,
-      color: Colors.text,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     selectedOptionText: {
       fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
-         fontSize: normalize(14),
     },
   });

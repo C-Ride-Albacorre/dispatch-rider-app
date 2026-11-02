@@ -1,10 +1,9 @@
-import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, View } from 'react-native';
 
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-
-import { normalize, scale } from '@/utils/scaling';
 
 export default function DeleteStepHeader({
   icon,
@@ -22,12 +21,14 @@ export default function DeleteStepHeader({
   return (
     <View style={styles.container}>
       <View style={styles.iconWrapper}>
-        <Ionicons name={icon} size={scale(32)} color={Colors.error} />
+        <Ionicons name={icon} size={28} color={Colors.error} />
       </View>
 
-      <Text style={styles.title}>{title}</Text>
+      <ThemedText style={styles.title}>{title}</ThemedText>
 
-      <Text style={styles.description}>{description}</Text>
+      <ThemedText style={styles.description} themeColor="textSecondary">
+        {description}
+      </ThemedText>
     </View>
   );
 }
@@ -40,29 +41,29 @@ const createStyles = (Colors: any) =>
     },
 
     iconWrapper: {
-      width: scale(64),
-      height: scale(64),
-      borderRadius: scale(32),
+      width: 64,
+      height: 64,
+      borderRadius: 32,
       backgroundColor: Colors.errorLight,
       justifyContent: 'center',
       alignItems: 'center',
-      marginBottom: scale(16),
+      marginBottom: Spacing.three,
     },
 
     title: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(18),
-      color: Colors.text,
-      marginBottom: scale(8),
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+      marginBottom: Spacing.two,
       textAlign: 'center',
     },
 
     description: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
+      fontSize: 14,
+      lineHeight: 20,
       textAlign: 'center',
-      lineHeight: normalize(20),
-      marginBottom: scale(20),
+      marginBottom: Spacing.four,
     },
   });

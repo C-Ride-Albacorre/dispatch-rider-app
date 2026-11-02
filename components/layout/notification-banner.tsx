@@ -1,13 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Animated, Pressable, StyleSheet, Text } from 'react-native';
+import { Animated, Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useNotificationStore } from '@/store/notification-store';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Fonts } from '@/constants/theme';
-import { normalize, scale } from '@/utils/scaling';
 import { handleNotificationNavigation } from '@/utils/notification-navigation';
-import { Image, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function NotificationBanner() {
   const { Colors } = useTheme();
@@ -68,9 +67,7 @@ export default function NotificationBanner() {
       style={[
         styles.container,
         {
-          marginTop: insets.top + 8,
-          backgroundColor: Colors.background,
-          borderColor: Colors.border,
+          marginTop: insets.top + Spacing.two,
           transform: [{ translateY }],
           opacity,
         },
@@ -82,45 +79,27 @@ export default function NotificationBanner() {
 
           handleNotificationNavigation(banner);
         }}
-        style={{
-          paddingVertical: scale(14),
-
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: scale(12),
-        }}
+        style={({ pressed }) => [styles.content, pressed && styles.pressed]}
       >
-        <Image
-          source={require('@/assets/images/icon.png')}
-          style={{
-            width: scale(24),
-            height: scale(24),
-            borderRadius: scale(16),
-          }}
-        />
+        <View style={styles.iconWrapper}>
+          <Image
+            source={require('@/assets/images/icon.png')}
+            style={styles.icon}
+          />
+        </View>
 
-        <View>
-          <Text
-            style={[
-              styles.title,
-              {
-                color: Colors.text,
-              },
-            ]}
-          >
+        <View style={styles.text}>
+          <ThemedText style={styles.title} numberOfLines={1}>
             {banner.notification?.title?.toLowerCase()}
-          </Text>
+          </ThemedText>
 
-          <Text
-            style={[
-              styles.body,
-              {
-                color: Colors.textSecondary,
-              },
-            ]}
+          <ThemedText
+            style={styles.body}
+            themeColor="textSecondary"
+            numberOfLines={2}
           >
             {banner.notification?.body}
-          </Text>
+          </ThemedText>
         </View>
       </Pressable>
     </Animated.View>
@@ -131,34 +110,60 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
       position: 'absolute',
-
-      left: scale(16),
-
-      right: scale(16),
-
+      left: Spacing.three,
+      right: Spacing.three,
       zIndex: 9999,
-
-      borderRadius: scale(16),
-
+      borderRadius: 16,
       borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+      elevation: 10,
+      shadowColor: Colors.black,
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+    },
 
-      paddingHorizontal: scale(8),
+    content: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+    },
 
-      elevation: scale(10),
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
+    },
+
+    iconWrapper: {
+      width: 36,
+      height: 36,
+      borderRadius: 12,
+      overflow: 'hidden',
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    icon: {
+      width: 36,
+      height: 36,
+    },
+
+    text: {
+      flex: 1,
+      gap: 2,
     },
 
     title: {
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-      marginBottom: scale(2),
-      maxWidth: scale(240),
+      fontSize: 14,
+      lineHeight: 20,
       textTransform: 'capitalize',
-      fontSize: normalize(13),
     },
 
     body: {
       fontFamily: Fonts.brandRegular,
-      fontSize: normalize(11),
-      maxWidth: scale(240),
+      fontSize: 13,
+      lineHeight: 18,
     },
   });

@@ -21,11 +21,3 @@ export default function HomeLayout() {
   );
 }
 
-{
-  /* <FlashList
-  contentContainerStyle={{
-    paddingTop: HEADER_HEIGHT + insets.top,
-    paddingBottom: insets.bottom + 16,
-  }}
-/> */
-}

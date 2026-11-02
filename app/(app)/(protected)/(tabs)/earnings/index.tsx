@@ -1,6 +1,8 @@
-import { HEADER_HEIGHT, useScrollHeader } from '@/components/layout/scroll-header-context';
-import { Fonts } from '@/constants/theme';
-import AppFrame from '@/features/dashboard/components/app-frame';
+import ScreenHeader from '@/components/layout/screen-header';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import Button from '@/components/ui/buttons/button';
+import { Fonts, Spacing } from '@/constants/theme';
 import {
   EarningsPeriod,
   formatHours,
@@ -9,13 +11,16 @@ import {
 } from '@/features/earnings/use-fetch';
 import RecentDeliverySkeleton from '@/features/home/components/recent-delivery-skeleton';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef, useState } from 'react';
-import { Animated as RNAnimated, RefreshControl, StyleSheet } from 'react-native';
-import { Text, TouchableOpacity, View } from 'react-native';
-import Animated from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import {
+  Animated as RNAnimated,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 
 const PERIODS: { label: string; value: EarningsPeriod }[] = [
   { label: 'Today', value: 'TODAY' },
@@ -31,7 +36,7 @@ function formatBreakdownDate(date: string) {
   });
 }
 
-export default function EarningsScreen( ){
+export default function EarningsScreen() {
   const [period, setPeriod] = useState<EarningsPeriod>('WEEK');
 
   const { data, isLoading, isFetching, refetch } = useEarningsDashboard(period);
@@ -64,339 +69,363 @@ export default function EarningsScreen( ){
     }
   }, [isLoading]);
 
-   const { Colors, isDark } = useTheme();
-    const styles = createStyles(Colors);
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
- 
-  const onFrameMutedText = isDark
-    ? Colors.textSecondary
-    : Colors.backgroundTertiary;
-  
-      const insets = useSafeAreaInsets()
-  
-      const scrollHandler = useScrollHeader();
+  const metrics: { label: string; value: string; color: string }[] = [
+    {
+      label: 'Total earnings',
+      value: formatNaira(summary?.totalEarnings),
+      color: Colors.primary,
+    },
+    {
+      label: 'Deliveries',
+      value: String(summary?.deliveries ?? 0),
+      color: Colors.text,
+    },
+    {
+      label: 'Tips earned',
+      value: formatNaira(summary?.tipsEarned),
+      color: Colors.success,
+    },
+    {
+      label: 'Bonuses',
+      value: formatNaira(summary?.bonuses),
+      color: Colors.info,
+    },
+  ];
 
   return (
-  <Animated.ScrollView
-            onScroll={scrollHandler}
-            scrollEventThrottle={16}
-             contentContainerStyle={{ paddingTop: HEADER_HEIGHT + insets.top }}
-             refreshControl={
-               <RefreshControl
-                 refreshing={isFetching && !isLoading}
-                 onRefresh={refetch}
-                 progressViewOffset={HEADER_HEIGHT + insets.top}
-               />
-             }
-          >
+    <ThemedView style={styles.flex}>
+      <StatusBar style="auto" />
+      <ScreenHeader title="Earnings" subtitle="Your wallet and delivery pay" />
 
-        <View style={styles.container}>
-      {/* 1. Wallet Balance Hero Master Card */}
-      <View style={styles.walletHeroCard}>
-        <AppFrame>
-          <View style={styles.walletHeaderHeader}>
-            <Ionicons
-              name="wallet-outline"
-              size={scale(16)}
-              color={onFrameMutedText}
-            />
-            <Text style={[styles.walletTitleLabel, { color: onFrameMutedText }]}>
-              Wallet Balance
-            </Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching && !isLoading}
+            onRefresh={refetch}
+            tintColor={Colors.textMuted}
+          />
+        }
+      >
+        {/* Wallet balance */}
+        <View style={styles.walletCard}>
+          <View style={styles.walletLabelRow}>
+            <Ionicons name="wallet-outline" size={16} color={Colors.onPrimary} />
+            <ThemedText style={styles.walletLabel} themeColor="onPrimary">
+              Wallet balance
+            </ThemedText>
           </View>
 
           {isLoading ? (
-            <RNAnimated.View
-              style={[styles.skeletonBalance, { opacity: pulseAnim }]}
-            />
+            <RNAnimated.View style={{ opacity: pulseAnim }}>
+              <View style={[styles.skeletonOnPrimary, styles.skeletonBalance]} />
+            </RNAnimated.View>
           ) : (
-            <Text style={[styles.mainBalanceText, { color: Colors.primary }]}>
+            <ThemedText style={styles.walletBalance} themeColor="onPrimary">
               {formatNaira(wallet?.availableBalance)}
-            </Text>
+            </ThemedText>
           )}
 
           {isLoading ? (
-            <RNAnimated.View
-              style={[styles.skeletonPending, { opacity: pulseAnim }]}
-            />
+            <RNAnimated.View style={{ opacity: pulseAnim }}>
+              <View style={[styles.skeletonOnPrimary, styles.skeletonPending]} />
+            </RNAnimated.View>
           ) : (
-            <Text style={[styles.pendingText, { color: onFrameMutedText }]}>
+            <ThemedText style={styles.walletPending} themeColor="onPrimary">
               Pending: {formatNaira(wallet?.pendingBalance)}
-            </Text>
+            </ThemedText>
           )}
-        </AppFrame>
-      </View>
+        </View>
 
-      {/* 2. Horizontal Timeframe Filter Pill Toggles */}
-      <View style={styles.timeframeFilterRow}>
-        {PERIODS.map(({ label, value }) => {
-          const isActive = period === value;
-
-          return (
-            <TouchableOpacity
-              key={value}
-              style={isActive ? styles.activeFilterFilter : styles.inactiveFilterFilter}
-              onPress={() => setPeriod(value)}
-            >
-              <Text style={isActive ? styles.activeFilterText : styles.inactiveFilterText}>
+        {/* Period filter */}
+        <View style={styles.section}>
+          <View style={styles.periods}>
+            {PERIODS.map(({ label, value }) => (
+              <Button
+                key={value}
+                size="xs"
+                variant={period === value ? 'chipActive' : 'chip'}
+                onPress={() => setPeriod(value)}
+              >
                 {label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* 3. Performance Core Metric Grid Panels */}
-      <View style={styles.metricsGridContainer}>
-        <View style={styles.metricItemCard}>
-          <Text style={styles.metricLabel}>Total Earnings</Text>
-          {isLoading ? (
-            <RNAnimated.View
-              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
-            />
-          ) : (
-            <Text style={[styles.metricValue, { color: Colors.primary }]}>
-              {formatNaira(summary?.totalEarnings)}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.metricItemCard}>
-          <Text style={styles.metricLabel}>Deliveries</Text>
-          {isLoading ? (
-            <RNAnimated.View
-              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
-            />
-          ) : (
-            <Text style={[styles.metricValue, { color: Colors.text }]}>
-              {summary?.deliveries ?? 0}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.metricItemCard}>
-          <Text style={styles.metricLabel}>Tips Earned</Text>
-          {isLoading ? (
-            <RNAnimated.View
-              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
-            />
-          ) : (
-            <Text style={[styles.metricValue, { color: Colors.success }]}>
-              {formatNaira(summary?.tipsEarned)}
-            </Text>
-          )}
-        </View>
-
-        <View style={styles.metricItemCard}>
-          <Text style={styles.metricLabel}>Bonuses</Text>
-          {isLoading ? (
-            <RNAnimated.View
-              style={[styles.skeletonMetric, { opacity: pulseAnim }]}
-            />
-          ) : (
-            <Text style={[styles.metricValue, { color: Colors.info }]}>
-              {formatNaira(summary?.bonuses)}
-            </Text>
-          )}
-        </View>
-      </View>
-
-      {/* 4. Per-day earnings breakdown for the selected period */}
-      <View style={styles.historyContainer}>
-        <Text style={styles.sectionHeaderTitle}>Delivery Breakdown</Text>
-
-        {isLoading && <RecentDeliverySkeleton count={3} />}
-
-        {!isLoading && breakdown.length === 0 && (
-          <Text style={styles.emptyText}>No deliveries in this period yet.</Text>
-        )}
-
-        {breakdown.map((day) => (
-          <View key={day.date} style={styles.payoutRowCard}>
-            <View style={styles.payoutLeftGroup}>
-              <View style={styles.bankIconFrame}>
-                <Ionicons
-                  name="checkmark-circle-outline"
-                  size={scale(18)}
-                  color={Colors.success}
-                />
-              </View>
-              <View>
-                <Text style={styles.payoutTitle}>{formatBreakdownDate(day.date)}</Text>
-                <Text style={styles.payoutSubtext}>
-                  {day.deliveries} {day.deliveries === 1 ? 'delivery' : 'deliveries'} • {formatHours(day.onlineHours)} online
-                </Text>
-              </View>
-            </View>
-
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text style={[styles.payoutAmountText, { color: Colors.primary }]}>
-                {formatNaira(day.earnings)}
-              </Text>
-              <Text style={styles.payoutSubtext}>earned</Text>
-            </View>
+              </Button>
+            ))}
           </View>
-        ))}
-      </View>
-      </View>
-  </Animated.ScrollView>
+
+          {/* Summary metrics */}
+          <View style={styles.metrics}>
+            {metrics.map((metric) => (
+              <View key={metric.label} style={styles.metricCard}>
+                <ThemedText style={styles.metricLabel} themeColor="textMuted">
+                  {metric.label}
+                </ThemedText>
+                {isLoading ? (
+                  <RNAnimated.View
+                    style={[styles.skeletonMetric, { opacity: pulseAnim }]}
+                  />
+                ) : (
+                  <ThemedText
+                    style={[styles.metricValue, { color: metric.color }]}
+                    numberOfLines={1}
+                  >
+                    {metric.value}
+                  </ThemedText>
+                )}
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Per-day earnings breakdown for the selected period */}
+        <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>Delivery breakdown</ThemedText>
+
+          {isLoading && <RecentDeliverySkeleton count={3} />}
+
+          {!isLoading && breakdown.length === 0 && (
+            <View style={styles.empty}>
+              <Ionicons name="receipt-outline" size={20} color={Colors.textMuted} />
+              <ThemedText style={styles.emptyText} themeColor="textMuted">
+                No deliveries in this period yet.
+              </ThemedText>
+            </View>
+          )}
+
+          {breakdown.length > 0 && (
+            <View style={styles.listCard}>
+              {breakdown.map((day, index) => (
+                <View
+                  key={day.date}
+                  style={[
+                    styles.row,
+                    index === breakdown.length - 1 && styles.lastRow,
+                  ]}
+                >
+                  <View style={styles.rowIcon}>
+                    <Ionicons
+                      name="checkmark-circle-outline"
+                      size={18}
+                      color={Colors.success}
+                    />
+                  </View>
+
+                  <View style={styles.flex}>
+                    <ThemedText style={styles.rowTitle} numberOfLines={1}>
+                      {formatBreakdownDate(day.date)}
+                    </ThemedText>
+                    <ThemedText style={styles.rowMeta} themeColor="textMuted">
+                      {day.deliveries}{' '}
+                      {day.deliveries === 1 ? 'delivery' : 'deliveries'} ·{' '}
+                      {formatHours(day.onlineHours)} online
+                    </ThemedText>
+                  </View>
+
+                  <View style={styles.rowAmountGroup}>
+                    <ThemedText style={styles.rowAmount}>
+                      {formatNaira(day.earnings)}
+                    </ThemedText>
+                    <ThemedText style={styles.rowMeta} themeColor="textMuted">
+                      earned
+                    </ThemedText>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </ThemedView>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-   container: {
-       flex: 1,
-       paddingHorizontal: scale(20),
-       paddingVertical: scale(24),
-       backgroundColor: Colors.background,
-       gap: scale(16),
-     },
-    walletHeroCard: {
-      marginBottom: scale(16),
+    flex: {
+      flex: 1,
     },
-    walletHeaderHeader: {
+
+    content: {
+      gap: Spacing.four,
+      paddingHorizontal: Spacing.three,
+      paddingBottom: Spacing.five,
+    },
+
+    section: {
+      gap: 12,
+    },
+
+    walletCard: {
+      gap: Spacing.one,
+      padding: Spacing.three,
+      borderRadius: 16,
+      backgroundColor: Colors.primary,
+    },
+
+    walletLabelRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(6),
+      gap: 6,
     },
-    walletTitleLabel: {
-      fontSize: normalize(13),
+
+    walletLabel: {
       fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
     },
-    mainBalanceText: {
-      fontSize: normalize(28),
-      fontFamily: Fonts.brandSemiBold,
-      marginTop: scale(12),
+
+    walletBalance: {
+      fontFamily: Fonts.brandBold,
+      fontSize: 28,
+      lineHeight: 36,
+      marginTop: Spacing.one,
     },
-    pendingText: {
-      fontSize: normalize(11),
+
+    walletPending: {
       fontFamily: Fonts.brandRegular,
-      marginTop: scale(4),
+      fontSize: 13,
+      lineHeight: 18,
+      opacity: 0.75,
     },
-    emptyText: {
-      fontSize: normalize(12),
-      color: Colors.textMuted,
-      fontFamily: Fonts.brandRegular,
+
+    skeletonOnPrimary: {
+      borderRadius: 6,
+      backgroundColor: Colors.onPrimary,
+      opacity: 0.15,
     },
+
     skeletonBalance: {
-      width: scale(170),
-      height: scale(32),
-      borderRadius: scale(6),
-      backgroundColor: Colors.light,
-      marginTop: scale(12),
+      width: 170,
+      height: 32,
+      marginVertical: Spacing.one,
     },
+
     skeletonPending: {
-      width: scale(110),
-      height: scale(12),
-      borderRadius: scale(6),
-      backgroundColor: Colors.light,
-      marginTop: scale(8),
+      width: 110,
+      height: 14,
+      marginTop: Spacing.one,
     },
-    skeletonMetric: {
-      width: scale(90),
-      height: scale(20),
-      borderRadius: scale(6),
-      backgroundColor: Colors.light,
-    },
-    timeframeFilterRow: {
+
+    periods: {
       flexDirection: 'row',
-      backgroundColor: Colors.inputBackground,
-      borderRadius: scale(12),
-      padding: scale(4),
-      marginBottom: scale(16),
+      gap: Spacing.two,
     },
-    activeFilterFilter: {
-      flex: 1,
-      backgroundColor: Colors.background,
-      paddingVertical: scale(8),
-      borderRadius: scale(8),
-      alignItems: 'center',
-      borderWidth: 1,
-      borderColor: Colors.border,
-    },
-    activeFilterText: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-    },
-    inactiveFilterFilter: {
-      flex: 1,
-      paddingVertical: scale(8),
-      alignItems: 'center',
-    },
-    inactiveFilterText: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-    },
-    metricsGridContainer: {
+
+    metrics: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: scale(10),
-      marginBottom: scale(20),
+      gap: Spacing.two,
     },
-    metricItemCard: {
-      width: '48.5%', // Handles responsive 2-column spacing gracefully
-      backgroundColor: Colors.card,
-      borderRadius: scale(14),
-      padding: scale(14),
+
+    metricCard: {
+      flexGrow: 1,
+      flexBasis: '45%',
+      gap: 2,
+      padding: 14,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
     },
+
     metricLabel: {
-      fontSize: normalize(12),
-      color: Colors.textSecondary,
       fontFamily: Fonts.brandRegular,
-      marginBottom: scale(4),
+      fontSize: 12,
+      lineHeight: 17,
     },
+
     metricValue: {
-      fontSize: normalize(18),
+      fontFamily: Fonts.brandBold,
+      fontSize: 20,
+      lineHeight: 26,
+    },
+
+    skeletonMetric: {
+      width: 90,
+      height: 22,
+      marginTop: 2,
+      borderRadius: 6,
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    sectionTitle: {
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
-    historyContainer: {
-      gap: scale(10),
-    },
-    sectionHeaderTitle: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-      marginBottom: scale(4),
-    },
-    payoutRowCard: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
+
+    empty: {
       alignItems: 'center',
-      backgroundColor: Colors.inputBackground,
-      padding: scale(14),
-      borderRadius: scale(12),
+      gap: Spacing.two,
+      padding: Spacing.four,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
     },
-    payoutLeftGroup: {
+
+    emptyText: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    listCard: {
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
+    row: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(12),
+      gap: 12,
+      padding: Spacing.three,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
     },
-    bankIconFrame: {
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(20),
+
+    lastRow: {
+      borderBottomWidth: 0,
+    },
+
+    rowIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: 'center',
       justifyContent: 'center',
-      alignItems: 'center',
       backgroundColor: Colors.successExtraLight,
     },
-    payoutTitle: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+
+    rowTitle: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
     },
-    payoutSubtext: {
-      fontSize: normalize(11),
-      color: Colors.textMuted,
+
+    rowMeta: {
       fontFamily: Fonts.brandRegular,
-      marginTop: scale(2),
+      fontSize: 12,
+      lineHeight: 17,
     },
-    payoutAmountText: {
-      fontSize: normalize(13),
+
+    rowAmountGroup: {
+      alignItems: 'flex-end',
+    },
+
+    rowAmount: {
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
     },
   });

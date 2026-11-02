@@ -10,7 +10,7 @@ import Toast from 'react-native-toast-message';
 import AppModal from '@/components/layout/app-modal';
 import Button from '@/components/ui/buttons/button';
 
-import { scale } from '@/utils/scaling';
+import { Spacing } from '@/constants/theme';
 
 import { useDeleteAccount } from '../../use-fetch';
 import { DELETE_ACCOUNT_STEPS, DELETE_CONFIRMATION_PHRASE } from './data';
@@ -36,7 +36,7 @@ export default function DeleteAccountModal({
   // Fixed height so the modal doesn't jump between steps;
   // the step content scrolls inside it.
   const { height: windowHeight } = useWindowDimensions();
-  const modalHeight = Math.min(windowHeight * 0.75, scale(580));
+  const modalHeight = Math.min(windowHeight * 0.75, 580);
 
   const finalReason =
     selectedReason === 'Other' ? customReason.trim() : selectedReason;
@@ -209,14 +209,14 @@ const styles = StyleSheet.create({
 
   bodyContent: {
     alignItems: 'center',
-    paddingBottom: scale(8),
+    paddingBottom: Spacing.two,
   },
 
   actionContainer: {
     flexDirection: 'row',
-    gap: scale(12),
+    gap: 12,
     width: '100%',
-    paddingTop: scale(16),
+    paddingTop: Spacing.three,
   },
 
   actionButton: {

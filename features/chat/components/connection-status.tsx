@@ -1,16 +1,17 @@
+import { ThemedText } from '@/components/themed-text';
 import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 type Props = {
   isConnected: boolean;
 };
 
+/** Small live/connecting pill for the chat header */
 export function ConnectionStatus({ isConnected }: Props) {
-  const { Colors } = useTheme();
-  const styles = createStyles(Colors);
+  const { Colors, isDark } = useTheme();
+
+  const tint = isConnected ? Colors.success : Colors.warning;
 
   return (
     <View
@@ -18,43 +19,44 @@ export function ConnectionStatus({ isConnected }: Props) {
         styles.container,
         {
           backgroundColor: isConnected
-            ? 'rgba(34, 197, 94, 0.1)'
-            : 'rgba(239, 68, 68, 0.1)',
+            ? Colors.successExtraLight
+            : isDark
+              ? Colors.warningLight
+              : Colors.warning + '1A',
         },
       ]}
+      accessibilityLabel={isConnected ? 'Connected' : 'Connecting'}
     >
-      <Ionicons
-        name={isConnected ? 'checkmark-circle' : 'alert-circle'}
-        size={16}
-        color={isConnected ? Colors.success : Colors.error}
-      />
-      <Text
-        style={[
-          styles.text,
-          {
-            color: isConnected ? Colors.success : Colors.error,
-          },
-        ]}
+      <View style={[styles.dot, { backgroundColor: tint }]} />
+      <ThemedText
+        style={styles.text}
+        themeColor={isConnected ? 'success' : 'warning'}
       >
-        {isConnected ? 'Connected' : 'Connecting...'}
-      </Text>
+        {isConnected ? 'Connected' : 'Connecting…'}
+      </ThemedText>
     </View>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    container: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: scale(6),
-      paddingVertical: scale(6),
-      paddingHorizontal: scale(12),
-      borderRadius: 6,
-    },
-    text: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-    },
-  });
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+  },
+
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+
+  text: {
+    fontFamily: Fonts.brandMedium,
+    fontSize: 12,
+    lineHeight: 17,
+  },
+});

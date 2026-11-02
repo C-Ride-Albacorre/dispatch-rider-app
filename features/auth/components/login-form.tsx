@@ -1,26 +1,16 @@
-import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
-import ErrorMessage from '@/components/ui/error/error-message';
 import Input from '@/components/ui/input/input';
-import { Fonts } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
 import { loginAction } from '@/features/auth/action';
+import AuthScreen, { AuthSwitch, FormError } from '@/features/auth/components/auth-screen';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { LoginPayload, LoginSchema } from '../schema';
 import Toast from 'react-native-toast-message';
 import { saveAuthenticatedAuth } from '@/utils/save-authenticated-auth';
@@ -72,8 +62,6 @@ export default function LoginForm() {
   const router = useRouter();
 
   const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
 
   const {
     control,
@@ -361,93 +349,69 @@ export default function LoginForm() {
 
   return (
     <>
-      <KeyboardAvoidingView
-        style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-      >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-          scrollEnabled={true}
-        >
-          <View>
-            <AuthPageHeader />
-          </View>
+      <AuthScreen title="Welcome back" subtitle="Begin your journey with care">
+        <FormError message={errorMessage} />
 
-          {errorMessage && <ErrorMessage message={errorMessage} />}
+        <View style={styles.form}>
+          <Controller
+            control={control}
+            name="email"
+            render={({ field: { value, onChange } }) => (
+              <Input
+                label="Email"
+                placeholder="john.doe@example.com"
+                value={value}
+                onChangeText={onChange}
+                error={errors.email?.message}
+              />
+            )}
+          />
 
-          <View style={styles.form}>
-            <Controller
-              control={control}
-              name="email"
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="Email"
-                  placeholder="john.doe@example.com"
-                  value={value}
-                  onChangeText={onChange}
-                  error={errors.email?.message}
-                />
-              )}
-            />
+          <Controller
+            control={control}
+            name="password"
+            render={({ field: { value, onChange } }) => (
+              <Input
+                label="Password"
+                placeholder="********"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry={!showPassword}
+                rightIcon={
+                  <Ionicons
+                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={18}
+                    color={Colors.textMuted}
+                  />
+                }
+                onRightIconPress={() => setShowPassword(!showPassword)}
+                error={errors.password?.message}
+              />
+            )}
+          />
 
-            <Controller
-              control={control}
-              name="password"
-              render={({ field: { value, onChange } }) => (
-                <Input
-                  label="Password"
-                  placeholder="********"
-                  value={value}
-                  onChangeText={onChange}
-                  secureTextEntry={!showPassword}
-                  rightIcon={
-                    <Ionicons
-                      name={showPassword ? 'eye-off' : 'eye'}
-                      size={24}
-                      color="#999"
-                    />
-                  }
-                  onRightIconPress={() => setShowPassword(!showPassword)}
-                  error={errors.password?.message}
-                />
-              )}
-            />
-
-            <View style={styles.forgotPasswordContainer}>
-              <Link href={'/forget-password'} asChild>
-                <TouchableOpacity>
-                  <Text style={styles.forgotPasswordText}>
-                    Forgot Password?
-                  </Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
-
-            <Button
-              size="lg"
-              loading={loading}
-              disabled={loading}
-              onPress={handleSubmit(onSubmit)}
-            >
-              {loading ? 'Logging in...' : 'Login'}
+          <Link href={'/forget-password'} asChild>
+            <Button variant="text" size="sm" style={styles.forgot}>
+              Forgot password?
             </Button>
+          </Link>
+        </View>
 
-            <View style={styles.action}>
-              <Text style={styles.actionText}>Don't have an account?</Text>
+        <Button
+          size="lg"
+          loading={loading}
+          disabled={loading}
+          onPress={handleSubmit(onSubmit)}
+        >
+          {loading ? 'Logging in...' : 'Login'}
+        </Button>
 
-              <Link href={'/(app)/(auth)/register'} asChild>
-                <TouchableOpacity>
-                  <Text style={styles.actionLink}>Register</Text>
-                </TouchableOpacity>
-              </Link>
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <AuthSwitch
+          prompt="Don't have an account?"
+          action="Register"
+          onPress={() => router.push('/(app)/(auth)/register')}
+        />
+      </AuthScreen>
 
       <SuccessModal
         title={modalTitle}
@@ -463,50 +427,13 @@ export default function LoginForm() {
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    keyboardSafeArea: {
-      flex: 1,
-      backgroundColor: Colors.background,
-    },
+const styles = StyleSheet.create({
+  form: {
+    gap: Spacing.three,
+  },
 
-    container: {
-      padding: scale(20),
-      flexGrow: 1,
-      gap: scale(32),
-    },
-
-    form: {
-      // marginTop: 32,
-      gap: scale(24),
-    },
-
-    forgotPasswordContainer: {
-      flex: 1,
-      alignItems: 'flex-end',
-    },
-
-    forgotPasswordText: {
-      color: Colors.primary,
-      fontFamily: Fonts.brandMedium,
-      fontSize: normalize(16),
-    },
-
-    action: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      gap: scale(4),
-    },
-
-    actionText: {
-      color: Colors.text,
-      fontFamily: Fonts.brandMedium,
-      fontSize: normalize(16),
-    },
-
-    actionLink: {
-      color: Colors.primary,
-      fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(16),
-    },
-  });
+  forgot: {
+    alignSelf: 'flex-end',
+    marginTop: -Spacing.two,
+  },
+});

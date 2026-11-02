@@ -1,12 +1,9 @@
-
 import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ProfileLayout() {
-  const insets = useSafeAreaInsets();
+  const { Colors } = useTheme();
 
-  const {Colors} = useTheme()
   return (
     <Stack
       screenOptions={{

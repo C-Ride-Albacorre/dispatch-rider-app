@@ -2,13 +2,11 @@ import SuccessModal from '@/components/layout/success-modal';
 import Button from '@/components/ui/buttons/button';
 import ErrorMessage from '@/components/ui/error/error-message';
 import UploadField from '@/components/ui/input/upload-field';
-import { Fonts } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { Spacing } from '@/constants/theme';
+import StepCard, { StepActions, stepActionStyles } from '@/features/onboarding/components/step-card';
 import * as DocumentPicker from 'expo-document-picker';
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { submitDocumentsAction } from '../../action';
 import { DriverDocumentType } from '../../schema';
 import { useOnboardingStore } from '../../store';
@@ -28,10 +26,6 @@ export default function Documents({
     goToStep(2);
   }
 
-  const { Colors } = useTheme();
-
-  const styles = createStyles(Colors);
-
   const {
     step3Data,
     saveDocument,
@@ -45,8 +39,6 @@ export default function Documents({
     !!step3Data.DRIVER_LICENSE &&
     !!step3Data.VEHICLE_INSURANCE &&
     !!step3Data.VEHICLE_REGISTRATION;
-
- 
 
   const pickDocument = async (
     documentType: DriverDocumentType,
@@ -123,24 +115,11 @@ export default function Documents({
 
   return (
     <>
-      <View style={styles.container}>
-        <View style={styles.textContainer}>
-          <View style={styles.iconContainer}>
-            <Ionicons
-              name="document-outline"
-              size={24}
-              color={Colors.primary}
-            />
-          </View>
-
-          <View style={styles.mainTextContainer}>
-            <Text style={styles.mainText}>Upload Documents</Text>
-            <Text style={styles.subText}>
-              Required documents for verification
-            </Text>
-          </View>
-        </View>
-
+      <StepCard
+        icon="document-outline"
+        title="Upload Documents"
+        subtitle="Required documents for verification"
+      >
         {error && <ErrorMessage message={error} />}
 
         <View style={styles.form}>
@@ -166,88 +145,43 @@ export default function Documents({
             fileName={step3Data.VEHICLE_REGISTRATION?.name}
           />
 
-          <View style={styles.buttonContainer}>
+          <StepActions>
             <Button
+              size="lg"
               disabled={currentStep - 1 <= resumeStep}
               onPress={handlePreviousStep}
               variant="outline"
+              style={stepActionStyles.button}
             >
               Previous
             </Button>
             <Button
+              size="lg"
               loading={isSubmitting}
               disabled={!allDocumentsUploaded || isSubmitting}
               onPress={handleSubmitDocuments}
+              style={stepActionStyles.button}
             >
               Continue
             </Button>
-          </View>
+          </StepActions>
         </View>
-      </View>
+      </StepCard>
 
       <SuccessModal
         title="Onboarding Completed"
         path="/(app)/(protected)/(tabs)/home"
         description="You have successfully completed the onboarding process. Your account is now being reviewed. We will notify you once the verification is complete."
-   
         showSuccessModal={showSuccessModal}
         setShowSuccessModal={setShowSuccessModal}
         buttonText="Get Started"
-       
       />
     </>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      borderRadius: scale(12),
-      padding: scale(20),
-      gap: scale(32),
-    },
-    textContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(16),
-    },
-
-    iconContainer: {
-      width: scale(48),
-      height: scale(48),
-      borderRadius: scale(12),
-      backgroundColor: Colors.primaryLight,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    mainTextContainer: {
-      flex: 1,
-    },
-
-    mainText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-
-    subText: {
-      fontSize: normalize(12),
-      color: Colors.textSecondary,
-      fontFamily: Fonts.brandRegular,
-    },
-
-    form: {
-      marginTop: scale(24),
-      gap: scale(20),
-    },
-
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: scale(16),
-    },
-  });
+const styles = StyleSheet.create({
+  form: {
+    gap: Spacing.three,
+  },
+});

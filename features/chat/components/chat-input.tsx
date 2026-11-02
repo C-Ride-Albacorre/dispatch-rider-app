@@ -1,12 +1,11 @@
 import { useRef, useState } from 'react';
 
 import * as ImagePicker from 'expo-image-picker';
-import { Animated, Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Animated, StyleSheet, TextInput, View } from 'react-native';
 
-import { Fonts } from '@/constants/theme';
+import IconButton from '@/components/ui/buttons/icon-button';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { scale } from '@/utils/scaling';
-import { Ionicons } from '@expo/vector-icons';
 import { ImagePreviewModal } from './image-preview-modal';
 import { QuickSuggestions } from './quick-suggestions';
 
@@ -126,15 +125,13 @@ export function ChatInput({
       </Animated.View>
 
       <View style={styles.container}>
-        <Pressable
+        <IconButton
+          icon="image-outline"
+          size="md"
+          variant="ghost"
           onPress={handlePickImage}
-          style={({ pressed }) => [
-            styles.imageButton,
-            pressed && { opacity: 0.75, transform: [{ scale: 0.95 }] },
-          ]}
-        >
-          <Ionicons name="image-outline" size={24} color={Colors.text} />
-        </Pressable>
+          accessibilityLabel="Send a photo"
+        />
 
         <TextInput
           value={text}
@@ -155,31 +152,20 @@ export function ChatInput({
           // }}
 
           onChangeText={handleTextChange}
-          placeholder="Type a message..."
+          placeholder="Message"
+          placeholderTextColor={Colors.textMuted}
           style={styles.input}
           multiline
         />
 
-        <Pressable
+        <IconButton
+          icon="send"
+          size="md"
+          variant="primary"
           disabled={!hasText}
           onPress={handleSend}
-          style={({ pressed }) => [
-            styles.sendButton,
-            !hasText && styles.sendDisabled,
-            pressed && hasText && { transform: [{ scale: 0.95 }] },
-          ]}
-        >
-          <Ionicons
-            name="paper-plane"
-            size={18}
-            color={hasText ? '#000000' : Colors.textMuted}
-            style={{
-              marginLeft: 2,
-              marginTop: 1,
-              transform: [{ rotate: '-0deg' }],
-            }}
-          />
-        </Pressable>
+          accessibilityLabel="Send message"
+        />
       </View>
 
       <ImagePreviewModal
@@ -196,91 +182,36 @@ export function ChatInput({
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     wrapper: {
+      paddingTop: Spacing.two,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: Colors.border,
       backgroundColor: Colors.background,
     },
+
     suggestionsContainer: {
       overflow: 'hidden',
     },
+
     container: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      gap: scale(10),
-
-      paddingHorizontal: scale(14),
-      paddingVertical: scale(12),
-
-      backgroundColor: Colors.background,
-
-      borderTopWidth: 0,
-
-      shadowColor: '#000',
-      shadowOpacity: 0.08,
-      shadowRadius: 12,
-      shadowOffset: {
-        width: 0,
-        height: -4,
-      },
-
-      elevation: 8,
-    },
-    imageButton: {
-      width: scale(46),
-      height: scale(46),
-
-      borderRadius: scale(23),
-
-      backgroundColor: Colors.backgroundSecondary,
-
-      borderWidth: 1,
-      borderColor: Colors.border,
-
-      alignItems: 'center',
-      justifyContent: 'center',
+      gap: Spacing.two,
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.two,
+      paddingBottom: Spacing.two,
     },
 
     input: {
       flex: 1,
-      minHeight: scale(48),
-      maxHeight: scale(120),
-
-      borderRadius: scale(24),
-
-      paddingHorizontal: scale(18),
-      paddingTop: scale(12),
-      paddingBottom: scale(12),
-
-      backgroundColor: Colors.backgroundSecondary,
-      borderWidth: 1,
-      borderColor: Colors.border,
-
-      fontSize: scale(14),
-      fontFamily: Fonts.brandRegular,
+      minHeight: 44,
+      maxHeight: 120,
+      paddingHorizontal: Spacing.three,
+      paddingTop: 11,
+      paddingBottom: 11,
+      borderRadius: 22,
+      backgroundColor: Colors.backgroundTertiary,
       color: Colors.text,
-    },
-
-    sendButton: {
-      width: scale(48),
-      height: scale(48),
-
-      borderRadius: scale(24),
-
-      backgroundColor: Colors.primary,
-
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-
-    sendDisabled: {
-      backgroundColor: Colors.backgroundSecondary,
-
-      shadowOpacity: 0,
-      shadowRadius: 0,
-
-      elevation: 0,
-
-      shadowOffset: {
-        width: 0,
-        height: 0,
-      },
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
     },
   });

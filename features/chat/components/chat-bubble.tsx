@@ -1,11 +1,4 @@
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Image, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
@@ -13,9 +6,10 @@ import { useState } from 'react';
 import { useAuthStore } from '@/store/auth-store';
 import { useChatStore } from '@/store/chat-store';
 
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import IconButton from '@/components/ui/buttons/icon-button';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 
 import { ChatMessage } from '../types';
 
@@ -98,7 +92,12 @@ export function ChatBubble({ message, orderId }: Props) {
           ]}
         >
           {isDeleted ? (
-            <Text style={styles.deleted}>Message deleted</Text>
+            <ThemedText
+              style={styles.deleted}
+              themeColor={isMine ? 'onPrimary' : 'textMuted'}
+            >
+              Message deleted
+            </ThemedText>
           ) : message.type === 'IMAGE' ? (
             <View style={styles.imageContainer}>
               <Image
@@ -115,11 +114,24 @@ export function ChatBubble({ message, orderId }: Props) {
                 value={editText}
                 onChangeText={setEditText}
                 style={styles.editInput}
+                placeholderTextColor={Colors.textMuted}
               />
 
               <View style={styles.editActions}>
-                <Pressable style={styles.editButton} onPress={handleEdit}>
-                  <Text style={styles.editButtonText}>Save</Text>
+                <Pressable
+                  style={({ pressed }) => [
+                    styles.editButton,
+                    pressed && styles.pressed,
+                  ]}
+                  onPress={handleEdit}
+                  accessibilityRole="button"
+                >
+                  <ThemedText
+                    style={styles.editButtonText}
+                    themeColor="background"
+                  >
+                    Save
+                  </ThemedText>
                 </Pressable>
 
                 <Pressable
@@ -128,37 +140,55 @@ export function ChatBubble({ message, orderId }: Props) {
 
                     setEditing(false);
                   }}
-                  style={styles.cancelButton}
+                  style={({ pressed }) => [
+                    styles.cancelButton,
+                    pressed && styles.pressed,
+                  ]}
+                  accessibilityRole="button"
                 >
-                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                  <ThemedText
+                    style={styles.cancelButtonText}
+                    themeColor="onPrimary"
+                  >
+                    Cancel
+                  </ThemedText>
                 </Pressable>
               </View>
             </View>
           ) : (
-            <Text
-              style={[styles.text, isMine ? styles.mineText : styles.theirText]}
+            <ThemedText
+              style={styles.text}
+              themeColor={isMine ? 'onPrimary' : 'text'}
             >
               {message.message}
-            </Text>
+            </ThemedText>
           )}
 
           <View style={styles.footer}>
-            <Text
-              style={[styles.time, isMine ? styles.mineTime : styles.theirTime]}
+            <ThemedText
+              style={[styles.time, isMine && styles.mineMeta]}
+              themeColor={isMine ? 'onPrimary' : 'textMuted'}
             >
               {new Date(message.createdAt).toLocaleTimeString([], {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
-            </Text>
+            </ThemedText>
 
-            {message.editedAt && <Text style={styles.edited}>edited</Text>}
+            {message.editedAt && (
+              <ThemedText
+                style={[styles.time, isMine && styles.mineMeta]}
+                themeColor={isMine ? 'onPrimary' : 'textMuted'}
+              >
+                edited
+              </ThemedText>
+            )}
 
             {isMine && (
               <Ionicons
                 name={message.isRead ? 'checkmark-done' : 'checkmark'}
                 size={14}
-                color={Colors.text}
+                color={Colors.onPrimary}
               />
             )}
           </View>
@@ -166,34 +196,37 @@ export function ChatBubble({ message, orderId }: Props) {
 
         {showActions && isMine && !isDeleted && message.type === 'TEXT' && (
           <View style={styles.actions}>
-            <Pressable
+            <IconButton
+              icon="create-outline"
+              size="sm"
+              variant="ghost"
               onPress={() => {
                 setEditing(true);
 
                 setActiveActionMessage(null);
               }}
-            >
-              <Ionicons
-                name="create-outline"
-                size={18}
-                color={Colors.textSecondary}
-              />
-            </Pressable>
+              accessibilityLabel="Edit message"
+            />
 
-            <Pressable onPress={handleDelete}>
-              <Ionicons name="trash-outline" size={18} color={Colors.error} />
-            </Pressable>
+            <IconButton
+              icon="trash-outline"
+              size="sm"
+              variant="redSecondary"
+              onPress={handleDelete}
+              accessibilityLabel="Delete message"
+            />
           </View>
         )}
       </View>
     </View>
   );
 }
+
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     wrapper: {
       width: '100%',
-      marginVertical: scale(5),
+      marginVertical: Spacing.one,
       overflow: 'visible',
     },
 
@@ -205,192 +238,135 @@ const createStyles = (Colors: any) =>
       alignItems: 'flex-end',
     },
 
-    bubble: {
-      maxWidth: '85%',
-      padding: scale(12),
-      borderRadius: scale(16),
-      overflow: 'visible',
-    },
-
-    bubblePressable: {
-      flexShrink: 1,
-    },
-
-    bubbleContainer: {
-      flexDirection: 'row',
-      alignItems: 'flex-end',
-      gap: scale(8),
-    },
-
     messageRow: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      gap: scale(8),
+      gap: Spacing.two,
+      overflow: 'visible',
+    },
+
+    bubble: {
+      maxWidth: '80%',
+      paddingHorizontal: 14,
+      paddingVertical: Spacing.two,
+      borderRadius: 18,
       overflow: 'visible',
     },
 
     mine: {
       backgroundColor: Colors.primary,
-      borderTopLeftRadius: scale(22),
-      borderTopRightRadius: scale(22),
-      borderBottomLeftRadius: scale(22),
-      borderBottomRightRadius: scale(6),
+      borderBottomRightRadius: 4,
     },
 
     theirs: {
-      backgroundColor: Colors.backgroundTertiary,
-      borderBottomLeftRadius: scale(4),
+      backgroundColor: Colors.backgroundElement,
+      borderBottomLeftRadius: 4,
+    },
+
+    imageBubble: {
+      padding: Spacing.one,
+      overflow: 'hidden',
     },
 
     text: {
-      fontSize: normalize(13),
       fontFamily: Fonts.brandRegular,
-    },
-
-    mineText: {
-      color: Colors.text,
-      fontFamily: Fonts.brandMedium,
-    },
-
-    theirText: {
-      color: Colors.text,
-      fontFamily: Fonts.brandMedium,
-    },
-
-    time: {
-      fontFamily: Fonts.brandRegular,
-      fontSize: normalize(10),
-      marginTop: scale(5),
-    },
-
-    mineTime: {
-      color: Colors.text,
-      fontFamily: Fonts.brandMedium,
-       fontSize: normalize(10),
-    },
-
-    theirTime: {
-      color: Colors.textSecondary,
-        fontFamily: Fonts.brandMedium,
-       fontSize: normalize(10),
+      fontSize: 14,
+      lineHeight: 20,
     },
 
     deleted: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
       fontStyle: 'italic',
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textSecondary,
     },
 
     footer: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'flex-end',
-      marginTop: scale(6),
+      gap: Spacing.one,
+      marginTop: 2,
+    },
+
+    time: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 11,
+      lineHeight: 16,
+    },
+
+    // Softer meta text on the gold bubble
+    mineMeta: {
+      opacity: 0.7,
     },
 
     imageContainer: {
       overflow: 'hidden',
-      borderRadius: scale(18),
+      borderRadius: 14,
     },
 
     image: {
-      width: scale(240),
-      height: scale(260),
-    },
-
-    imageFooter: {
-      position: 'absolute',
-      right: scale(10),
-      bottom: scale(10),
-
-      flexDirection: 'row',
-      alignItems: 'center',
-
-      paddingHorizontal: scale(8),
-      paddingVertical: scale(4),
-
-      borderRadius: scale(12),
-
-      backgroundColor: 'rgba(0,0,0,0.45)',
-    },
-
-    imageTime: {
-      color: Colors.background,
-      fontSize: normalize(10),
-      fontFamily: Fonts.brandMedium,
-      marginRight: scale(4),
-    },
-
-    imageBubble: {
-      padding: scale(12),
-      overflow: 'hidden',
+      width: 220,
+      height: 220,
     },
 
     editInput: {
-      minWidth: 150,
+      minWidth: 180,
       borderWidth: 1,
       borderColor: Colors.border,
-      borderRadius: 10,
-      fontFamily: Fonts.brandRegular,
-      backgroundColor: Colors.backgroundSecondary,
-      paddingHorizontal: 10,
-      paddingVertical: 8,
+      borderRadius: 12,
+      paddingHorizontal: 12,
+      paddingVertical: Spacing.two,
+      backgroundColor: Colors.inputBackground,
       color: Colors.text,
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
     },
 
     editActions: {
       flexDirection: 'row',
-      justifyContent: 'center',
-  
-      marginTop: scale(8),
+      justifyContent: 'flex-end',
+      gap: Spacing.two,
+      marginTop: Spacing.two,
     },
 
     editButton: {
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 999,
       backgroundColor: Colors.text,
-
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(6),
-      borderRadius: scale(8),
     },
 
     editButtonText: {
-      color: Colors.background,
-        fontSize: normalize(12),
       fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     cancelButton: {
-        paddingHorizontal: scale(12),   
-    paddingVertical: scale(6),
-        borderRadius: scale(8),
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: 999,
     },
 
     cancelButtonText: {
-        color: Colors.textSecondary,
-        fontSize: normalize(12),
-        fontFamily: Fonts.brandMedium,
+      fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
-    edited: {
-      fontSize: normalize(10),
-      color: Colors.textMuted,
-      fontFamily: Fonts.brandRegular,
-      marginLeft: scale(5),
+    pressed: {
+      opacity: 0.8,
     },
 
     actions: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(10),
-      marginHorizontal: scale(8),
-      backgroundColor: Colors.background,
-      paddingHorizontal: scale(8),
-      paddingVertical: scale(6),
-      borderRadius: scale(20),
-      elevation: 3,
-      shadowColor: '#000',
-      shadowOpacity: 0.1,
-      shadowRadius: 5,
+      gap: Spacing.one,
+      padding: Spacing.one,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
     },
   });

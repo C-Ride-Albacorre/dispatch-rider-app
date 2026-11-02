@@ -1,26 +1,24 @@
-import { ScrollHeaderContext } from '@/components/layout/scroll-header-context';
+import ScreenHeader from '@/components/layout/screen-header';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import IconButton from '@/components/ui/buttons/icon-button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import AcceptButton from '@/features/jobs/components/accept-button';
 import ConfirmRequest from '@/features/jobs/components/confirm-job-request';
 import { useAvailableJobDetails } from '@/features/jobs/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useContext, useEffect, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Modal,
-  TouchableOpacity,
-  ScrollView,
-  Image,
   ActivityIndicator,
+  Image,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { set } from 'zod';
 
 export default function OrderDetailSheet() {
   const [showConfirmRequestModal, setShowConfirmRequestModal] =
@@ -32,26 +30,6 @@ export default function OrderDetailSheet() {
 
   const router = useRouter();
 
-  const ctx = useContext(ScrollHeaderContext);
-
-  if (!ctx) {
-    throw new Error('Missing ScrollHeaderContext');
-  }
-
-  const { setShowHeader } = ctx;
-
-  console.log('CTX', ctx);
-
-  useFocusEffect(
-    useCallback(() => {
-      setShowHeader(false);
-
-      return () => {
-        setShowHeader(true);
-      };
-    }, []),
-  );
-
   const insets = useSafeAreaInsets();
 
   const { id } = useLocalSearchParams();
@@ -61,12 +39,9 @@ export default function OrderDetailSheet() {
   });
   const order = response?.data ?? [];
 
-  console.log(' Order details for orderId:', id);
-
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
-
 
   const handleAccept = () => {
     setShowConfirmRequestModal(true);
@@ -83,25 +58,20 @@ export default function OrderDetailSheet() {
         // selectedOrder={selectedOrder}
       />
 
-      <View style={{ flex: 1, backgroundColor: Colors.background, paddingVertical: insets.top  }}>
-        {/* Fixed Header Row Elements */}
-        <View style={styles.headerContainer}>
-          <View>
-            <Text style={[styles.headerTitle, { color: Colors.text }]}>
-              Order Breakdown
-            </Text>
-            {order?.orderNumber && (
-              <Text style={styles.headerSubtitle}>{order.orderNumber}</Text>
-            )}
-          </View>
-
-          <IconButton
-            icon="chevron-down"
-            size="md"
-            onPress={() => router.dismiss()}
-            accessibilityLabel="Close"
-          />
-        </View>
+      <ThemedView style={styles.flex}>
+        <StatusBar style="auto" />
+        <ScreenHeader
+          title="Order Breakdown"
+          subtitle={order?.orderNumber || undefined}
+          right={
+            <IconButton
+              icon="chevron-down"
+              size="md"
+              onPress={() => router.dismiss()}
+              accessibilityLabel="Close"
+            />
+          }
+        />
 
         {isLoading ? (
           <View style={styles.loaderContainer}>
@@ -111,7 +81,7 @@ export default function OrderDetailSheet() {
           <>
             <ScrollView
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: scale(16) }}
+              contentContainerStyle={styles.content}
             >
               {/* 1. Secure Verification Code Display */}
               {/* <View
@@ -125,19 +95,21 @@ export default function OrderDetailSheet() {
                   size={18}
                   color={Colors.success}
                 />
-                <Text style={[styles.alertText, { color: Colors.success }]}>
+                <ThemedText style={styles.alertText} themeColor="success">
                   Requires Delivery PIN Verification:{' '}
-                  <Text style={{ fontFamily: Fonts.brandSemiBold }}>
+                  <ThemedText style={{ fontFamily: Fonts.brandSemiBold }}>
                     {order.orderCode}
-                  </Text>
-                </Text>
+                  </ThemedText>
+                </ThemedText>
               </View> */}
 
               {/* 2. Dispatch Nodes Segment */}
-              <View style={styles.sectionSection}>
-                <Text style={styles.sectionLabel}>DISPATCH ROUTE</Text>
+              <View style={styles.section}>
+                <ThemedText style={styles.sectionLabel} themeColor="textMuted">
+                  Dispatch Route
+                </ThemedText>
 
-                <View style={{ gap: scale(20) }}>
+                <View style={styles.groupCard}>
                   {order.stores?.map((store: any) => (
                     <View key={store.id} style={styles.nodeRow}>
                       {store.storeLogo ? (
@@ -149,56 +121,56 @@ export default function OrderDetailSheet() {
                         <View
                           style={[
                             styles.iconWrapper,
-                            {
-                              backgroundColor: Colors.successExtraLight,
-                              marginTop: scale(2),
-                            },
+                            { backgroundColor: Colors.successExtraLight },
                           ]}
                         >
                           <Ionicons
                             name="storefront-outline"
-                            size={16}
+                            size={18}
                             color={Colors.success}
                           />
                         </View>
                       )}
-                      <View style={{ flex: 1 }}>
-                        <Text
-                          style={[styles.nodeTitle, { color: Colors.text }]}
-                        >
+                      <View style={styles.flex}>
+                        <ThemedText style={styles.nodeTitle}>
                           {store.storeName}
-                        </Text>
-                        <Text style={styles.nodeDesc} numberOfLines={2}>
+                        </ThemedText>
+                        <ThemedText
+                          style={styles.nodeDesc}
+                          themeColor="textMuted"
+                          numberOfLines={2}
+                        >
                           {store.storeAddress}
-                        </Text>
+                        </ThemedText>
                       </View>
                     </View>
                   ))}
 
-                  <View style={[styles.nodeRow, { marginTop: scale(12) }]}>
+                  <View style={[styles.nodeRow, styles.nodeRowLast]}>
                     <View
                       style={[
                         styles.iconWrapper,
-                        {
-                          backgroundColor: Colors.errorLight,
-                          marginTop: scale(2),
-                        },
+                        { backgroundColor: Colors.errorLight },
                       ]}
                     >
                       <Ionicons
                         name="location-outline"
-                        size={16}
+                        size={18}
                         color={Colors.error}
                       />
                     </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.nodeTitle, { color: Colors.text }]}>
+                    <View style={styles.flex}>
+                      <ThemedText style={styles.nodeTitle}>
                         Deliver to: {order?.recipientName}
-                      </Text>
-                      <Text style={styles.nodeDesc} numberOfLines={2}>
+                      </ThemedText>
+                      <ThemedText
+                        style={styles.nodeDesc}
+                        themeColor="textMuted"
+                        numberOfLines={2}
+                      >
                         {order.dropoffLocation?.address},{' '}
                         {order.dropoffLocation?.city}
-                      </Text>
+                      </ThemedText>
                     </View>
                   </View>
                 </View>
@@ -206,74 +178,81 @@ export default function OrderDetailSheet() {
 
               {/* 3. Driver Hand-Off Instructions */}
               {order.deliveryInstructions && (
-                <View style={[styles.sectionSection, styles.instructionBox]}>
-                  <Text style={styles.sectionLabel}>DELIVERY INSTRUCTIONS</Text>
-                  <Text style={styles.instructionText}>
-                    "{order.deliveryInstructions}"
-                  </Text>
+                <View style={styles.section}>
+                  <ThemedText
+                    style={styles.sectionLabel}
+                    themeColor="textMuted"
+                  >
+                    Delivery Instructions
+                  </ThemedText>
+                  <View style={[styles.card, styles.instructionBox]}>
+                    <Ionicons
+                      name="chatbubble-ellipses-outline"
+                      size={18}
+                      color={Colors.textMuted}
+                      style={styles.instructionIcon}
+                    />
+                    <ThemedText style={styles.instructionText}>
+                      "{order.deliveryInstructions}"
+                    </ThemedText>
+                  </View>
                 </View>
               )}
 
               {/* 4. Ordered Items Map Array */}
-              {/* <View style={styles.sectionSection}>
-                <Text style={styles.sectionLabel}>
-                  ITEMS PACKAGE ({order.items?.length || 0})
-                </Text>
-                {order.items?.map((item: any) => (
-                  <View key={item.id} style={styles.itemRow}>
-                    {item.productImage?.imageUrl ? (
-                      <Image
-                        source={{ uri: item.productImage.imageUrl }}
-                        style={styles.itemImage}
-                      />
-                    ) : (
-                      <View
-                        style={[
-                          styles.itemImage,
-                          { backgroundColor: Colors.border },
-                        ]}
-                      />
-                    )}
-                    <View style={{ flex: 1 }}>
-                      <Text
-                        style={[styles.itemName, { color: Colors.text }]}
-                        numberOfLines={1}
-                      >
-                        {item.productName}
-                      </Text>
-                      <Text style={styles.itemMeta}>
-                        Qty: {item.quantity} · ₦
-                        {item.unitPrice.toLocaleString()}
-                        /unit
-                      </Text>
+              {/* <View style={styles.section}>
+                <ThemedText style={styles.sectionLabel} themeColor="textMuted">
+                  Items Package ({order.items?.length || 0})
+                </ThemedText>
+                <View style={styles.groupCard}>
+                  {order.items?.map((item: any) => (
+                    <View key={item.id} style={styles.itemRow}>
+                      {item.productImage?.imageUrl ? (
+                        <Image
+                          source={{ uri: item.productImage.imageUrl }}
+                          style={styles.itemImage}
+                        />
+                      ) : (
+                        <View style={styles.itemImage} />
+                      )}
+                      <View style={styles.flex}>
+                        <ThemedText style={styles.itemName} numberOfLines={1}>
+                          {item.productName}
+                        </ThemedText>
+                        <ThemedText style={styles.itemMeta} themeColor="textMuted">
+                          Qty: {item.quantity} · ₦
+                          {item.unitPrice.toLocaleString()}
+                          /unit
+                        </ThemedText>
+                      </View>
+                      <ThemedText style={styles.itemTotal}>
+                        ₦{item.totalPrice.toLocaleString()}
+                      </ThemedText>
                     </View>
-                    <Text style={[styles.itemTotal, { color: Colors.text }]}>
-                      ₦{item.totalPrice.toLocaleString()}
-                    </Text>
-                  </View>
-                ))}
+                  ))}
+                </View>
               </View> */}
 
               {/* 5. Financial Audit Settlement Breakdown */}
-              {/* <View style={styles.billContainer}>
+              {/* <View style={styles.card}>
                 <View style={styles.billRow}>
-                  <Text style={styles.billLabel}>Subtotal</Text>
-                  <Text style={[styles.billValue, { color: Colors.text }]}>
+                  <ThemedText style={styles.billLabel} themeColor="textMuted">Subtotal</ThemedText>
+                  <ThemedText style={styles.billValue}>
                     ₦{order.subtotal?.toLocaleString()}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.billRow}>
-                  <Text style={styles.billLabel}>Delivery Fare Pay</Text>
-                  <Text style={[styles.billValue, { color: Colors.success }]}>
+                  <ThemedText style={styles.billLabel} themeColor="textMuted">Delivery Fare Pay</ThemedText>
+                  <ThemedText style={styles.billValue} themeColor="success">
                     +₦{order.deliveryFee?.toLocaleString()}
-                  </Text>
+                  </ThemedText>
                 </View>
-                <View style={styles.billRowSpacer} />
+                <View style={styles.divider} />
                 <View style={styles.billRow}>
-                  <Text style={styles.totalLabel}>Total Payout</Text>
-                  <Text style={[styles.totalValue, { color: Colors.primary }]}>
+                  <ThemedText style={styles.totalLabel}>Total Payout</ThemedText>
+                  <ThemedText style={styles.totalValue} themeColor="primary">
                     ₦{order.totalAmount?.toLocaleString()}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View> */}
             </ScrollView>
@@ -282,10 +261,7 @@ export default function OrderDetailSheet() {
             <View
               style={[
                 styles.actionWrapper,
-                {
-                  backgroundColor: Colors.background,
-                  paddingBottom: insets.bottom,
-                },
+                { paddingBottom: insets.bottom + Spacing.two },
               ]}
             >
               <AcceptButton
@@ -297,196 +273,227 @@ export default function OrderDetailSheet() {
           </>
         ) : (
           <View style={styles.loaderContainer}>
-            <Text style={{ color: Colors.textMuted }}>
+            <Ionicons
+              name="cloud-offline-outline"
+              size={32}
+              color={Colors.textMuted}
+            />
+            <ThemedText style={styles.emptyText} themeColor="textMuted">
               Failed to load parameters.
-            </Text>
+            </ThemedText>
           </View>
         )}
-      </View>
+      </ThemedView>
     </>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
-      // flex: 1,
-      backgroundColor: Colors.background,
-      paddingVertical: scale(16),
+    flex: {
+      flex: 1,
     },
 
-    headerContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingHorizontal: scale(20),
-      paddingVertical: scale(16),
-    },
-    headerTitle: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandSemiBold,
-    },
-    headerSubtitle: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textMuted,
-      marginTop: scale(2),
-    },
-    closeBtn: {
-      width: scale(32),
-      height: scale(32),
-      borderRadius: scale(16),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
     loaderContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
+      gap: Spacing.two,
     },
-    scrollArea: {
-      flex: 1,
+
+    emptyText: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
     },
+
+    content: {
+      gap: Spacing.four,
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.two,
+      paddingBottom: Spacing.five,
+    },
+
+    section: {
+      gap: 10,
+    },
+
+    sectionLabel: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+
+    card: {
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
+    // Grouped list card; rows carry their own padding and hairlines
+    groupCard: {
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
     alertBanner: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(8),
-      padding: scale(12),
-      borderRadius: scale(10),
-      marginBottom: scale(16),
+      gap: Spacing.two,
+      padding: 12,
+      borderRadius: 12,
     },
+
     alertText: {
-      fontSize: normalize(12),
       fontFamily: Fonts.brandMedium,
-    },
-    sectionSection: {
-      marginBottom: scale(20),
-    },
-    sectionLabel: {
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textMuted,
-      letterSpacing: normalize(0.8),
-      marginBottom: scale(10),
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     storeLogo: {
-      width: scale(32),
-      height: scale(32),
-      borderRadius: scale(8),
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      backgroundColor: Colors.backgroundTertiary,
     },
 
     iconWrapper: {
-      width: scale(32),
-      height: scale(32),
-      borderRadius: scale(8),
+      width: 40,
+      height: 40,
+      borderRadius: 12,
       justifyContent: 'center',
       alignItems: 'center',
     },
 
     nodeRow: {
       flexDirection: 'row',
-      gap: scale(10),
-      alignItems: 'flex-start',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: Colors.border,
     },
+
+    nodeRowLast: {
+      borderBottomWidth: 0,
+    },
+
     nodeTitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
+
     nodeDesc: {
-      fontSize: normalize(12),
-      color: Colors.textMuted,
-      marginTop: scale(2),
-    },
-    instructionBox: {
-      backgroundColor: Colors.inputBackground,
-      padding: scale(12),
-      borderRadius: scale(10),
-      borderLeftWidth: scale(3),
-      borderLeftColor: Colors.border,
-    },
-    instructionText: {
-      fontSize: normalize(13),
-      color: Colors.text,
       fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+      marginTop: Spacing.half,
+    },
+
+    instructionBox: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+
+    instructionIcon: {
+      marginTop: Spacing.half,
+    },
+
+    instructionText: {
+      flex: 1,
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
       fontStyle: 'italic',
     },
+
     itemRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(12),
-      paddingVertical: scale(8),
-      borderBottomWidth: scale(1),
+      gap: 12,
+      padding: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: Colors.border,
     },
+
     itemImage: {
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(8),
+      width: 44,
+      height: 44,
+      borderRadius: 12,
+      backgroundColor: Colors.backgroundTertiary,
     },
+
     itemName: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
+
     itemMeta: {
-      fontSize: normalize(11),
-      color: Colors.textMuted,
-      marginTop: scale(1),
       fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
     },
+
     itemTotal: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
     },
-    billContainer: {
-      backgroundColor: Colors.inputBackground,
-      borderRadius: scale(12),
-      padding: scale(14),
-      marginBottom: scale(24),
-    },
+
     billRow: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      paddingVertical: scale(4),
+      paddingVertical: Spacing.one,
     },
-    billRowSpacer: {
-      height: scale(1),
+
+    divider: {
+      height: StyleSheet.hairlineWidth,
       backgroundColor: Colors.border,
-      marginVertical: scale(8),
+      marginVertical: Spacing.two,
     },
+
     billLabel: {
-      fontSize: normalize(13),
-      color: Colors.textMuted,
       fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
     },
+
     billValue: {
-      fontSize: normalize(13),
       fontFamily: Fonts.brandMedium,
+      fontSize: 13,
+      lineHeight: 18,
     },
+
     totalLabel: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.text,
-    },
-    totalValue: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandMedium,
-    },
-    actionWrapper: {
-      paddingHorizontal: scale(20),
-      paddingTop: scale(12),
-    },
-    submitBtn: {
-      height: scale(48),
-      borderRadius: scale(12),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    submitBtnText: {
-      color: '#FFFFFF',
-      fontSize: normalize(15),
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
+
+    totalValue: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+    },
+
+    actionWrapper: {
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.three,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: Colors.border,
+      backgroundColor: Colors.background,
     },
   });

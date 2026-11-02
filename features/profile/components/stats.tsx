@@ -1,77 +1,87 @@
-import { Fonts } from "@/constants/theme";
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import {
   EarningsSummary,
   formatHours,
   formatNaira,
-} from "@/features/earnings/use-fetch";
-import { useTheme } from "@/hooks/use-theme";
-import { normalize, scale } from "@/utils/scaling";
-import { Text, View } from "react-native";
-import { StyleSheet } from "react-native";
+} from '@/features/earnings/use-fetch';
+import { useTheme } from '@/hooks/use-theme';
+import { StyleSheet, View } from 'react-native';
 
+/** Today's deliveries, earnings and online time */
 export default function DriverStats({
-    earnings
-} :{
-    earnings?: EarningsSummary
+  earnings,
+}: {
+  earnings?: EarningsSummary;
 }) {
+  const { Colors } = useTheme();
 
-      const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-      const styles = createStyles(Colors);
   return (
     <View style={styles.statsRow}>
       <View style={styles.statItem}>
-        <Text style={styles.statValue}>{earnings?.deliveries ?? 0}</Text>
-        <Text style={styles.statLabel}>Deliveries</Text>
+        <ThemedText style={styles.statValue} numberOfLines={1}>
+          {earnings?.deliveries ?? 0}
+        </ThemedText>
+        <ThemedText style={styles.statLabel} themeColor="textMuted">
+          Deliveries
+        </ThemedText>
       </View>
 
       <View style={styles.statItem}>
-        <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
+        <ThemedText
+          style={styles.statValue}
+          themeColor="primary"
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
           {formatNaira(earnings?.totalEarnings)}
-        </Text>
-        <Text style={styles.statLabel}>Earnings</Text>
+        </ThemedText>
+        <ThemedText style={styles.statLabel} themeColor="textMuted">
+          Earnings
+        </ThemedText>
       </View>
 
       <View style={styles.statItem}>
-        <Text style={styles.statValue}>{formatHours(earnings?.onlineHours)}</Text>
-        <Text style={styles.statLabel}>Online</Text>
+        <ThemedText style={styles.statValue} numberOfLines={1}>
+          {formatHours(earnings?.onlineHours)}
+        </ThemedText>
+        <ThemedText style={styles.statLabel} themeColor="textMuted">
+          Online
+        </ThemedText>
       </View>
-
-  
     </View>
   );
 }
 
-
-
 const createStyles = (Colors: ReturnType<typeof useTheme>['Colors']) =>
   StyleSheet.create({
+    statsRow: {
+      flexDirection: 'row',
+      gap: Spacing.two,
+    },
 
-    
-        statsRow: {
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          gap: scale(8),
-        },
-        statItem: {
-          flex: 1,
-          alignItems: 'center',
-          paddingVertical: scale(10),
-          borderRadius: scale(12),
-          borderWidth: 1,
-          borderColor: Colors.border,
-        },
-        statValue: {
-          fontSize: normalize(12),
-          fontFamily: Fonts.brandSemiBold,
-          color: Colors.text,
-        },
-        statLabel: {
-          fontSize: normalize(10),
-          fontFamily: Fonts.brandRegular,
-          color: Colors.text,
-        },
-    
-      
-  })
-    
+    statItem: {
+      flex: 1,
+      gap: 2,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
+
+    statValue: {
+      fontFamily: Fonts.brandBold,
+      fontSize: 18,
+      lineHeight: 24,
+    },
+
+    statLabel: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
+  });

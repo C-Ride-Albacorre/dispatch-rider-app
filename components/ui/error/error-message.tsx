@@ -1,29 +1,40 @@
-import { Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import { Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, View } from 'react-native';
 
 export default function ErrorMessage({ message }: { message: string }) {
   const { Colors } = useTheme();
+
   return (
     <View
-      style={{
-        backgroundColor: Colors.errorLight,
-        padding: scale(10),
-        borderRadius: scale(5),
-        marginBottom: scale(10),
-      }}
+      style={[styles.container, { backgroundColor: Colors.errorLight }]}
       role="alert"
     >
-      <Text
-        style={{
-          color: Colors.error,
-          fontFamily: Fonts.brandMedium,
-          fontSize: normalize(12),
-        }}
-      >
+      <Ionicons name="alert-circle-outline" size={16} color={Colors.error} />
+      <ThemedText style={styles.text} themeColor="error">
         {message}
-      </Text>
+      </ThemedText>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: Spacing.two,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+
+  text: {
+    flex: 1,
+    fontFamily: Fonts.brandMedium,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+});

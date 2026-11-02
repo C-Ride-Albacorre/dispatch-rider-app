@@ -1,11 +1,11 @@
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 import AcceptButton from './accept-button';
 import ConfirmRequest from './confirm-job-request';
 
@@ -30,9 +30,7 @@ export default function RenderJobCard({ item }: { item: any }) {
     [router],
   );
 
-  const handleAcceptOrder = useCallback((orderId: string, amount: number) => {
-    console.log(`Accepting order ${orderId} for ₦${amount}`);
-
+  const handleAcceptOrder = useCallback((orderId: string, _amount: number) => {
     setSelectedOrderId(orderId);
     // setSelectedOrder(item);
     setShowConfirmRequestModal(true);
@@ -59,10 +57,11 @@ export default function RenderJobCard({ item }: { item: any }) {
         // selectedOrder={selectedOrder}
       />
 
-      <TouchableOpacity
-        activeOpacity={0.9}
+      <Pressable
         onPress={() => handleViewOrderDetails(item.order_id)}
-        style={styles.jobCard}
+        style={({ pressed }) => [styles.jobCard, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`Job from ${item.store_name ?? 'store'}`}
       >
         {/* Header Block: Brand Meta & Target Payout */}
         <View style={styles.jobHeader}>
@@ -73,21 +72,27 @@ export default function RenderJobCard({ item }: { item: any }) {
                 style={styles.storeLogo}
               />
             ) : (
-              <View
-                style={[
-                  styles.storeLogoPlaceholder,
-                  { backgroundColor: Colors.primaryLight },
-                ]}
-              />
+              <View style={[styles.storeLogo, styles.storeLogoPlaceholder]}>
+                <Ionicons
+                  name="storefront-outline"
+                  size={18}
+                  color={Colors.primary}
+                />
+              </View>
             )}
             <View style={styles.storeInfoText}>
-              <Text style={styles.storeNameText} numberOfLines={1}>
+              <ThemedText style={styles.storeNameText} numberOfLines={1}>
                 {item.store_name}
-              </Text>
-              <Text style={styles.orderNumberText} numberOfLines={1}>
+              </ThemedText>
+              <ThemedText
+                style={styles.orderNumberText}
+                themeColor="textMuted"
+                numberOfLines={1}
+              >
+                #
                 {item.order_number?.split('-')[1] ||
                   item.order_id.slice(0, 8).toUpperCase()}
-              </Text>
+              </ThemedText>
             </View>
           </View>
           {/* <Text style={[styles.jobPrice, { color: Colors.primary }]}>
@@ -107,19 +112,23 @@ export default function RenderJobCard({ item }: { item: any }) {
 
           <View style={styles.timelineContent}>
             <View style={styles.locationBlock}>
-              <Text style={styles.routeStageLabel}>PICKUP FROM</Text>
-              <Text style={styles.jobLocationText} numberOfLines={1}>
+              <ThemedText style={styles.routeStageLabel} themeColor="textMuted">
+                Pickup from
+              </ThemedText>
+              <ThemedText style={styles.jobLocationText} numberOfLines={1}>
                 {item.pickup_location?.address ||
                   `${item.store_name || 'Store location'}`}
-              </Text>
+              </ThemedText>
             </View>
 
             <View style={styles.locationBlock}>
-              <Text style={styles.routeStageLabel}>DELIVER TO</Text>
-              <Text style={styles.jobLocationText} numberOfLines={1}>
+              <ThemedText style={styles.routeStageLabel} themeColor="textMuted">
+                Deliver to
+              </ThemedText>
+              <ThemedText style={styles.jobLocationText} numberOfLines={1}>
                 {item.dropoff_location?.address || 'Customer Address'},{' '}
                 {item.dropoff_location?.city || ''}
-              </Text>
+              </ThemedText>
             </View>
           </View>
         </View>
@@ -130,14 +139,22 @@ export default function RenderJobCard({ item }: { item: any }) {
             <Ionicons
               name="location-outline"
               size={14}
-              color={Colors.textMuted}
+              color={Colors.textSecondary}
             />
-            <Text style={styles.jobMetaText}>{distanceKm}</Text>
+            <ThemedText style={styles.jobMetaText} themeColor="textSecondary">
+              {distanceKm}
+            </ThemedText>
           </View>
 
           <View style={styles.metaChip}>
-            <Ionicons name="cube-outline" size={14} color={Colors.textMuted} />
-            <Text style={styles.jobMetaText}>{totalItemsCount} items</Text>
+            <Ionicons
+              name="cube-outline"
+              size={14}
+              color={Colors.textSecondary}
+            />
+            <ThemedText style={styles.jobMetaText} themeColor="textSecondary">
+              {totalItemsCount} items
+            </ThemedText>
           </View>
         </View>
 
@@ -156,7 +173,7 @@ export default function RenderJobCard({ item }: { item: any }) {
             style={styles.btnPrimary}
           />
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </>
   );
 }
@@ -164,132 +181,156 @@ export default function RenderJobCard({ item }: { item: any }) {
 const createStyles = (Colors: any) =>
   StyleSheet.create({
     jobCard: {
-      backgroundColor: Colors.background,
-      borderRadius: scale(16),
+      backgroundColor: Colors.card,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: Colors.border,
-      elevation: 2,
-      shadowColor: '#000000',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.04,
-      shadowRadius: 8,
+      overflow: 'hidden',
     },
+
+    pressed: {
+      backgroundColor: Colors.backgroundSecondary,
+    },
+
     jobHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: scale(14),
+      padding: 14,
     },
+
     storeProfileRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(10),
+      gap: 12,
       flex: 1,
-      marginRight: scale(8),
+      marginRight: Spacing.two,
     },
+
     storeLogo: {
-      width: scale(36),
-      height: scale(36),
-      borderRadius: scale(10),
+      width: 40,
+      height: 40,
+      borderRadius: 12,
       backgroundColor: Colors.backgroundTertiary,
     },
+
     storeLogoPlaceholder: {
-      width: scale(36),
-      height: scale(36),
-      borderRadius: scale(10),
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: Colors.primaryExtraLight,
     },
+
     storeInfoText: {
       flex: 1,
       justifyContent: 'center',
+      gap: Spacing.half,
     },
+
     storeNameText: {
-      fontSize: normalize(14),
       fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
+      fontSize: 15,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
+
     orderNumberText: {
-      fontSize: normalize(11),
       fontFamily: Fonts.brandRegular,
-      color: '#718096',
-      marginTop: scale(1),
+      fontSize: 12,
+      lineHeight: 17,
     },
+
     jobPrice: {
-      fontSize: normalize(16),
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
     },
+
     divider: {
-      height: 1,
+      height: StyleSheet.hairlineWidth,
       backgroundColor: Colors.border,
     },
+
     timeline: {
       flexDirection: 'row',
-      gap: scale(12),
-      paddingHorizontal: scale(14),
-      paddingTop: scale(14),
+      gap: 12,
+      paddingHorizontal: 14,
+      paddingTop: 14,
     },
+
     timelineColumn: {
-      width: scale(10),
+      width: 10,
       alignItems: 'center',
-      paddingVertical: scale(4),
+      paddingVertical: 6,
     },
+
     dot: {
-      width: scale(8),
-      height: scale(8),
-      borderRadius: scale(4),
+      width: 8,
+      height: 8,
+      borderRadius: 999,
     },
+
     connector: {
-      width: scale(1.5),
+      width: 1.5,
       flex: 1,
-      minHeight: scale(32),
+      minHeight: 28,
       backgroundColor: Colors.border,
-      marginVertical: scale(4),
+      marginVertical: Spacing.one,
     },
+
     timelineContent: {
       flex: 1,
-      gap: scale(14),
+      gap: 12,
     },
+
     locationBlock: {
-      gap: scale(2),
+      gap: Spacing.half,
     },
+
     routeStageLabel: {
-      fontSize: normalize(9),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.textMuted,
-      letterSpacing: 0.5,
-    },
-    jobLocationText: {
-      fontSize: normalize(13),
-      color: Colors.textSecondary,
       fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+    },
+
+    jobLocationText: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
       textTransform: 'capitalize',
     },
+
     metaRow: {
       flexDirection: 'row',
       flexWrap: 'wrap',
-      gap: scale(8),
-      paddingHorizontal: scale(14),
-      paddingTop: scale(14),
+      gap: Spacing.two,
+      paddingHorizontal: 14,
+      paddingTop: 14,
     },
+
     metaChip: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(4),
-      paddingHorizontal: scale(10),
-      paddingVertical: scale(5),
-      borderRadius: scale(8),
-      backgroundColor: Colors.inputBackground,
+      gap: Spacing.one,
+      paddingHorizontal: 10,
+      paddingVertical: 4,
+      borderRadius: 999,
+      backgroundColor: Colors.backgroundTertiary,
     },
+
     jobMetaText: {
-      fontSize: normalize(12),
-      color: Colors.textSecondary,
       fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 17,
     },
+
     jobActions: {
       flexDirection: 'row',
-      gap: scale(8),
-      padding: scale(14),
+      gap: Spacing.two,
+      padding: 14,
     },
+
     btnPrimary: {
       flex: 1,
     },

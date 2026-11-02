@@ -1,39 +1,16 @@
-import AuthPageHeader from '@/components/layout/auth-header';
 import SuccessModal from '@/components/layout/success-modal';
-
 import Button from '@/components/ui/buttons/button';
-import IconButton from '@/components/ui/buttons/icon-button';
-
 import OtpInput from '@/components/ui/input/otp-input';
-
-import { Fonts } from '@/constants/theme';
+import AuthScreen from '@/features/auth/components/auth-screen';
 import ResendOTP from '@/features/auth/components/resend-otp';
-
 import { verifyEmailAction } from '@/features/verify/action';
-import { useTheme } from '@/hooks/use-theme';
-
 import { useAuthStore } from '@/store/auth-store';
-
-import { maskEmail } from '@/utils/mask';
-import { normalize, scale } from '@/utils/scaling';
-import { clearVerificationData } from '@/utils/token-storage';
-
-import Ionicons from '@expo/vector-icons/Ionicons';
-import Toast from 'react-native-toast-message';
-
-import { useRouter } from 'expo-router';
-
-import { useEffect, useState } from 'react';
-
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
 import { clearVerificationAuth } from '@/utils/clear-verification-auth';
+import { maskEmail } from '@/utils/mask';
+import { useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 const onBoardingSteps = [
   'Set up your profile',
@@ -52,9 +29,6 @@ export default function VerifyEmailScreen() {
   const [resending, setResending] = useState(false);
 
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  const { Colors } = useTheme();
-  const styles = createStyles(Colors);
 
   const router = useRouter();
 
@@ -193,118 +167,49 @@ export default function VerifyEmailScreen() {
         setShowSuccessModal={setShowSuccessModal}
       />
 
-      <KeyboardAvoidingView
-        style={styles.keyboardSafeArea}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      <AuthScreen
+        title="Verify your email"
+        subtitle={`We sent a six digit code to ${maskEmail(verificationEmail || '')}`}
+        onBack={goToLogin}
       >
-        <ScrollView
-          contentContainerStyle={styles.container}
-          bounces={false}
-          scrollEnabled
+        <OtpInput
+          errorMessage={errorMessage}
+          onComplete={(otp) => {
+            setCode(otp);
+            handleVerify(otp);
+          }}
+          onChange={(otp) => {
+            setCode(otp);
+
+            if (errorMessage) {
+              setErrorMessage('');
+            }
+          }}
+        />
+
+        <Button
+          size="lg"
+          disabled={loading}
+          loading={loading}
+          onPress={() => handleVerify()}
         >
-          <View>
-            <IconButton icon="chevron-back" size="md" variant="soft" onPress={goToLogin} accessibilityLabel="Go back" />
+          {loading ? 'Verifying...' : 'Verify Email'}
+        </Button>
 
-            <AuthPageHeader />
-          </View>
-
-          <View style={styles.textContainer}>
-            <Text style={styles.title}>Verify your email</Text>
-
-            <Text style={styles.subtitle}>
-              We sent a six digit code to {maskEmail(verificationEmail || '')}
-            </Text>
-          </View>
-
-          <OtpInput
-            errorMessage={errorMessage}
-            onComplete={(otp) => {
-              setCode(otp);
-              handleVerify(otp);
-            }}
-            onChange={(otp) => {
-              setCode(otp);
-
-              if (errorMessage) {
-                setErrorMessage('');
-              }
-            }}
+        <View style={styles.resendContainer}>
+          <ResendOTP
+            identifier={verificationEmail}
+            verificationToken={verificationToken}
+            setErrorMessage={setErrorMessage}
           />
-
-          <Button
-            disabled={loading}
-            loading={loading}
-            onPress={() => handleVerify()}
-          >
-            {loading ? 'Verifying...' : 'Verify Email'}
-          </Button>
-
-          <View style={styles.resendContainer}>
-            <ResendOTP
-              identifier={verificationEmail}
-              verificationToken={verificationToken}
-              setErrorMessage={setErrorMessage}
-            />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </View>
+      </AuthScreen>
     </>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    keyboardSafeArea: {
-      flex: 1,
-      backgroundColor: Colors.background,
-    },
-
-    container: {
-      paddingHorizontal: scale(20),
-      paddingBottom: scale(20),
-      paddingTop: scale(12),
-      flexGrow: 1,
-      gap: scale(24),
-    },
-
-    returnIcon: {
-      color: Colors.textSecondary,
-    },
-
-    textContainer: {
-      gap: 8,
-      alignItems: 'center',
-      marginVertical: scale(20),
-    },
-
-    title: {
-      fontSize: normalize(24),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-    },
-
-    subtitle: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
-      textAlign: 'center',
-    },
-
-    resendContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginTop: scale(20),
-      gap: scale(16),
-    },
-
-    resendText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.primary,
-    },
-
-    disabledResendText: {
-      color: Colors.textSecondary,
-    },
-  });
+const styles = StyleSheet.create({
+  resendContainer: {
+    alignItems: 'center',
+  },
+});

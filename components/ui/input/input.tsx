@@ -1,17 +1,10 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-import { normalize, scale } from '@/utils/scaling';
+import React, { useState } from 'react';
 
-import React from 'react';
-
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 
 type InputProps = {
   label?: string;
@@ -36,11 +29,14 @@ export default function Input({
   onRightIconPress,
   style,
   editable = true,
+  onFocus,
+  onBlur,
   ...props
 }: InputProps) {
   const hasError = !!error;
 
   const { Colors } = useTheme();
+  const [isFocused, setIsFocused] = useState(false);
 
   const styles = createStyles(Colors);
 
@@ -48,30 +44,47 @@ export default function Input({
     <View style={styles.field}>
       {/* LABEL */}
       {label && (
-        <View style={styles.labelContainer}>
-          <Text style={styles.label}>{label}</Text>
-
-          {required && <Text style={styles.required}>*</Text>}
-        </View>
+        <ThemedText style={styles.label} themeColor="textSecondary">
+          {label}
+          {required && (
+            <ThemedText style={styles.required} themeColor="error">
+              {' '}
+              *
+            </ThemedText>
+          )}
+        </ThemedText>
       )}
 
       {/* INPUT */}
       <View
         style={[
           styles.inputContainer,
-
+          {
+            borderColor: hasError
+              ? Colors.error
+              : isFocused
+                ? Colors.primary
+                : Colors.border,
+          },
           !editable && styles.disabledContainer,
-
-          hasError && styles.errorContainer,
         ]}
       >
-        {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
+        {leftIcon && <View style={styles.icon}>{leftIcon}</View>}
 
         <TextInput
           {...props}
           editable={editable}
           value={props.value ?? ''}
-          placeholderTextColor="#999"
+          placeholderTextColor={Colors.textMuted}
+          selectionColor={Colors.primary}
+          onFocus={(e) => {
+            setIsFocused(true);
+            onFocus?.(e);
+          }}
+          onBlur={(e) => {
+            setIsFocused(false);
+            onBlur?.(e);
+          }}
           style={[styles.input, style]}
         />
 
@@ -81,13 +94,17 @@ export default function Input({
             onPress={onRightIconPress}
             disabled={!onRightIconPress}
           >
-            <View style={styles.iconRight}>{rightIcon}</View>
+            <View style={styles.icon}>{rightIcon}</View>
           </TouchableOpacity>
         )}
       </View>
 
       {/* ERROR */}
-      {hasError && <Text style={styles.errorText}>{error}</Text>}
+      {hasError && (
+        <ThemedText style={styles.errorText} themeColor="error">
+          {error}
+        </ThemedText>
+      )}
     </View>
   );
 }
@@ -96,90 +113,57 @@ const createStyles = (Colors: any) =>
   StyleSheet.create({
     field: {
       width: '100%',
-      gap: scale(6),
     },
 
-  labelContainer: {
-    flexDirection: 'row',
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 16,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.two,
+    },
 
-    alignItems: 'center',
+    required: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 16,
+    },
 
-    gap: scale(2),
-  },
+    inputContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+      height: 52,
+      paddingHorizontal: Spacing.three,
+      borderRadius: 16,
+      borderWidth: StyleSheet.hairlineWidth,
+      backgroundColor: Colors.inputBackground,
+    },
 
-  label: {
-    fontSize: normalize(14),
+    input: {
+      flex: 1,
+      height: '100%',
+      paddingVertical: 0,
+      fontFamily: Fonts.brandRegular,
+      fontSize: 15,
+      color: Colors.text,
+      textAlignVertical: 'center',
+    },
 
-    color: Colors.text,
+    icon: {
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
 
-    fontFamily: Fonts.brandMedium,
-  },
+    disabledContainer: {
+      opacity: 0.6,
+    },
 
-  required: {
-    color: Colors.error,
-
-    fontSize: normalize(16),
-
-    fontFamily: Fonts.brandBold,
-  },
-
- inputContainer: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  height: scale(56),
-  paddingHorizontal: scale(12),
-  borderWidth: 1,
-  borderColor: 'transparent',
-  borderRadius: scale(12),
-  backgroundColor: Colors.inputBackground,
-},
-
-input: {
-  flex: 1,
-  height: '100%',
-  paddingVertical: 0,
-  fontSize: normalize(14),
-  fontFamily: Fonts.brandRegular,
-  color: Colors.text,
-  textAlignVertical: 'center',
-  
-},
-
-  iconLeft: {
-    marginRight: scale(8),
-
-    justifyContent: 'center',
-
-    alignItems: 'center',
-  },
-
-  iconRight: {
-    marginLeft: scale(8),
-
-    justifyContent: 'center',
-
-    alignItems: 'center',
-  },
-
-  disabledContainer: {
-    opacity: 0.6,
-  },
-
-  errorContainer: {
-    borderColor: Colors.error,
-
-    backgroundColor: Colors.errorLight,
-  },
-
-  errorText: {
-    fontSize: normalize(12),
-
-    color: Colors.error,
-
-    fontFamily: Fonts.brandMedium,
-
-    marginTop: scale(2),
-
-    marginLeft: scale(4),
-  },
-});
+    errorText: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 16,
+      marginTop: Spacing.one,
+    },
+  });

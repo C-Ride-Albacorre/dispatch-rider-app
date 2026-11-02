@@ -1,9 +1,8 @@
-import {
-  HEADER_HEIGHT,
-  useHeaderReset,
-} from '@/components/layout/scroll-header-context';
+import ScreenHeader from '@/components/layout/screen-header';
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import IconButton from '@/components/ui/buttons/icon-button';
+import { Fonts, Spacing } from '@/constants/theme';
 import ConfirmDeclineRequest from '@/features/active/confirm-decline-request';
 import ConfirmDelivery from '@/features/active/confirm-delivery';
 import ConfirmPickup from '@/features/active/confirm-pickup';
@@ -13,7 +12,6 @@ import { useOrderTracking } from '@/features/active/use-fetch';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
-import { normalize, scale } from '@/utils/scaling';
 import { trimPolyline } from '@/utils/trim-polyline';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, {
@@ -23,14 +21,13 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet';
 import polyline from '@mapbox/polyline';
 import { router, useFocusEffect } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Image,
   Platform,
+  Pressable,
   StyleSheet,
-  Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import MapView, {
@@ -54,14 +51,14 @@ const CAMERA_ANIMATION_DURATION = 350;
 // The collapsed sheet covers the bottom 40%, leaving 60% of the screen for the map
 const SHEET_COLLAPSED_RATIO = 0.4;
 
-const MAP_CONTROL_SIZE = 46;
+const MAP_CONTROL_SIZE = 48;
 
 const MAP_CONTROLS_GAP = 10;
 
 const MAP_CONTROLS_HEIGHT = MAP_CONTROL_SIZE * 2 + MAP_CONTROLS_GAP;
 
 // Space at the end of the sheet content so the sticky footer doesn't cover it
-const SHEET_FOOTER_SPACE = 96;
+const SHEET_FOOTER_SPACE = 104;
 
 export default function ActiveDeliveryContent() {
   const { Colors } = useTheme();
@@ -69,8 +66,6 @@ export default function ActiveDeliveryContent() {
   const styles = createStyles(Colors);
 
   const insets = useSafeAreaInsets();
-
-  const resetHeader = useHeaderReset();
 
   const sheetRef = useRef<BottomSheet>(null);
 
@@ -85,16 +80,15 @@ export default function ActiveDeliveryContent() {
     if (index < 0) sheetRef.current?.snapToIndex(0);
   }, []);
 
-  // The map runs behind the shared header, so keep it visible on this tab
+  // Coming back to this tab, make sure the sheet is open again
   useFocusEffect(
     useCallback(() => {
-      resetHeader();
-
       if (sheetIndexRef.current < 0) sheetRef.current?.snapToIndex(0);
     }, []),
   );
 
-  const mapTopInset = HEADER_HEIGHT + insets.top;
+  // The map runs edge to edge; floating controls sit below the status bar
+  const mapTopInset = insets.top;
 
   const [containerHeight, setContainerHeight] = useState(0);
 
@@ -238,9 +232,8 @@ export default function ActiveDeliveryContent() {
   const isCustomerActive =
     deliveryPhase === 'TO_CUSTOMER' || deliveryPhase === 'DELIVERED';
 
-  // Computed on the JS thread: scale() isn't a worklet, so it can't run
-  // inside useAnimatedStyle
-  const mapControlsOffset = MAP_CONTROLS_HEIGHT + scale(16);
+  // Computed on the JS thread so the worklet below only reads plain numbers
+  const mapControlsOffset = MAP_CONTROLS_HEIGHT + Spacing.three;
 
   // Drivers can close the ETA card; it comes back when the delivery phase changes
   const [etaCardDismissedPhase, setEtaCardDismissedPhase] = useState<
@@ -250,11 +243,11 @@ export default function ActiveDeliveryContent() {
   const showEtaCard = etaCardDismissedPhase !== deliveryPhase;
 
   // Bottom edge of the ETA card (or the compact pill when it's closed)
-  const etaCardBottom = mapTopInset + (showEtaCard ? scale(100) : scale(56));
+  const etaCardBottom = mapTopInset + (showEtaCard ? 92 : 52);
 
   // Fade the buttons out only when they'd overlap the ETA card at the top
   const mapControlsFadeStart = etaCardBottom + mapControlsOffset;
-  const mapControlsFadeEnd = mapControlsFadeStart + scale(60);
+  const mapControlsFadeEnd = mapControlsFadeStart + 60;
 
   // Refresh/recenter buttons ride just above the sheet and fade out as it expands
   const mapControlsStyle = useAnimatedStyle(() => ({
@@ -529,38 +522,23 @@ export default function ActiveDeliveryContent() {
   if (!activeOrder?.order_id) {
     if (isWaitingForOrder) {
       return (
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            alignItems: 'center',
-            backgroundColor: Colors.background,
-          }}
-        >
-          <View
-            style={[
-              styles.iconWrapper,
-              {
-                backgroundColor: Colors.backgroundTertiary,
-              },
-            ]}
-          >
-            <Ionicons
-              name="hourglass-outline"
-              size={scale(36)}
-              color={Colors.textMuted}
-            />
-          </View>
+        <View style={styles.screenBackground}>
+          <StatusBar style="auto" />
+          <ScreenHeader title="Active" />
 
-          <Text
-            style={{
-              fontSize: 16,
-              color: Colors.textMuted,
-              fontFamily: Fonts.brandMedium,
-            }}
-          >
-            Loading delivery details
-          </Text>
+          <View style={styles.loading}>
+            <View style={styles.iconWrapper}>
+              <Ionicons
+                name="hourglass-outline"
+                size={20}
+                color={Colors.textMuted}
+              />
+            </View>
+
+            <ThemedText style={styles.loadingText} themeColor="textMuted">
+              Loading delivery details
+            </ThemedText>
+          </View>
         </View>
       );
     }
@@ -702,16 +680,18 @@ export default function ActiveDeliveryContent() {
           <View style={styles.footerRow}>
             <Button
               onPress={handleConfirmDecline}
-              variant="redOutline"
-              style={{ flex: 1 }}
+              variant="redSecondary"
+              size="lg"
+              style={styles.flex}
             >
-              Decline 
+              Decline
             </Button>
 
             <Button
               onPress={handleConfirmPickup}
               variant="green"
-              style={{ flex: 1 }}
+              size="lg"
+              style={styles.flex}
             >
               Confirm Pickup
             </Button>
@@ -720,7 +700,7 @@ export default function ActiveDeliveryContent() {
           <Button
             onPress={handleConfirmDelivery}
             variant="green"
-            style={{ flex: 1 }}
+            size="lg"
           >
             Confirm Delivery
           </Button>
@@ -731,6 +711,8 @@ export default function ActiveDeliveryContent() {
 
   return (
     <>
+      <StatusBar style="auto" />
+
       <View
         style={styles.screen}
         onLayout={(e) => setContainerHeight(e.nativeEvent.layout.height)}
@@ -739,87 +721,41 @@ export default function ActiveDeliveryContent() {
 
         <View style={StyleSheet.absoluteFill}>
           {showEtaCard ? (
-            <View
-              style={{
-                position: 'absolute',
-                top: mapTopInset + scale(12),
-                left: scale(16),
-                right: scale(16),
-
-                backgroundColor: Colors.background,
-
-                borderRadius: scale(18),
-
-                padding: scale(16),
-                flexDirection: 'row',
-                alignItems: 'center',
-
-                shadowColor: '#000',
-                shadowOpacity: 0.15,
-                shadowRadius: 12,
-                elevation: 8,
-
-                zIndex: 10,
-              }}
-            >
-              <View
-                style={{
-                  width: scale(44),
-                  height: scale(44),
-                  borderRadius: scale(22),
-                  backgroundColor: `${Colors.primary}15`,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Ionicons
-                  name="time-outline"
-                  size={24}
-                  color={Colors.primary}
-                />
+            <View style={[styles.etaCard, { top: mapTopInset + Spacing.two }]}>
+              <View style={styles.etaIcon}>
+                <Ionicons name="time-outline" size={20} color={Colors.primary} />
               </View>
 
-              <View style={{ flex: 1, marginLeft: scale(12) }}>
-                <Text
-                  style={{
-                    fontFamily: Fonts.brandSemiBold,
-                    fontSize: normalize(13),
-                    color: Colors.text,
-                  }}
-                >
-                  {etaText}
-                </Text>
+              <View style={styles.flex}>
+                <ThemedText style={styles.etaValue}>{etaText}</ThemedText>
 
-                <Text
-                  style={{
-                    color: Colors.textMuted,
-                    marginTop: scale(2),
-                    fontSize: normalize(11),
-                    fontFamily: Fonts.brandMedium,
-                  }}
-                >
+                <ThemedText style={styles.etaMessage} themeColor="textMuted">
                   {trackingMessage}
-                </Text>
+                </ThemedText>
               </View>
 
-              <TouchableOpacity
+              <IconButton
+                icon="close"
+                size="sm"
+                variant="secondary"
                 onPress={() => setEtaCardDismissedPhase(deliveryPhase)}
-                hitSlop={12}
-                style={styles.etaCloseButton}
                 accessibilityLabel="Close ETA card"
-              >
-                <Ionicons name="close" size={18} color={Colors.textMuted} />
-              </TouchableOpacity>
+              />
             </View>
           ) : (
-            <TouchableOpacity
+            <Pressable
               onPress={() => setEtaCardDismissedPhase(null)}
-              style={[styles.etaPill, { top: mapTopInset + scale(12) }]}
+              style={({ pressed }) => [
+                styles.etaPill,
+                { top: mapTopInset + Spacing.two },
+                pressed && styles.pressed,
+              ]}
+              accessibilityRole="button"
               accessibilityLabel="Show ETA details"
             >
               <Ionicons name="time-outline" size={16} color={Colors.primary} />
-              <Text style={styles.etaPillText}>{etaText}</Text>
-            </TouchableOpacity>
+              <ThemedText style={styles.etaPillText}>{etaText}</ThemedText>
+            </Pressable>
           )}
           <MapView
             initialRegion={initialMapRegion}
@@ -864,7 +800,7 @@ export default function ActiveDeliveryContent() {
                   height: 50,
                   borderRadius: 25,
 
-                  backgroundColor: '#FFFFFF',
+                  backgroundColor: Colors.white,
 
                   justifyContent: 'center',
                   alignItems: 'center',
@@ -933,12 +869,12 @@ export default function ActiveDeliveryContent() {
               >
                 <View
                   style={{
-                    width: scale(22),
-                    height: scale(22),
-                    borderRadius: scale(11),
+                    width: 22,
+                    height: 22,
+                    borderRadius: 11,
                     backgroundColor: Colors.success,
                     borderWidth: 3,
-                    borderColor: '#fff',
+                    borderColor: Colors.white,
                     ...Platform.select({
                       ios: {
                         elevation: 5,
@@ -987,24 +923,22 @@ export default function ActiveDeliveryContent() {
         </View>
 
         <Animated.View style={[styles.mapControls, mapControlsStyle]}>
-          <TouchableOpacity
+          <IconButton
+            icon="refresh"
+            size="lg"
             onPress={() => refetch()}
-            disabled={isFetching}
+            loading={isFetching}
             style={styles.mapControlButton}
-          >
-            {isFetching ? (
-              <ActivityIndicator size="small" color={Colors.primary} />
-            ) : (
-              <Ionicons name="refresh" size={22} color={Colors.primary} />
-            )}
-          </TouchableOpacity>
+            accessibilityLabel="Refresh delivery"
+          />
 
-          <TouchableOpacity
+          <IconButton
+            icon="locate"
+            size="lg"
             onPress={recenterDriver}
             style={styles.mapControlButton}
-          >
-            <Ionicons name="locate" size={24} color={Colors.primary} />
-          </TouchableOpacity>
+            accessibilityLabel="Recenter on my location"
+          />
         </Animated.View>
 
         {/* 2. Order details in a draggable bottom sheet */}
@@ -1019,21 +953,23 @@ export default function ActiveDeliveryContent() {
           topInset={mapTopInset}
           animatedPosition={sheetPosition}
           footerComponent={renderSheetFooter}
-          backgroundStyle={{ backgroundColor: Colors.background }}
-          handleIndicatorStyle={{ backgroundColor: Colors.border }}
+          backgroundStyle={styles.sheetBackground}
+          handleIndicatorStyle={styles.sheetHandle}
         >
           <BottomSheetScrollView
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.sheetContent}
           >
-            <Text style={styles.sheetTitle}>
+            <ThemedText style={styles.sheetTitle}>
               Order #{activeOrder.order_number}
-            </Text>
+            </ThemedText>
 
             <View style={styles.card}>
               <View style={styles.addressesContainerHeader}>
                 <StatusDot active={isPickupActive} />
-                <Text style={styles.sectionLabel}>Vendor Location</Text>
+                <ThemedText style={styles.sectionLabel} themeColor="textMuted">
+                  Vendor location
+                </ThemedText>
               </View>
 
               <View style={styles.storeRow}>
@@ -1044,17 +980,19 @@ export default function ActiveDeliveryContent() {
                   style={styles.logo}
                 />
 
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.storeName}>{activeOrder.store_name}</Text>
+                <View style={styles.stopBody}>
+                  <ThemedText style={styles.storeName}>
+                    {activeOrder.store_name}
+                  </ThemedText>
 
-                  <Text style={styles.address}>
+                  <ThemedText style={styles.address} themeColor="textSecondary">
                     {activeOrder?.pickup_location?.address ?? 'N/A'}
-                  </Text>
+                  </ThemedText>
 
-                  <Text style={styles.coordinates}>
+                  <ThemedText style={styles.coordinates} themeColor="textMuted">
                     {activeOrder.store_lat.toFixed(5)},{' '}
                     {activeOrder.store_lng.toFixed(5)}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
 
@@ -1067,64 +1005,50 @@ export default function ActiveDeliveryContent() {
             </View>
 
             <View style={styles.card}>
-              <View
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'space-between',
-                }}
-              >
+              <View style={styles.cardHeaderRow}>
                 <View style={styles.addressesContainerHeader}>
                   <StatusDot active={isCustomerActive} />
-                  <Text style={styles.sectionLabel}>Customer Location</Text>
+                  <ThemedText style={styles.sectionLabel} themeColor="textMuted">
+                    Customer location
+                  </ThemedText>
                 </View>
               </View>
 
               <View style={styles.addressesContainerRow}>
-                <View
-                  style={[
-                    styles.addressWrapper,
-                    { backgroundColor: Colors.successExtraLight },
-                  ]}
-                >
-                  <Ionicons
-                    name="location"
-                    size={scale(20)}
-                    color={Colors.success}
-                  />
+                <View style={styles.addressWrapper}>
+                  <Ionicons name="location" size={20} color={Colors.success} />
                 </View>
 
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.address}>
+                <View style={styles.stopBody}>
+                  <ThemedText style={styles.customerAddress}>
                     {activeOrder.dropoff_location.address}
-                  </Text>
+                  </ThemedText>
 
-                  <Text style={styles.city}>
+                  <ThemedText style={styles.city} themeColor="textMuted">
                     {activeOrder.dropoff_location.city},{' '}
                     {activeOrder.dropoff_location.state}
-                  </Text>
+                  </ThemedText>
 
-                  <Text style={styles.city}>
+                  <ThemedText style={styles.city} themeColor="textMuted">
                     {activeOrder.dropoff_location.country}
-                  </Text>
+                  </ThemedText>
 
-                  <Text style={styles.city}>
+                  <ThemedText style={styles.city} themeColor="textMuted">
                     {activeOrder.dropoff_location.postalCode}
-                  </Text>
+                  </ThemedText>
                 </View>
               </View>
 
-              <View
-                style={{ flexDirection: 'row', justifyContent: 'flex-end' }}
-              >
+              <View style={styles.chatRow}>
                 <Button
                   size="sm"
+                  variant="chip"
                   onPress={handleChat}
-                  // variant="primary"
                   leftIcon={
                     <Ionicons
-                      name="chatbubble-ellipses"
+                      name="chatbubble-ellipses-outline"
                       size={16}
-                      color="#000000"
+                      color={Colors.textSecondary}
                     />
                   }
                 >
@@ -1136,28 +1060,36 @@ export default function ActiveDeliveryContent() {
             <View style={styles.card}>
               <View style={styles.metaGrid}>
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Created</Text>
-                  <Text style={styles.metaValue}>
+                  <ThemedText style={styles.metaLabel} themeColor="textMuted">
+                    Created
+                  </ThemedText>
+                  <ThemedText style={styles.metaValue}>
                     {formatDate(activeOrder.created_at)}
-                  </Text>
+                  </ThemedText>
                 </View>
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Assigned</Text>
-                  <Text style={styles.metaValue}>
+                  <ThemedText style={styles.metaLabel} themeColor="textMuted">
+                    Assigned
+                  </ThemedText>
+                  <ThemedText style={styles.metaValue}>
                     {formatDate(activeOrder.assigned_at)}
-                  </Text>
+                  </ThemedText>
                 </View>
                 {activeOrder?.distance_meters && (
                   <View style={styles.metaItem}>
-                    <Text style={styles.metaLabel}>Distance</Text>
-                    <Text style={styles.metaValue}>
+                    <ThemedText style={styles.metaLabel} themeColor="textMuted">
+                    Distance
+                  </ThemedText>
+                    <ThemedText style={styles.metaValue}>
                       {(activeOrder?.distance_meters / 1000).toFixed(1)} km
-                    </Text>
+                    </ThemedText>
                   </View>
                 )}
                 <View style={styles.metaItem}>
-                  <Text style={styles.metaLabel}>Order ID</Text>
-                  <Text style={styles.metaValue}>{activeOrder.order_id}</Text>
+                  <ThemedText style={styles.metaLabel} themeColor="textMuted">
+                    Order ID
+                  </ThemedText>
+                  <ThemedText style={styles.metaValue}>{activeOrder.order_id}</ThemedText>
                 </View>
               </View>
             </View>
@@ -1191,619 +1123,285 @@ const createStyles = (Colors: any) =>
       flex: 1,
     },
 
-    sheetContent: {
-      paddingHorizontal: scale(12),
-      paddingTop: scale(4),
-      paddingBottom: SHEET_FOOTER_SPACE,
-      gap: scale(12),
+    flex: {
+      flex: 1,
     },
 
-    sheetTitle: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-      paddingHorizontal: scale(4),
+    pressed: {
+      opacity: 0.8,
     },
 
-    etaCloseButton: {
-      width: scale(32),
-      height: scale(32),
-      borderRadius: scale(16),
-      // Translucent so it works on both light and dark card backgrounds
-      backgroundColor: `${Colors.textMuted}1F`,
+    screenBackground: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
+
+    loading: {
+      flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      marginLeft: scale(8),
+      gap: 12,
+      paddingBottom: Spacing.six,
+    },
+
+    loadingText: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+
+    iconWrapper: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: Colors.backgroundTertiary,
+    },
+
+    // Floating ETA card over the map
+    etaCard: {
+      position: 'absolute',
+      left: Spacing.three,
+      right: Spacing.three,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      shadowColor: Colors.black,
+      shadowOpacity: 0.12,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 8,
+      zIndex: 10,
+    },
+
+    etaIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: Colors.primaryExtraLight,
+    },
+
+    etaValue: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
+
+    etaMessage: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     etaPill: {
       position: 'absolute',
-      left: scale(16),
+      left: Spacing.three,
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(6),
-      paddingHorizontal: scale(14),
-      paddingVertical: scale(10),
-      borderRadius: scale(20),
-      backgroundColor: Colors.background,
-      shadowColor: '#000',
-      shadowOpacity: 0.15,
+      gap: 6,
+      paddingHorizontal: 12,
+      paddingVertical: Spacing.two,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      shadowColor: Colors.black,
+      shadowOpacity: 0.12,
       shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
       elevation: 6,
       zIndex: 10,
     },
 
     etaPillText: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: normalize(13),
-      color: Colors.text,
+      fontSize: 13,
+      lineHeight: 18,
     },
 
     mapControls: {
       position: 'absolute',
       top: 0,
-      right: scale(16),
+      right: Spacing.three,
       gap: MAP_CONTROLS_GAP,
     },
 
     mapControlButton: {
-      width: MAP_CONTROL_SIZE,
-      height: MAP_CONTROL_SIZE,
-      borderRadius: MAP_CONTROL_SIZE / 2,
-      backgroundColor: '#fff',
-      justifyContent: 'center',
-      alignItems: 'center',
-      shadowColor: '#000',
-      shadowOpacity: 0.15,
+      backgroundColor: Colors.card,
+      shadowColor: Colors.black,
+      shadowOpacity: 0.12,
       shadowRadius: 8,
+      shadowOffset: { width: 0, height: 2 },
       elevation: 6,
     },
 
-    title: {
-      fontSize: normalize(18),
+    // Bottom sheet
+    sheetBackground: {
+      backgroundColor: Colors.background,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+    },
+
+    sheetHandle: {
+      width: 40,
+      height: 5,
+      borderRadius: 3,
+      backgroundColor: Colors.border,
+    },
+
+    sheetContent: {
+      paddingHorizontal: Spacing.three,
+      paddingTop: Spacing.one,
+      paddingBottom: SHEET_FOOTER_SPACE,
+      gap: 12,
+    },
+
+    sheetTitle: {
       fontFamily: Fonts.brandSemiBold,
-      textAlign: 'center',
-    },
-    subtitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandRegular,
-      textAlign: 'center',
-      color: Colors.textMuted,
-    },
-    heroCard: {
-      borderRadius: scale(24),
-
-      borderWidth: 1,
-      borderColor: Colors.border,
-      gap: scale(12),
-    },
-
-    orderNumber: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textSecondary,
-      paddingHorizontal: scale(20),
-      paddingTop: scale(16),
-    },
-
-    heroBottom: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'flex-end',
-    },
-    heroBottomPrice: {
-      width: '100%',
-      flexDirection: 'row',
-      gap: scale(8),
-      alignItems: 'center',
-    },
-
-    totalAmount: {
-      fontSize: normalize(28),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.primary,
-    },
-
-    itemCount: {
-      paddingVertical: scale(2),
-      paddingHorizontal: scale(6),
-      borderRadius: scale(24),
-      backgroundColor: Colors.successExtraLight,
-    },
-    itemCountText: {
-      fontSize: normalize(10),
-
-      fontFamily: Fonts.brandMedium,
-      color: Colors.success,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
     },
 
     card: {
-      backgroundColor: Colors.card,
-      borderRadius: scale(20),
-      padding: scale(16),
+      gap: 12,
+      padding: 14,
+      borderRadius: 16,
       borderWidth: 1,
       borderColor: Colors.border,
-      gap: scale(12),
+      backgroundColor: Colors.card,
+    },
+
+    cardHeaderRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
     },
 
     sectionLabel: {
-      fontSize: normalize(12),
-      textTransform: 'uppercase',
-      letterSpacing: 0.8,
-      color: Colors.textMuted,
       fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      textTransform: 'uppercase',
+      letterSpacing: 1.2,
     },
 
     addressesContainerHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(6),
+      gap: 6,
     },
 
-    dot: {
-      width: scale(8),
-      height: scale(8),
-      borderRadius: scale(4),
+    addressesContainerRow: {
+      flexDirection: 'row',
+      gap: 12,
     },
+
     storeRow: {
       flexDirection: 'row',
-      gap: scale(12),
-      marginBottom: scale(16),
+      gap: 12,
+    },
+
+    stopBody: {
+      flex: 1,
+      gap: 2,
     },
 
     logo: {
-      width: scale(56),
-      height: scale(56),
-      borderRadius: scale(16),
+      width: 48,
+      height: 48,
+      borderRadius: 12,
+      backgroundColor: Colors.backgroundTertiary,
     },
 
-    storeName: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandSemiBold,
-      textTransform: 'capitalize',
-      color: Colors.text,
-    },
-
-    address: {
-      marginTop: scale(4),
-      fontSize: normalize(13),
-      color: Colors.text,
-      lineHeight: scale(20),
-      fontFamily: Fonts.brandMedium,
-      textTransform: 'capitalize',
-      flexWrap: 'wrap',
-    },
-
-    city: {
-      marginTop: scale(4),
-      fontSize: normalize(13),
-      color: Colors.textMuted,
-      fontFamily: Fonts.brandMedium,
-    },
-
-    itemRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      paddingVertical: scale(8),
-    },
-
-    itemNameContainer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(16),
-    },
-
-    itemName: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.textSecondary,
-      textTransform: 'capitalize',
-    },
-
-    itemQty: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
-      color: Colors.success,
-    },
-
-    itemPrice: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-    },
-
-    divider: {
-      height: 1,
-      backgroundColor: Colors.border,
-      marginVertical: scale(12),
-    },
-    itemTotalPriceRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-
-      borderTopWidth: 1,
-      borderTopColor: Colors.border,
-      paddingTop: scale(16),
-    },
-
-    totalLabel: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    totalPrice: {
-      fontSize: normalize(18),
-      color: Colors.primary,
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    taskCard: {
-      backgroundColor: Colors.primary + '10',
-      borderRadius: scale(20),
-      padding: scale(16),
-      borderWidth: 1,
-      borderColor: Colors.primary + '25',
-      marginBottom: scale(100),
-    },
-
-    taskLabel: {
-      fontSize: normalize(12),
-      textTransform: 'uppercase',
-      letterSpacing: 1,
-      color: Colors.primary,
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    taskText: {
-      marginTop: scale(8),
-      fontSize: normalize(15),
-      lineHeight: scale(24),
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    footer: {
-      gap: scale(12),
-      paddingHorizontal: scale(16),
-      paddingTop: scale(12),
-      paddingBottom: scale(12),
-      backgroundColor: Colors.background,
-      // borderTopWidth: 1,
-      // borderTopColor: Colors.border,
-    },
-
-    footerRow: {
-      flexDirection: 'row',
-      gap: scale(12),
-    },
-
-    completedCard: {
-      flex: 1,
-      height: scale(56),
-      borderRadius: scale(16),
+    addressWrapper: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       justifyContent: 'center',
       alignItems: 'center',
       backgroundColor: Colors.successExtraLight,
     },
 
-    completedText: {
-      fontSize: normalize(14),
-      color: Colors.success,
+    storeName: {
       fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+      textTransform: 'capitalize',
+    },
+
+    address: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+      textTransform: 'capitalize',
+    },
+
+    customerAddress: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
+      textTransform: 'capitalize',
+    },
+
+    city: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    coordinates: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
+
+    chatRow: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
     },
 
     metaGrid: {
-      gap: scale(14),
+      gap: 12,
     },
 
     metaItem: {
       flex: 1,
+      gap: 2,
     },
 
     metaLabel: {
-      fontSize: normalize(11),
-      color: Colors.textMuted,
       fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
     metaValue: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.text,
-    },
-
-    statusBadge: {
-      alignSelf: 'flex-start',
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: scale(8),
-      paddingHorizontal: scale(8),
-      paddingVertical: scale(4),
-      borderRadius: scale(999),
-    },
-
-    coordinates: {
-      marginTop: scale(4),
-      fontSize: normalize(11),
-      color: Colors.textMuted,
-    },
-
-    infoRow: {
-      paddingVertical: scale(8),
-    },
-
-    infoLabel: {
-      color: Colors.textMuted,
       fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
-    infoValue: {
-      flex: 1,
-
-      fontFamily: Fonts.brandSemiBold,
+    // Sticky footer with the delivery actions
+    footer: {
+      paddingHorizontal: Spacing.three,
+      paddingTop: 12,
+      paddingBottom: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: Colors.border,
+      backgroundColor: Colors.background,
     },
 
-    iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: scale(16),
-    },
-
-    addressWrapper: {
-      width: scale(56),
-      height: scale(56),
-      borderRadius: scale(36),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    mockMapBackground: {
-      flex: 1,
-      position: 'relative',
-    },
-    mapDot: {
-      width: scale(12),
-      height: scale(12),
-      borderRadius: scale(6),
-      position: 'absolute',
-    },
-    pickupDot: {
-      backgroundColor: '#10B981',
-    },
-    dropoffDot: {
-      backgroundColor: '#F59E0B',
-    },
-    pulseInner: {
-      flex: 1,
-      borderRadius: 99,
-      backgroundColor: 'rgba(16, 185, 129, 0.4)',
-      transform: [{ scale: 1.8 }],
-    },
-    mapLabel: {
-      position: 'absolute',
-      fontSize: normalize(11),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#1E293B',
-      backgroundColor: '#FFFFFF',
-      paddingHorizontal: scale(6),
-      paddingVertical: scale(2),
-      borderRadius: scale(6),
-    },
-    routeLinePlaceholder: {
-      position: 'absolute',
-      top: '40%',
-      left: '20%',
-      right: '20%',
-      height: scale(3),
-      borderStyle: 'dashed',
-      borderWidth: 1.5,
-      borderColor: '#F59E0B',
-    },
-    agentMarker: {
-      position: 'absolute',
-      width: scale(28),
-      height: scale(28),
-      borderRadius: scale(14),
-      backgroundColor: Colors.text,
-      justifyContent: 'center',
-      alignItems: 'center',
-      transform: [{ rotate: '45deg' }],
-    },
-    etaContainer: {
-      position: 'absolute',
-      bottom: scale(12),
-      right: scale(12),
-      backgroundColor: '#FFFFFF',
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(6),
-      borderRadius: scale(12),
-      elevation: 2,
-    },
-
-    progressCard: {
-      borderRadius: scale(16),
-
-      borderWidth: 1,
-      borderColor: Colors.border,
-    },
-
-    progressHeader: {
+    footerRow: {
       flexDirection: 'row',
-      alignItems: 'center',
-      marginBottom: scale(16),
-      gap: scale(8),
-      borderBottomWidth: 1,
-      borderBottomColor: Colors.border,
-      padding: scale(16),
-    },
-
-    progressTitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    timelineItem: {
-      flexDirection: 'row',
-    },
-
-    timelineIndicator: {
-      alignItems: 'center',
-      marginRight: scale(12),
-    },
-
-    timelineCircle: {
-      width: scale(24),
-      height: scale(24),
-      borderRadius: scale(12),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-
-    activeDot: {
-      width: scale(10),
-      height: scale(10),
-      borderRadius: scale(5),
-    },
-
-    timelineLine: {
-      width: scale(2),
-      minHeight: scale(40),
-      marginTop: scale(4),
-      flex: 1,
-    },
-
-    timelineContent: {
-      flex: 1,
-      paddingBottom: scale(20),
-    },
-
-    timelineTitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    timelineSubtitle: {
-      marginTop: scale(2),
-      fontSize: normalize(12),
-      color: Colors.textSecondary,
-      fontFamily: Fonts.brandRegular,
-    },
-
-    detailsCard: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: scale(16),
-      padding: scale(16),
-      borderWidth: 1,
-      borderColor: '#EDF2F7',
-    },
-    customerHeaderRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: scale(12),
-    },
-    metaLabelText: {
-      fontSize: normalize(12),
-      color: '#718096',
-      fontFamily: Fonts.brandRegular,
-    },
-    customerNameText: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#1A202C',
-      marginTop: scale(2),
-    },
-    phoneButton: {
-      width: scale(40),
-      height: scale(40),
-      borderRadius: scale(12),
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    addressesContainerRow: {
-      flexDirection: 'row',
-      gap: scale(10),
-    },
-    addressBlock: {
-      flex: 1,
-      padding: scale(12),
-      borderRadius: scale(12),
-    },
-    addressTypeLabel: {
-      fontSize: normalize(11),
-      color: '#A0AEC0',
-      fontFamily: Fonts.brandMedium,
-      marginBottom: scale(4),
-    },
-    addressValueText: {
-      fontSize: normalize(13),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#2D3748',
-    },
-    itemsEarningsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    itemsValueText: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-      color: '#1A202C',
-      marginTop: scale(2),
-    },
-    earningValueText: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandSemiBold,
-      marginTop: scale(2),
-    },
-    actionRowContainer: {
-      flexDirection: 'row',
-      gap: scale(12),
-      marginTop: scale(4),
-    },
-    actionBtnBase: {
-      flex: 1,
-      flexDirection: 'row',
-      height: scale(48),
-      borderRadius: scale(14),
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: scale(6),
-    },
-    navigateBtn: {
-      backgroundColor: '#1A202C',
-    },
-    navigateBtnText: {
-      color: '#FFFFFF',
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-    },
-    completeBtnText: {
-      color: '#FFFFFF',
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    status: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandSemiBold,
-      color: Colors.textSecondary,
-    },
-    bottomCard: {
-      backgroundColor: '#FFFFFF',
-      borderRadius: scale(16),
-      padding: scale(16),
-      borderWidth: 1,
-      borderColor: '#EDF2F7',
-    },
-
-    bigTitle: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandSemiBold,
-      marginBottom: scale(8),
+      gap: 12,
     },
   });

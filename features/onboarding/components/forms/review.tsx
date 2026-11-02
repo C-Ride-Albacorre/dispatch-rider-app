@@ -1,14 +1,14 @@
-import UploadField from '@/components/ui/input/upload-field';
-import { Fonts } from '@/constants/theme';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-
+import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
+import UploadField from '@/components/ui/input/upload-field';
+import { Fonts, Spacing } from '@/constants/theme';
+import StepCard, { StepActions, stepActionStyles } from '@/features/onboarding/components/step-card';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as DocumentPicker from 'expo-document-picker';
 import { Link } from 'expo-router';
+import { useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export default function Review({
   goToStep,
@@ -41,221 +41,158 @@ export default function Review({
   const styles = createStyles(Colors);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.textContainer}>
-        <View style={styles.iconContainer}>
-          <Ionicons
-            name="checkmark-circle-outline"
-            size={24}
-            color={Colors.primary}
-          />
-        </View>
-
-        <View style={styles.mainTextContainer}>
-          <Text style={styles.mainText}>Review Your Information</Text>
-          <Text style={styles.subText}>
-            Ensure all your details are correct before submission
-          </Text>
-        </View>
-      </View>
-
+    <StepCard
+      icon="checkmark-circle-outline"
+      title="Review Your Information"
+      subtitle="Ensure all your details are correct before submission"
+    >
       <View style={styles.form}>
-        <View>
-          <View style={styles.textContainer}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
             <Ionicons name="person-outline" size={16} color={Colors.primary} />
 
-            <Text style={styles.largeMainText}>Personal Information</Text>
+            <ThemedText style={styles.sectionTitle}>Personal Information</ThemedText>
           </View>
 
-          <View style={styles.reviewItemsContainer}>
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Full Name</Text>
-              <Text style={styles.itemSubText}>Dele Akinrinde</Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Full Name</ThemedText>
+            <ThemedText style={styles.itemSubText}>Dele Akinrinde</ThemedText>
+          </View>
 
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Phone</Text>
-              <Text style={styles.itemSubText}>+234 812 345 6789</Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Phone</ThemedText>
+            <ThemedText style={styles.itemSubText}>+234 812 345 6789</ThemedText>
+          </View>
 
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Email</Text>
-              <Text style={styles.itemSubText}>dele.akinrinde@example.com</Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Email</ThemedText>
+            <ThemedText style={styles.itemSubText}>dele.akinrinde@example.com</ThemedText>
+          </View>
 
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Address</Text>
-              <Text style={styles.itemSubText}>
-                123 Main Street, Lagos, Nigeria
-              </Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Address</ThemedText>
+            <ThemedText style={styles.itemSubText}>
+              123 Main Street, Lagos, Nigeria
+            </ThemedText>
           </View>
         </View>
 
-        <View>
-          <View style={styles.textContainer}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
             <Ionicons name="car-outline" size={16} color={Colors.primary} />
 
-            <Text style={styles.largeMainText}>Vehicle Information</Text>
+            <ThemedText style={styles.sectionTitle}>Vehicle Information</ThemedText>
           </View>
 
-          <View style={styles.reviewItemsContainer}>
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Vehicle Type</Text>
-              <Text style={styles.itemSubText}>Sedan</Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Vehicle Type</ThemedText>
+            <ThemedText style={styles.itemSubText}>Sedan</ThemedText>
+          </View>
 
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>License Plate</Text>
-              <Text style={styles.itemSubText}>ABC-1234</Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">License Plate</ThemedText>
+            <ThemedText style={styles.itemSubText}>ABC-1234</ThemedText>
+          </View>
 
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Make & Model</Text>
-              <Text style={styles.itemSubText}>Toyota Corolla</Text>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Make & Model</ThemedText>
+            <ThemedText style={styles.itemSubText}>Toyota Corolla</ThemedText>
           </View>
         </View>
 
-        <View>
-          <View style={styles.textContainer}>
-            <Ionicons
-              name="document-outline"
-              size={16}
-              color={Colors.primary}
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="document-outline" size={16} color={Colors.primary} />
+
+            <ThemedText style={styles.sectionTitle}>Uploaded Documents</ThemedText>
+          </View>
+
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Driver's License</ThemedText>
+            <UploadField
+              onPress={() => pickDocument(setLicense)}
+              fileName={license || undefined}
             />
-
-            <Text style={styles.largeMainText}>Uploaded Documents</Text>
           </View>
 
-          <View style={styles.reviewItemsContainer}>
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Driver's License</Text>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Vehicle Insurance</ThemedText>
+            <UploadField
+              onPress={() => pickDocument(setInsurance)}
+              fileName={insurance || undefined}
+            />
+          </View>
 
-              <View style={styles.document}>
-                <UploadField
-                  onPress={() => pickDocument(setLicense)}
-                  fileName={license || undefined}
-                />
-              </View>
-            </View>
-
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Vehicle Insurance</Text>
-
-              <View style={styles.document}>
-                <UploadField
-                  onPress={() => pickDocument(setInsurance)}
-                  fileName={insurance || undefined}
-                />
-              </View>
-            </View>
-
-            <View style={styles.reviewItems}>
-              <Text style={styles.itemTitle}>Vehicle Registration</Text>
-
-              <View style={styles.document}>
-                <UploadField
-                  onPress={() => pickDocument(setRegistration)}
-                  fileName={registration || undefined}
-                />
-              </View>
-            </View>
+          <View style={styles.reviewItem}>
+            <ThemedText style={styles.itemTitle} themeColor="textMuted">Vehicle Registration</ThemedText>
+            <UploadField
+              onPress={() => pickDocument(setRegistration)}
+              fileName={registration || undefined}
+            />
           </View>
         </View>
 
-        <View style={styles.buttonContainer}>
-          <Button onPress={handlePreviousStep} variant="outline">
+        <StepActions>
+          <Button
+            size="lg"
+            onPress={handlePreviousStep}
+            variant="outline"
+            style={stepActionStyles.button}
+          >
             Previous
           </Button>
 
           <Link href={'/home'} asChild>
-            <Button>Continue</Button>
+            <Button size="lg" style={stepActionStyles.button}>
+              Continue
+            </Button>
           </Link>
-        </View>
+        </StepActions>
       </View>
-    </View>
+    </StepCard>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
+    form: {
+      gap: Spacing.three,
+    },
+
+    section: {
+      backgroundColor: Colors.card,
       borderWidth: 1,
       borderColor: Colors.border,
-      borderRadius: scale(12),
-      padding: scale(20),
-      gap: scale(32),
+      borderRadius: 16,
+      padding: 14,
+      gap: 12,
     },
-    textContainer: {
+
+    sectionHeader: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: scale(16),
+      gap: Spacing.two,
     },
 
-    iconContainer: {
-      width: scale(48),
-      height: scale(48),
-      borderRadius: scale(12),
-      backgroundColor: Colors.primaryLight,
-      justifyContent: 'center',
-      alignItems: 'center',
+    sectionTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
     },
 
-    mainTextContainer: {
-      flex: 1,
-    },
-
-    mainText: {
-      fontSize: normalize(20),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-
-    subText: {
-      fontSize: normalize(16),
-      color: Colors.textSecondary,
-      fontFamily: Fonts.brandRegular,
-    },
-
-    largeMainText: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-
-    form: {
-      gap: scale(32),
-    },
-
-    reviewItemsContainer: {
-      marginTop: scale(16),
-      gap: scale(8),
-    },
-
-    reviewItems: {
-      paddingVertical: scale(12),
+    reviewItem: {
+      gap: Spacing.half,
     },
 
     itemTitle: {
-      fontSize: normalize(16),
-      fontFamily: Fonts.brandBold,
-      color: Colors.text,
-    },
-    itemSubText: {
-      fontSize: normalize(16),
       fontFamily: Fonts.brandRegular,
-      color: Colors.textSecondary,
+      fontSize: 12,
+      lineHeight: 17,
     },
 
-    document: {
-      marginTop: scale(8),
-    },
-
-    buttonContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      gap: scale(16),
+    itemSubText: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 14,
+      lineHeight: 20,
     },
   });

@@ -1,11 +1,9 @@
 import LocationPermissionModal from '@/components/layout/location-permission-modal';
-import {
-  HEADER_HEIGHT,
-  useHeaderReset,
-  useScrollHeader,
-} from '@/components/layout/scroll-header-context';
+import ScreenHeader from '@/components/layout/screen-header';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 import Button from '@/components/ui/buttons/button';
-import { Fonts } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import LoadingJobs from '@/features/jobs/components/loading-jobs';
 import NoJobs from '@/features/jobs/components/no-job';
@@ -14,13 +12,11 @@ import RenderJobHeader from '@/features/jobs/components/render-job-header';
 import { useLocation } from '@/hooks/use-location';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
-import { normalize, scale } from '@/utils/scaling';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useCallback, useState } from 'react';
-import { Image, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import Animated from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FlatList, Image, RefreshControl, StyleSheet, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { DriverStatus } from '../home';
 
@@ -50,23 +46,27 @@ export type DriverOrder = {
   created_at?: string;
 };
 
-export default function Jobs() {
-  const insets = useSafeAreaInsets();
-  const resetHeader = useHeaderReset();
-
-  useFocusEffect(
-    useCallback(() => {
-      resetHeader();
-    }, []),
+/** Tab chrome shared by every state of the Jobs screen */
+function JobsShell({
+  subtitle,
+  children,
+}: {
+  subtitle?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <ThemedView style={styles.flex}>
+      <StatusBar style="auto" />
+      <ScreenHeader title="Jobs" subtitle={subtitle} />
+      {children}
+    </ThemedView>
   );
+}
 
+export default function Jobs() {
   const router = useRouter();
 
-  const scrollHandler = useScrollHeader();
-
-  const { Colors, isDark } = useTheme();
-
-  const styles = createStyles(Colors);
+  const { Colors } = useTheme();
 
   const { data: dashboardData } = useDashboardStats();
 
@@ -89,7 +89,7 @@ export default function Jobs() {
   const socket = useDriverJobsStore((s) => s.socket);
 
   const [refreshing, setRefreshing] = useState(false);
-  
+
   const handleRefresh = useCallback(() => {
     if (!socket?.connected || !location) {
       Toast.show({
@@ -134,211 +134,156 @@ export default function Jobs() {
   // Checking permission status
   if (permissionStatus === 'checking') {
     return (
-      <View
-        style={[
-          styles.container,
-          {
-            justifyContent: 'center',
-            alignItems: 'center',
-          },
-        ]}
-      >
-        <View
-          style={[styles.iconWrapper, { backgroundColor: Colors.primaryLight }]}
-        >
-          <Ionicons
-            name="location-outline"
-            size={scale(36)}
-            color={Colors.primary}
-          />
-        </View>
+      <JobsShell subtitle="Checking location access">
+        <View style={styles.centered}>
+          <View
+            style={[
+              styles.iconWrapper,
+              { backgroundColor: Colors.primaryExtraLight },
+            ]}
+          >
+            <Ionicons name="location-outline" size={28} color={Colors.primary} />
+          </View>
 
-        <Text style={styles.loadingText}>Checking location access...</Text>
-      </View>
+          <ThemedText style={styles.loadingText} themeColor="textSecondary">
+            Checking location access...
+          </ThemedText>
+        </View>
+      </JobsShell>
     );
   }
 
   // Permission denied
   if (permissionStatus === 'denied') {
     return (
-      <View
-        style={[
-          styles.container,
-          {
-            justifyContent: 'center',
-            alignItems: 'center',
-            gap: scale(16),
-          },
-        ]}
-      >
-        <View
-          style={[styles.iconWrapper, { backgroundColor: Colors.warningLight }]}
-        >
-          <Ionicons
-            name="location-outline"
-            size={scale(36)}
-            color={Colors.warning}
+      <JobsShell subtitle="Location access needed">
+        <View style={styles.centered}>
+          <View
+            style={[styles.iconWrapper, { backgroundColor: Colors.warningLight }]}
+          >
+            <Ionicons name="location-outline" size={28} color={Colors.warning} />
+          </View>
+
+          <View style={styles.textGroup}>
+            <ThemedText style={styles.title}>Location Access Required</ThemedText>
+
+            <ThemedText style={styles.subtitle} themeColor="textSecondary">
+              C-Ride needs your location to show nearby delivery jobs. Please
+              enable location access in your device settings.
+            </ThemedText>
+          </View>
+
+          <LocationPermissionModal
+            visible={showPermissionModal}
+            onContinue={requestPermission}
           />
         </View>
-
-        <Text style={[styles.title, { textAlign: 'center' }]}>
-          Location Access Required
-        </Text>
-
-        <Text
-          style={[
-            styles.loadingText,
-            {
-              color: Colors.textSecondary,
-              textAlign: 'center',
-              fontFamily: Fonts.brandRegular,
-            },
-          ]}
-        >
-          C-Ride needs your location to show nearby delivery jobs. Please enable
-          location access in your device settings.
-        </Text>
-
-        <LocationPermissionModal
-          visible={showPermissionModal}
-          onContinue={requestPermission}
-        />
-      </View>
+      </JobsShell>
     );
   }
 
   if (driverStatus === 'OFFLINE') {
     return (
-      <View
-        style={[
-          styles.container,
-          {
-            justifyContent: 'center',
-            alignItems: 'center',
-          },
-        ]}
-      >
-        <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
-          <View style={styles.illustrationContainer}>
-            <Image
-              source={require('@/assets/images/offline.png')}
-              style={{ width: 150, height: 150 }}
-            />
-          </View>
+      <JobsShell subtitle="Go online to receive requests">
+        <View style={styles.centered}>
+          <Image
+            source={require('@/assets/images/offline.png')}
+            style={styles.illustration}
+          />
 
-          <View style={{ gap: scale(8), marginBottom: scale(16) }}>
-            <Text style={styles.title}>You are currently offline</Text>
+          <View style={styles.textGroup}>
+            <ThemedText style={styles.title}>You are currently offline</ThemedText>
 
-            <Text style={styles.subtitle}>
+            <ThemedText style={styles.subtitle} themeColor="textMuted">
               You won't be able to accept new jobs until you go online.
-            </Text>
+            </ThemedText>
           </View>
         </View>
-      </View>
+      </JobsShell>
     );
   }
 
   // BUSY state
   if (isBusy) {
     return (
-      <>
+      <JobsShell subtitle="You're on a delivery">
         <LocationPermissionModal
           visible={showPermissionModal}
           onContinue={requestPermission}
         />
 
-        <View
-          style={[
-            styles.container,
-            {
-              justifyContent: 'center',
-              alignItems: 'center',
-            },
-          ]}
-        >
-          <View style={{ gap: scale(12), alignItems: 'center', width: '100%' }}>
-            <View
-              style={[
-                styles.iconWrapper,
-                {
-                  backgroundColor: Colors.warningLight,
-                },
-              ]}
-            >
-              <Ionicons
-                name="briefcase-outline"
-                size={scale(36)}
-                color={Colors.warning}
-              />
-            </View>
-
-            <View style={{ gap: scale(8), marginBottom: scale(16) }}>
-              <Text style={styles.title}>You currently have an active job</Text>
-
-              <Text style={styles.subtitle}>
-                Complete your current delivery before accepting new jobs.
-              </Text>
-            </View>
-
-            <Button
-              variant="green"
-              style={{
-                width: '100%',
-              }}
-              onPress={() => router.push('/(app)/(protected)/(tabs)/active')}
-              rightIcon={
-                <Ionicons
-                  name="chevron-forward-outline"
-                  size={16}
-                  color={isDark ? Colors.text : Colors.background}
-                />
-              }
-              // onPress={() => {
-              //   router.push('/active-order');
-              // }}
-            >
-              View Active Job
-            </Button>
+        <View style={styles.centered}>
+          <View
+            style={[styles.iconWrapper, { backgroundColor: Colors.warningLight }]}
+          >
+            <Ionicons
+              name="briefcase-outline"
+              size={28}
+              color={Colors.warning}
+            />
           </View>
+
+          <View style={styles.textGroup}>
+            <ThemedText style={styles.title}>
+              You currently have an active job
+            </ThemedText>
+
+            <ThemedText style={styles.subtitle} themeColor="textMuted">
+              Complete your current delivery before accepting new jobs.
+            </ThemedText>
+          </View>
+
+          <Button
+            variant="green"
+            size="lg"
+            style={styles.cta}
+            onPress={() => router.push('/(app)/(protected)/(tabs)/active')}
+            rightIcon={
+              <Ionicons
+                name="chevron-forward-outline"
+                size={16}
+                color={Colors.white}
+              />
+            }
+            // onPress={() => {
+            //   router.push('/active-order');
+            // }}
+          >
+            View Active Job
+          </Button>
         </View>
-      </>
+      </JobsShell>
     );
   }
 
   // Loading state
   if (locationLoading) {
     return (
-      <>
+      <JobsShell subtitle="Finding requests near you">
         <LocationPermissionModal
           visible={showPermissionModal}
           onContinue={requestPermission}
         />
 
         <LoadingJobs />
-      </>
+      </JobsShell>
     );
   }
 
   return (
-    <>
+    <JobsShell subtitle="Delivery requests near you">
       <LocationPermissionModal
         visible={showPermissionModal}
         onContinue={requestPermission}
       />
 
-      <Animated.FlatList
+      <FlatList
         data={jobs}
         renderItem={renderItem}
         keyExtractor={(item) => item.order_id}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{
-          paddingTop: HEADER_HEIGHT + insets.top + scale(12),
-          paddingBottom: scale(32),
-          paddingHorizontal: scale(12),
-        }}
-        ItemSeparatorComponent={() => <View style={{ height: scale(14) }} />}
+        contentContainerStyle={styles.list}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
         ListHeaderComponent={renderListHeader}
         ListEmptyComponent={renderEmptyState}
         refreshControl={
@@ -347,53 +292,80 @@ export default function Jobs() {
             onRefresh={handleRefresh}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
-            progressViewOffset={HEADER_HEIGHT + insets.top}
           />
         }
       />
-    </>
+    </JobsShell>
   );
 }
 
-const createStyles = (Colors: any) =>
-  StyleSheet.create({
-    container: {
-      flex: 1,
-      paddingHorizontal: scale(12),
-      paddingVertical: scale(24),
-      backgroundColor: Colors.background,
-      gap: scale(16),
-    },
+const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
 
-    illustrationContainer: {
-      alignItems: 'center',
-      marginBottom: scale(30),
-    },
+  list: {
+    flexGrow: 1,
+    paddingHorizontal: Spacing.three,
+    paddingTop: Spacing.two,
+    paddingBottom: Spacing.five,
+  },
 
-    iconWrapper: {
-      width: scale(72),
-      height: scale(72),
-      borderRadius: scale(36),
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginBottom: scale(16),
-    },
+  separator: {
+    height: 12,
+  },
 
-    title: {
-      fontSize: normalize(18),
-      fontFamily: Fonts.brandSemiBold,
-      textAlign: 'center',
-      color: Colors.text,
-    },
-    subtitle: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandRegular,
-      textAlign: 'center',
-      color: Colors.textMuted,
-    },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: Spacing.three,
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.six,
+  },
 
-    loadingText: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandMedium,
-    },
-  });
+  illustration: {
+    width: 150,
+    height: 150,
+  },
+
+  iconWrapper: {
+    width: 64,
+    height: 64,
+    borderRadius: 999,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+
+  textGroup: {
+    alignItems: 'center',
+    gap: Spacing.one,
+    paddingHorizontal: Spacing.three,
+  },
+
+  title: {
+    fontFamily: Fonts.brandSemiBold,
+    fontSize: 18,
+    lineHeight: 24,
+    letterSpacing: -0.2,
+    textAlign: 'center',
+  },
+
+  subtitle: {
+    fontFamily: Fonts.brandRegular,
+    fontSize: 14,
+    lineHeight: 20,
+    textAlign: 'center',
+  },
+
+  loadingText: {
+    fontFamily: Fonts.brandMedium,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  cta: {
+    width: '100%',
+    marginTop: Spacing.two,
+  },
+});

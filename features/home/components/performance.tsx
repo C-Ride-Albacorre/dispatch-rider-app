@@ -1,328 +1,240 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+
+type IconName = keyof typeof Ionicons.glyphMap;
 
 export default function Performance() {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
+
   return (
-    <View style={styles.performanceContainer}>
-      <View style={styles.performanceMetrics}>
-        <Text style={styles.performanceTitle}>Performance Metrics</Text>
+    <View style={styles.container}>
+      <View style={styles.section}>
+        <SectionHeader title="Performance metrics" subtitle="How customers and vendors see you" />
 
-        <View style={styles.metricsGrid}>
-          <View style={styles.metricItem}>
-            <View style={styles.ratingContainer}>
-              <Text style={styles.metricTitle}>Overall Rating</Text>
-
-              <View style={styles.ratingValue}>
-                <Ionicons name="star" size={16} color={Colors.primary} />
-                <Text style={styles.ratingText}>4.8</Text>
-              </View>
-            </View>
-
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBar}></View>
-            </View>
-          </View>
-
-          <View style={styles.metricItem}>
-            <View style={styles.ratingContainer}>
-              <Text style={styles.metricTitle}>Acceptance Rate</Text>
-
-              <Text style={styles.ratingText}>96%</Text>
-            </View>
-
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBar}></View>
-            </View>
-          </View>
-
-          <View style={styles.metricItem}>
-            <View style={styles.ratingContainer}>
-              <Text style={styles.metricTitle}>On - Time Delivery</Text>
-
-              <Text style={styles.ratingText}>98%</Text>
-            </View>
-
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBar}></View>
-            </View>
-          </View>
-
-          <View style={styles.metricItem}>
-            <View style={styles.ratingContainer}>
-              <Text style={styles.metricTitle}>Completion Rate</Text>
-
-              <Text style={styles.ratingText}>99%</Text>
-            </View>
-
-            <View style={styles.progressBarContainer}>
-              <View style={styles.progressBar}></View>
-            </View>
-          </View>
+        <View style={styles.card}>
+          <Metric label="Overall rating" value="4.8" star />
+          <Metric label="Acceptance rate" value="96%" />
+          <Metric label="On-time delivery" value="98%" />
+          <Metric label="Completion rate" value="99%" />
         </View>
       </View>
 
-      <View style={styles.reviewsContainer}>
-        <Text style={styles.reviewsTitle}>Recent Reviews</Text>
+      <View style={styles.section}>
+        <SectionHeader title="Recent reviews" subtitle="What customers said lately" />
 
-        <View style={styles.reviewCard}>
-          <View style={styles.reviewerInfo}>
-            <Text style={styles.reviewerName}>Adebayo W.</Text>
-
-            <View style={styles.reviewerRating}>
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <ThemedText style={styles.cardTitle}>Adebayo W.</ThemedText>
+            <View style={styles.inline}>
               <Ionicons name="star" size={16} color={Colors.primary} />
-
-              <Text style={styles.reviewerRatingText}>5.0</Text>
+              <ThemedText style={styles.value}>5.0</ThemedText>
             </View>
           </View>
 
-          <Text style={styles.reviewText}>
-            "Excellent service! The delivery was super fast and the rider was
-            very professional. Highly recommend!"
-          </Text>
+          <ThemedText style={styles.body} themeColor="textSecondary">
+            &quot;Excellent service! The delivery was super fast and the rider
+            was very professional. Highly recommend!&quot;
+          </ThemedText>
 
-          <Text style={styles.reviewTime}>2 hours ago</Text>
+          <ThemedText style={styles.meta} themeColor="textMuted">
+            2 hours ago
+          </ThemedText>
         </View>
       </View>
 
-      <View style={styles.weeklyStatsContainer}>
-        <Text style={styles.weeklyStatisticsTitle}>Weekly Statistics</Text>
+      <View style={styles.section}>
+        <SectionHeader title="Weekly statistics" subtitle="Your last seven days at a glance" />
 
-        <View style={styles.weeklyStatsGrid}>
-          <View
-            style={[
-              styles.weeklyStatCard,
-              { backgroundColor: Colors.primary + '1A' },
-            ]}
-          >
-            <Ionicons name="bicycle-outline" size={24} color={Colors.primary} />
-
-            <Text style={styles.weeklyStatTitle}>Deliveries</Text>
-
-            <Text style={styles.weeklyStatValue}>87</Text>
-          </View>
-
-          <View
-            style={[
-              styles.weeklyStatCard,
-              { backgroundColor: Colors.success + '1A' },
-            ]}
-          >
-            <Ionicons name="cash-outline" size={24} color={Colors.success} />
-
-            <Text style={styles.weeklyStatTitle}>Earnings</Text>
-
-            <Text style={styles.weeklyStatValue}>₦ 285,400</Text>
-          </View>
-
-          <View
-            style={[styles.weeklyStatCard, { backgroundColor: Colors.light }]}
-          >
-            <Ionicons
-              name="time-outline"
-              size={24}
-              color={Colors.textSecondary}
-            />
-
-            <Text style={styles.weeklyStatTitle}>Hours</Text>
-
-            <Text style={styles.weeklyStatValue}>42.5</Text>
-          </View>
-
-          <View
-            style={[
-              styles.weeklyStatCard,
-              { backgroundColor: Colors.primary + '1A' },
-            ]}
-          >
-            <Ionicons name="cash-outline" size={24} color={Colors.primary} />
-
-            <Text style={styles.weeklyStatTitle}>Tips</Text>
-
-            <Text style={styles.weeklyStatValue}>₦ 12,500</Text>
-          </View>
+        <View style={styles.grid}>
+          <StatTile icon="bicycle-outline" label="Deliveries" value="87" color={Colors.primary} tint={Colors.primaryExtraLight} />
+          <StatTile icon="cash-outline" label="Earnings" value="₦ 285,400" color={Colors.success} tint={Colors.successExtraLight} />
+          <StatTile icon="time-outline" label="Hours" value="42.5" color={Colors.textSecondary} tint={Colors.backgroundTertiary} />
+          <StatTile icon="cash-outline" label="Tips" value="₦ 12,500" color={Colors.primary} tint={Colors.primaryExtraLight} />
         </View>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  performanceContainer: {
-    gap: 32,
-  },
+function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-  performanceMetrics: {
-    gap: 24,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: Colors.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
+  return (
+    <View>
+      <ThemedText style={styles.sectionTitle}>{title}</ThemedText>
+      <ThemedText style={styles.sectionSubtitle} themeColor="textMuted">
+        {subtitle}
+      </ThemedText>
+    </View>
+  );
+}
 
-  performanceTitle: {
-    fontSize: 16,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
+function Metric({ label, value, star }: { label: string; value: string; star?: boolean }) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-  metricsGrid: {
-    gap: 32,
-  },
+  return (
+    <View style={styles.metric}>
+      <View style={styles.row}>
+        <ThemedText style={styles.body}>{label}</ThemedText>
+        <View style={styles.inline}>
+          {star && <Ionicons name="star" size={16} color={Colors.primary} />}
+          <ThemedText style={styles.value}>{value}</ThemedText>
+        </View>
+      </View>
 
-  metricItem: {
-    gap: 12,
-  },
+      <View style={styles.track}>
+        <View style={styles.bar} />
+      </View>
+    </View>
+  );
+}
 
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+function StatTile({
+  icon,
+  label,
+  value,
+  color,
+  tint,
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  color: string;
+  tint: string;
+}) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
-  metricTitle: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+  return (
+    <View style={[styles.tile, { backgroundColor: tint }]}>
+      <Ionicons name={icon} size={20} color={color} />
+      <ThemedText style={styles.label} themeColor="textMuted">
+        {label}
+      </ThemedText>
+      <ThemedText style={styles.tileValue}>{value}</ThemedText>
+    </View>
+  );
+}
 
-  ratingValue: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
+const createStyles = (Colors: any) =>
+  StyleSheet.create({
+    container: {
+      gap: Spacing.four,
+    },
 
-  ratingText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
-  progressBarContainer: {
-    height: 6,
-    backgroundColor: Colors.inputBackground,
-    borderRadius: 3,
-    marginTop: 8,
-  },
+    section: {
+      gap: Spacing.three,
+    },
 
-  progressBar: {
-    height: 6,
-    backgroundColor: Colors.primary,
-    borderRadius: 3,
-    width: '80%',
-  },
+    sectionTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 18,
+      lineHeight: 24,
+      letterSpacing: -0.2,
+    },
 
-  reviewsContainer: {
-    gap: 24,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: Colors.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
+    sectionSubtitle: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 18,
+    },
 
-  reviewsTitle: {
-    fontSize: 16,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
+    card: {
+      gap: Spacing.three,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.card,
+      overflow: 'hidden',
+    },
 
-  reviewCard: {
-    gap: 24,
-  },
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: Spacing.two,
+    },
 
-  reviewerInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
+    inline: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.one,
+    },
 
-  reviewerName: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    metric: {
+      gap: Spacing.two,
+    },
 
-  reviewerRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
+    cardTitle: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 15,
+      lineHeight: 20,
+    },
 
-  reviewerRatingText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.primary,
-  },
+    body: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 14,
+      lineHeight: 20,
+    },
 
-  reviewText: {
-    fontSize: 14,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.text,
-    letterSpacing: 0.25,
-    lineHeight: 24,
-  },
+    value: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 14,
+      lineHeight: 20,
+    },
 
-  reviewTime: {
-    fontSize: 12,
-    fontFamily: Fonts.brandRegular,
-    color: Colors.textSecondary,
-  },
+    meta: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 17,
+    },
 
-  weeklyStatsContainer: {
-    gap: 24,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 14,
-    padding: 16,
-    backgroundColor: Colors.background,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 3,
-  },
+    track: {
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.backgroundTertiary,
+    },
 
-  weeklyStatisticsTitle: {
-    fontSize: 16,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
+    bar: {
+      height: 4,
+      borderRadius: 2,
+      width: '80%',
+      backgroundColor: Colors.primary,
+    },
 
-  weeklyStatsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-    gap: 8,
-  },
+    grid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      rowGap: Spacing.two,
+    },
 
-  weeklyStatCard: {
-    width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    gap: 12,
-  },
+    tile: {
+      width: '48.5%',
+      gap: Spacing.one,
+      padding: 14,
+      borderRadius: 16,
+    },
 
-  weeklyStatTitle: {
-    fontSize: 14,
-    fontFamily: Fonts.brandMedium,
-    color: Colors.text,
-  },
+    label: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 11,
+      lineHeight: 16,
+      letterSpacing: 1.2,
+      textTransform: 'uppercase',
+      marginTop: Spacing.one,
+    },
 
-  weeklyStatValue: {
-    fontSize: 18,
-    fontFamily: Fonts.brandSemiBold,
-    color: Colors.text,
-  },
-});
+    tileValue: {
+      fontFamily: Fonts.brandBold,
+      fontSize: 18,
+      lineHeight: 24,
+    },
+  });

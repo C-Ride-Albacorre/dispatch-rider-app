@@ -1,5 +1,4 @@
 import { useTheme } from "@/hooks/use-theme";
-import { scale } from "@/utils/scaling";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from "react-native-reanimated";
@@ -62,28 +61,30 @@ export default function StatusDot({ active }: { active: boolean }) {
       />
     </View>
   );
-}const createStyles = (Colors: any) =>
+}
+
+const createStyles = (Colors: any) =>
   StyleSheet.create({
     container: {
-      width: scale(20),
-      height: scale(20),
+      width: 20,
+      height: 20,
       justifyContent: "center",
       alignItems: "center",
     },
 
     dot: {
-      width: scale(8),
-      height: scale(8),
-      borderRadius: scale(4),
+      width: 8,
+      height: 8,
+      borderRadius: 4,
       position: "absolute",
       zIndex: 2,
     },
 
     ring: {
       position: "absolute",
-      width: scale(8),
-      height: scale(8),
-      borderRadius: scale(999),
+      width: 8,
+      height: 8,
+      borderRadius: 999,
       borderWidth: 2,
       opacity: 0.6,
     },
