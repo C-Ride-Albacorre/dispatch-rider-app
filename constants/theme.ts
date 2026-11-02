@@ -1,149 +1,130 @@
+/**
+ * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
+ * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ */
 
+import { Platform } from 'react-native';
 
-export const Colors = {
-  // Brand
-  primary: '#D4AF37',
-  primaryLight: '#D4AF3733',
+export const ColorScheme = {
+  light: {
+    // Brand
+    primary: '#D4AF37',
+    // Text and icons drawn on primary
+    onPrimary: '#1A1A1A',
+    primaryLight: '#D4AF3733',
+    primaryExtraLight: '#D4AF371A',
 
-  // Backgrounds
-  background: '#FFFFFF',
-  backgroundSecondary: '#F8F9FA',
-  backgroundTertiary: '#F1F3F5',
+    // Backgrounds
+    background: '#FFFFFF',
+    backgroundElement: '#F0F0F0',
+    backgroundSelected: '#D4AF37',
+    backgroundSecondary: '#F8F9FA',
+    backgroundTertiary: '#F1F3F5',
 
-  // Text
-  text: '#1A1A1A',
-  textSecondary: '#555555',
-  textMuted: '#8A8A8A',
+    // Text
+    text: '#1A1A1A',
+    textSecondary: '#555555',
+    textMuted: '#8A8A8A',
 
-  // UI
-  border: '#E8E8E8',
-  inputBackground: '#F5F6FA',
-  card: '#FFFFFF',
+    // UI
+    border: '#E8E8E8',
+    inputBackground: '#F5F6FA',
+    card: '#FFFFFF',
 
-  // Status
-  success: '#10B981',
-  successLight: '#10B98133',
-  successExtraLight: '#10B9811A',
+    // Status
+    success: '#10B981',
+    successLight: '#10B98133',
+    successExtraLight: '#10B9811A',
 
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
+    error: '#EF4444',
+    errorLight: '#FEF2F2',
 
-  warning: '#FFA500',
-  warningLight: '#FFF4E5',
+    warning: '#FFA500',
+    warningLight: '#FFF4E5',
 
-  info: '#17A2B8',
-  infoLight: '#D6F4F8',
+    info: '#17A2B8',
+    infoLight: '#D6F4F8',
 
-  // Misc
-  shadow: 'rgba(0,0,0,0.08)',
-  overlay: 'rgba(0,0,0,0.4)',
+    // Misc
+    shadow: 'rgba(0,0,0,0.08)',
+    overlay: 'rgba(0,0,0,0.4)',
+    glass: 'rgba(255,255,255,0.06)',
+    glassBorder: 'rgba(255,255,255,0.14)',
 
-  // Neutral
-  dark: '#2C3E50',
-  light: '#ECF0F1',
-  white: '#FFFFFF',
-  black: '#000000',
+    // Neutral
+    dark: '#2C3E50',
+    light: '#ECF0F1',
+    white: '#FFFFFF',
+    black: '#000000',
 
-  googleBlue: '#4285F4',
-};
+    googleBlue: '#4285F4',
+  },
+  dark: {
+    // Brand
+    primary: '#E2B93B',
+    // Text and icons drawn on primary
+    onPrimary: '#1A1A1A',
+    primaryLight: '#E2B93B33',
+    primaryExtraLight: '#E2B93B1A',
 
-export const LightColors = {
-  // Brand
-  primary: '#D4AF37',
-  primaryLight: '#D4AF3733',
+    // Backgrounds
+    background: '#0F1115',
+    backgroundElement: '#1A1F2E',
+    backgroundSelected: '#E2B93B',
+    backgroundSecondary: '#161A20',
+    backgroundTertiary: '#1D222A',
 
-  // Backgrounds
-  background: '#FFFFFF',
-  backgroundSecondary: '#F8F9FA',
-  backgroundTertiary: '#F1F3F5',
+    // Text
+    text: '#F5F5F5',
+    textSecondary: '#B8BCC4',
+    textMuted: '#858B96',
 
-  // Text
-  text: '#1A1A1A',
-  textSecondary: '#555555',
-  textMuted: '#8A8A8A',
+    // UI
+    border: '#292E37',
+    inputBackground: '#191E26',
+    card: '#151922',
 
-  // UI
-  border: '#E8E8E8',
-  inputBackground: '#F5F6FA',
-  card: '#FFFFFF',
+    // Status
+    success: '#34D399',
+    successLight: '#063B2D',
+    successExtraLight: '#062A22',
 
-  // Status
-  success: '#10B981',
-  successLight: '#10B98133',
-  successExtraLight: '#10B9811A',
+    error: '#F87171',
+    errorLight: '#3B1719',
+    errorExtraLight: '#291113',
 
-  error: '#EF4444',
-  errorLight: '#FEF2F2',
+    warning: '#FBBF24',
+    warningLight: '#3A2C0A',
+    warningExtraLight: '#292007',
 
-  warning: '#FFA500',
-  warningLight: '#FFF4E5',
+    info: '#38BDF8',
+    infoLight: '#082F49',
+    infoExtraLight: '#061F30',
 
-  info: '#17A2B8',
-  infoLight: '#D6F4F8',
+    // Misc
+    shadow: 'rgba(0,0,0,0.5)',
+    overlay: 'rgba(0,0,0,0.7)',
+    glass: 'rgba(255,255,255,0.06)',
+    glassBorder: 'rgba(255,255,255,0.1)',
 
-  // Misc
-  shadow: 'rgba(0,0,0,0.08)',
-  overlay: 'rgba(0,0,0,0.4)',
+    // Neutral
+    dark: '#0B0F14',
+    light: '#E5E7EB',
+    white: '#FFFFFF',
+    black: '#000000',
 
-  // Neutral
-  dark: '#2C3E50',
-  light: '#ECF0F1',
-  white: '#FFFFFF',
-  black: '#000000',
+    googleBlue: '#4285F4',
+  },
+} as const;
 
-  googleBlue: '#4285F4',
-};
+export const LightColors = ColorScheme.light;
+export const DarkColors = ColorScheme.dark;
 
-export const DarkColors = {
+/** Light palette, for module-level styles that can't read the theme */
+export const Colors = ColorScheme.light;
 
-  // Brand
-  primary: '#E2B93B',
-  primaryLight: '#E2B93B33',
-
-  // Backgrounds
-  background: '#0F1115',
-  backgroundSecondary: '#161A20',
-  backgroundTertiary: '#1D222A',
-
-  // Text
-  text: '#F5F5F5',
-  textSecondary: '#B8BCC4',
-  textMuted: '#858B96',
-
-  // UI
-  border: '#292E37',
-  inputBackground: '#191E26',
-  card: '#151922',
-
-  // Status
-  success: '#34D399',
-  successLight: '#063B2D',
-  successExtraLight: '#062A22',
-
-  error: '#F87171',
-  errorLight: '#3B1719',
-  errorExtraLight: '#291113',
-
-  warning: '#FBBF24',
-  warningLight: '#3A2C0A',
-  warningExtraLight: '#292007',
-
-  info: '#38BDF8',
-  infoLight: '#082F49',
-  infoExtraLight: '#061F30',
-
-  // Misc
-  shadow: 'rgba(0,0,0,0.5)',
-  overlay: 'rgba(0,0,0,0.7)',
-
-  // Neutral
-  dark: '#0B0F14',
-  light: '#E5E7EB',
-  white: '#FFFFFF',
-  black: '#000000',
-
-  googleBlue: '#4285F4',
-};
+export type ThemeColor = keyof typeof ColorScheme.light &
+  keyof typeof ColorScheme.dark;
 
 export const Fonts = {
   brand: 'Poppins',
@@ -152,3 +133,16 @@ export const Fonts = {
   brandSemiBold: 'Poppins_600SemiBold',
   brandBold: 'Poppins_700Bold',
 };
+
+export const Spacing = {
+  half: 2,
+  one: 4,
+  two: 8,
+  three: 16,
+  four: 24,
+  five: 32,
+  six: 64,
+} as const;
+
+export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
+export const MaxContentWidth = 800;

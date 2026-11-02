@@ -101,13 +101,7 @@ export default function DeliveryDetailsModal({
               )}
             </View>
 
-            <IconButton variant="outline" onPress={onClose}>
-              <Ionicons
-                name="close"
-                size={scale(20)}
-                color={Colors.textSecondary}
-              />
-            </IconButton>
+            <IconButton icon="close" size="md" variant="soft" onPress={onClose} accessibilityLabel="Close" />
           </View>
         </View>
 

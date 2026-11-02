@@ -1,154 +1,196 @@
-import { Colors, Fonts } from '@/constants/theme';
+import { Fonts } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
+import { Ionicons } from '@expo/vector-icons';
+
 import {
   ActivityIndicator,
+  Pressable,
+  StyleProp,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
 
+type IconName = keyof typeof Ionicons.glyphMap;
+
 type IconButtonProps = {
-  children: React.ReactNode;
-  variant?: 'primary' | 'outline' | 'outlineSecondary' | 'outlineTertiary';
+  icon: IconName;
+  variant?:
+    | 'primary'
+    | 'secondary'
+    | 'soft'
+    | 'glass'
+    | 'inverted'
+    | 'ghost'
+    | 'red'
+    | 'redSecondary';
   size?: 'sm' | 'md' | 'lg';
-  borderRadius?: 'sm' | 'md' | 'lg' | 'full';
-  notificationCount?: number;
+  iconSize?: number;
   disabled?: boolean;
   loading?: boolean;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel?: string;
+  /** Red count badge on the corner, e.g. unread notifications */
+  notificationCount?: number;
 };
 
 export default function IconButton({
-  children,
-  variant = 'primary',
-  size = 'md',
-  borderRadius = 'full',
+  icon,
+  variant = 'soft',
+  size = 'sm',
+  iconSize,
   disabled,
   loading,
   onPress,
   style,
+  accessibilityLabel,
   notificationCount,
 }: IconButtonProps) {
-  const { Colors } = useTheme();
+  const { Colors, isDark } = useTheme();
 
-  // Variant dependent background and border tokens
-  const variantStyles = {
+  const variantStyles: Record<NonNullable<IconButtonProps['variant']>, ViewStyle> = {
     primary: {
       backgroundColor: Colors.primary,
     },
-    outline: {
-      borderWidth: 0,
-      backgroundColor: 'transparent',
-    },
-    outlineSecondary: {
-      borderWidth: 1,
-      borderColor: Colors.border,
-      backgroundColor: Colors.backgroundTertiary,
+
+    secondary: {
+      backgroundColor: Colors.backgroundSecondary,
     },
 
-    outlineTertiary: {
-      borderWidth: 0,
-      backgroundColor: Colors.backgroundTertiary,
+    soft: {
+      backgroundColor: Colors.inputBackground,
+    },
+
+    glass: {
+      backgroundColor: Colors.glass,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.glassBorder,
+    },
+
+    inverted: {
+      backgroundColor: Colors.text,
+    },
+
+    ghost: {
+      backgroundColor: 'transparent',
+    },
+
+    red: {
+      backgroundColor: Colors.error,
+    },
+
+    redSecondary: {
+      backgroundColor: isDark ? Colors.errorLight : Colors.error + '1A',
     },
   };
 
-  const loaderColor = variant === 'primary' ? Colors.white : Colors.primary;
+  const iconColors: Record<NonNullable<IconButtonProps['variant']>, string> = {
+    primary: Colors.onPrimary,
+    secondary: Colors.textSecondary,
+    soft: Colors.text,
+    glass: Colors.white,
+    inverted: Colors.background,
+    ghost: Colors.text,
+    red: Colors.white,
+    redSecondary: Colors.error,
+  };
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.base,
-        variantStyles[variant],
         sizeStyles[size],
-        borderRadiusStyles[borderRadius],
+        variantStyles[variant],
         disabled && styles.disabled,
+        pressed && styles.pressed,
         style,
       ]}
       onPress={onPress}
-      activeOpacity={0.85}
       disabled={disabled || loading}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
-      {notificationCount ? (
-        <View style={styles.notificationBadge}>
-          <Text style={styles.notificationText}>
+      {loading ? (
+        <ActivityIndicator size="small" color={iconColors[variant]} />
+      ) : (
+        <Ionicons
+          name={icon}
+          size={iconSize ?? iconSizes[size]}
+          color={iconColors[variant]}
+        />
+      )}
+
+      {!!notificationCount && (
+        <View style={[styles.badge, { backgroundColor: Colors.error, borderColor: Colors.card }]}>
+          <Text style={[styles.badgeText, { color: Colors.white }]}>
             {notificationCount > 99 ? '99+' : notificationCount}
           </Text>
         </View>
-      ) : null}
-
-      {loading ? (
-        <ActivityIndicator size="small" color={loaderColor} />
-      ) : (
-        children
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
+
+const iconSizes = {
+  sm: 16,
+  md: 18,
+  lg: 20,
+};
 
 const styles = StyleSheet.create({
   base: {
     alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'flex-start',
+    borderRadius: 999,
   },
+
   disabled: {
     opacity: 0.5,
   },
 
-  notificationBadge: {
+  badge: {
     position: 'absolute',
-    top: -1,
-    right: -1,
-    backgroundColor: Colors.error,
-    borderRadius: scale(50),
-    width: scale(15),
-    height: scale(15),
-
-    justifyContent: 'center',
+    top: -2,
+    right: -2,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 3,
+    borderRadius: 8,
+    borderWidth: 1.5,
     alignItems: 'center',
-    flexShrink: 0,
-    boxShadow: `0px 2px 2px ${Colors.shadow}`,
+    justifyContent: 'center',
   },
 
-  notificationText: {
-    color: 'white',
-    fontSize: normalize(8),
+  badgeText: {
     fontFamily: Fonts.brandMedium,
+    fontSize: 9,
+    lineHeight: 12,
     includeFontPadding: false,
+  },
+
+  pressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.96 }],
   },
 });
 
 const sizeStyles = StyleSheet.create({
   sm: {
-    width: scale(36),
-    height: scale(36),
-  },
-  md: {
-    width: scale(44),
-    height: scale(44),
-  },
-  lg: {
-    width: scale(52),
-    height: scale(52),
-  },
-});
-
-const borderRadiusStyles = StyleSheet.create({
-  sm: {
-    borderRadius: scale(16) / 2,
-  },
-  md: {
-    borderRadius: scale(24) / 2,
-  },
-  lg: {
-    borderRadius: scale(52) / 2,
+    width: 34,
+    height: 34,
   },
 
-  full: {
-    borderRadius: scale(50),
+  md: {
+    width: 40,
+    height: 40,
+  },
+
+  lg: {
+    width: 48,
+    height: 48,
   },
 });

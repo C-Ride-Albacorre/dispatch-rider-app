@@ -1,13 +1,13 @@
+import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { Fonts } from '@/constants/theme';
-import { normalize, scale } from '@/utils/scaling';
 
 import {
   ActivityIndicator,
+  Pressable,
+  StyleProp,
   StyleSheet,
   Text,
   TextStyle,
-  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -24,16 +24,18 @@ type ButtonProps = {
     | 'google'
     | 'green'
     | 'red'
+    | 'redSecondary'
     | 'redOutline'
-    | 'inverted';
-    
-  size?: 'sm' | 'md' | 'lg';
+    | 'inverted'
+    | 'chip'
+    | 'chipActive';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   rounded?: 'md' | 'lg' | 'full';
   disabled?: boolean;
   loading?: boolean;
   onPress?: () => void;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
 };
@@ -42,7 +44,7 @@ export default function Button({
   children,
   variant = 'primary',
   size = 'md',
-  rounded = 'md',
+  rounded = 'full',
   disabled,
   loading,
   onPress,
@@ -53,7 +55,7 @@ export default function Button({
 }: ButtonProps) {
   const { Colors, isDark } = useTheme();
 
-  const variantStyles = {
+  const variantStyles: Record<NonNullable<ButtonProps['variant']>, ViewStyle> = {
     primary: {
       backgroundColor: Colors.primary,
     },
@@ -94,6 +96,10 @@ export default function Button({
       backgroundColor: Colors.error,
     },
 
+       redSecondary: {
+      backgroundColor: isDark ? Colors.errorLight : Colors.error + '1A',
+    },
+
     redOutline: {
       borderWidth: 1,
       borderColor: Colors.error,
@@ -103,82 +109,72 @@ export default function Button({
     inverted: {
       backgroundColor: Colors.text,
     },
+
+    chip: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.border,
+      backgroundColor: Colors.inputBackground,
+    },
+
+    chipActive: {
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.primary,
+      backgroundColor: Colors.primary,
+    },
   };
 
-  const textVariantStyles = {
-    primary: {
-      color: isDark ? '#1A1A1A' : Colors.text,
-    },
-
-    text: {
-      color: Colors.primary,
-    },
-
-    outline: {
-      color: Colors.text,
-    },
-
-    ghost: {
-      color: Colors.primary,
-    },
-
-    white: {
-      color: Colors.black,
-    },
-
-    whiteOutline: {
-      color: Colors.white,
-    },
-
-    google: {
-      color: Colors.white,
-    },
-
-    green: {
-      color: Colors.white,
-    },
-
-    red: {
-      color: Colors.white,
-    },
-
-    redOutline: {
-      color: Colors.error,
-    },
-
-    inverted: {
-      color: Colors.background,
-    },
+  const textColors: Record<NonNullable<ButtonProps['variant']>, string> = {
+    primary: Colors.onPrimary,
+    text: Colors.primary,
+    outline: Colors.text,
+    ghost: Colors.primary,
+    white: Colors.black,
+    whiteOutline: Colors.white,
+    google: Colors.white,
+    green: Colors.white,
+    red: Colors.white,
+    redSecondary: Colors.error,
+    redOutline: Colors.error,
+    inverted: Colors.background,
+    chip: Colors.textSecondary,
+    chipActive: Colors.onPrimary,
   };
 
   return (
-    <TouchableOpacity
-      style={[
+    <Pressable
+      style={({ pressed }) => [
         styles.base,
         variantStyles[variant],
         sizeStyles[size],
         roundedStyles[rounded],
         disabled && styles.disabled,
+        pressed && styles.pressed,
         style,
       ]}
       onPress={onPress}
-      activeOpacity={0.85}
       disabled={disabled || loading}
     >
       {loading ? (
-        <ActivityIndicator color={Colors.white} />
+        <ActivityIndicator color={textColors[variant]} />
       ) : (
-        <View style={styles.content}>
-          {leftIcon && <View style={styles.iconLeft}>{leftIcon}</View>}
+        <View style={[styles.content, contentGapStyles[size]]}>
+          {leftIcon}
 
-          <Text style={[styles.text, textVariantStyles[variant], textStyle]}>
+          <Text
+            style={[
+              styles.text,
+              textSizeStyles[size],
+              { color: textColors[variant] },
+              textStyle,
+            ]}
+          >
             {children}
           </Text>
 
-          {rightIcon && <View style={styles.iconRight}>{rightIcon}</View>}
+          {rightIcon}
         </View>
       )}
-    </TouchableOpacity>
+    </Pressable>
   );
 }
 
@@ -195,47 +191,89 @@ const styles = StyleSheet.create({
   },
 
   text: {
-    fontFamily: Fonts.brandMedium,
-    fontSize: normalize(13),
-  },
-
-  iconLeft: {
-    marginRight: scale(8),
-  },
-
-  iconRight: {
-    marginLeft: scale(8),
+    fontFamily: Fonts.brandSemiBold,
   },
 
   disabled: {
     opacity: 0.5,
   },
+
+  pressed: {
+    opacity: 0.88,
+    transform: [{ scale: 0.98 }],
+  },
 });
 
 const sizeStyles = StyleSheet.create({
+  xs: {
+    height: 34,
+    paddingHorizontal: Spacing.three,
+  },
+
   sm: {
-    paddingVertical: scale(10),
-    paddingHorizontal: scale(14),
+    height: 44,
+    paddingHorizontal: Spacing.three,
   },
 
   md: {
-    paddingVertical: scale(12),
-    paddingHorizontal: scale(16),
+    height: 52,
+    paddingHorizontal: Spacing.four,
   },
 
   lg: {
-    paddingVertical: scale(16),
-    paddingHorizontal: scale(20),
+    height: 56,
+    paddingHorizontal: Spacing.four,
+  },
+});
+
+const textSizeStyles = StyleSheet.create({
+  xs: {
+    fontFamily: Fonts.brandMedium,
+    fontSize: 13,
+    lineHeight: 18,
+  },
+
+  sm: {
+    fontSize: 13,
+    lineHeight: 18,
+  },
+
+  md: {
+    fontSize: 14,
+    lineHeight: 20,
+  },
+
+  lg: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+});
+
+const contentGapStyles = StyleSheet.create({
+  xs: {
+    gap: 6,
+  },
+
+  sm: {
+    gap: Spacing.two,
+  },
+
+  md: {
+    gap: 10,
+  },
+
+  lg: {
+    gap: 10,
   },
 });
 
 const roundedStyles = StyleSheet.create({
   md: {
-    borderRadius: scale(8),
+    borderRadius: 12,
   },
 
   lg: {
-    borderRadius: scale(12),
+    borderRadius: 12,
   },
 
   full: {

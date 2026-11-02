@@ -153,9 +153,7 @@ export default function VerifyPhoneScreen() {
           scrollEnabled={true}
         >
           <View>
-            <IconButton variant="outlineSecondary" onPress={goToLogin}>
-              <Ionicons name="arrow-back" size={20} style={styles.returnIcon} />
-            </IconButton>
+            <IconButton icon="chevron-back" size="md" variant="soft" onPress={goToLogin} accessibilityLabel="Go back" />
 
             <AuthPageHeader />
           </View>

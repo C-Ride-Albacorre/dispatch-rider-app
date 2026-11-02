@@ -96,16 +96,11 @@ export default function OrderDetailSheet() {
           </View>
 
           <IconButton
-            size="sm"
-            variant="outlineSecondary"
+            icon="chevron-down"
+            size="md"
             onPress={() => router.dismiss()}
-          >
-            <Ionicons
-              name="chevron-down"
-              size={16}
-              color={Colors.textSecondary}
-            />
-          </IconButton>
+            accessibilityLabel="Close"
+          />
         </View>
 
         {isLoading ? (

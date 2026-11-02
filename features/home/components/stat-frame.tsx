@@ -1,16 +1,16 @@
-import {  Fonts } from '@/constants/theme';
-import AppFrame from '@/features/dashboard/components/app-frame';
+import { ThemedText } from '@/components/themed-text';
+import { Fonts, Spacing } from '@/constants/theme';
 import {
   EarningsSummary,
   formatHours,
   formatNaira,
 } from '@/features/earnings/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
-import { normalize, scale } from '@/utils/scaling';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { useEffect, useRef } from 'react';
-import { Animated, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 
+/** Today's numbers as tiles on the Home hero */
 export default function StatFrame({
   stats,
   earnings,
@@ -23,196 +23,142 @@ export default function StatFrame({
   earnings?: EarningsSummary;
   isLoading?: boolean;
 }) {
-  const { Colors, isDark } = useTheme();
-
+  const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
-  const pulseAnim = useRef(new Animated.Value(0.4)).current;
+  return (
+    <View style={styles.container}>
+      <Pressable
+        onPress={() => router.push('/earnings')}
+        style={({ pressed }) => [styles.earnings, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel="Today’s earnings"
+      >
+        <View style={styles.flex}>
+          <ThemedText style={styles.earningsLabel} themeColor="onPrimary">
+            Today’s earnings
+          </ThemedText>
+          <ThemedText style={styles.earningsValue} themeColor="onPrimary">
+            {isLoading ? '–' : formatNaira(earnings?.totalEarnings)}
+          </ThemedText>
+        </View>
+        <Ionicons name="chevron-forward" size={18} color={Colors.onPrimary} />
+      </Pressable>
 
-  useEffect(() => {
-    if (isLoading) {
-      Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, {
-            toValue: 0.9,
-            duration: 700,
-            useNativeDriver: true,
-          }),
-          Animated.timing(pulseAnim, {
-            toValue: 0.4,
-            duration: 700,
-            useNativeDriver: true,
-          }),
-        ]),
-      ).start();
-    } else {
-      pulseAnim.stopAnimation();
-      pulseAnim.setValue(1);
-    }
-  }, [isLoading]);
+      <View style={styles.stats}>
+        <Stat
+          label="Deliveries"
+          value={isLoading ? '–' : String(earnings?.deliveries ?? 0)}
+        />
+        <Stat
+          label="Rating"
+          value={isLoading ? '–' : (stats?.rating?.toFixed(1) ?? '0.0')}
+          icon={<Ionicons name="star" size={14} color={Colors.primary} />}
+        />
+        <Stat
+          label="Online"
+          value={isLoading ? '–' : formatHours(earnings?.onlineHours)}
+        />
+      </View>
+    </View>
+  );
+}
+
+/** A count tile on the dark hero */
+function Stat({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon?: React.ReactNode;
+}) {
+  const { Colors } = useTheme();
+  const styles = createStyles(Colors);
 
   return (
-    <AppFrame>
-      <View style={styles.earningsRow}>
-        <Text
-          style={[
-            styles.earningsText,
-            isDark
-              ? { color: Colors.text }
-              : { color: Colors.backgroundTertiary },
-          ]}
-        >
-          Today's Earnings
-        </Text>
-
-        <Text
-          style={[
-            styles.earningsAmount,
-            isDark ? { color: Colors.text } : { color: Colors.background },
-          ]}
-        >
-          {formatNaira(earnings?.totalEarnings)}
-        </Text>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statItem}>
-            {isLoading ? (
-              <Animated.View
-                style={[styles.skeletonValue, { opacity: pulseAnim }]}
-              />
-            ) : (
-              <Text
-                style={[
-                  styles.statValue,
-                  isDark
-                    ? { color: Colors.text }
-                    : { color: Colors.background },
-                ]}
-              >
-                {earnings?.deliveries ?? 0}
-              </Text>
-            )}
-
-            <Text
-              style={[
-                styles.statLabel,
-                isDark
-                  ? { color: Colors.textSecondary }
-                  : { color: Colors.backgroundTertiary },
-              ]}
-            >
-              Deliveries
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Text
-              style={[
-                styles.statValue,
-                isDark ? { color: Colors.text } : { color: Colors.background },
-              ]}
-            >
-              {isLoading ? (
-                <Animated.View
-                  style={[styles.skeletonValue, { opacity: pulseAnim }]}
-                />
-              ) : (
-                <Text>
-                  {stats?.rating.toFixed(1) ?? '0.0'}
-                  <Ionicons name="star" size={14} color="gold" />
-                </Text>
-              )}
-            </Text>
-
-            <Text
-              style={[
-                styles.statLabel,
-                isDark
-                  ? { color: Colors.textSecondary }
-                  : { color: Colors.backgroundTertiary },
-              ]}
-            >
-              Rating
-            </Text>
-          </View>
-
-          <View style={styles.statItem}>
-            {isLoading ? (
-              <Animated.View
-                style={[styles.skeletonValue, { opacity: pulseAnim }]}
-              />
-            ) : (
-              <Text
-                style={[
-                  styles.statValue,
-                  isDark
-                    ? { color: Colors.text }
-                    : { color: Colors.background },
-                ]}
-              >
-                {formatHours(earnings?.onlineHours)}
-              </Text>
-            )}
-
-            <Text
-              style={[
-                styles.statLabel,
-                isDark
-                  ? { color: Colors.textSecondary }
-                  : { color: Colors.backgroundTertiary },
-              ]}
-            >
-              Online Time
-            </Text>
-          </View>
-        </View>
+    <View style={styles.stat} accessibilityLabel={`${value} ${label}`}>
+      <View style={styles.statValueRow}>
+        <ThemedText style={styles.statValue} themeColor="white" numberOfLines={1}>
+          {value}
+        </ThemedText>
+        {icon}
       </View>
-    </AppFrame>
+      <ThemedText style={styles.statLabel} themeColor="white">
+        {label}
+      </ThemedText>
+    </View>
   );
 }
 
 const createStyles = (Colors: any) =>
   StyleSheet.create({
-    earningsRow: {
-      flexDirection: 'column',
-      gap: scale(12),
+    container: {
+      gap: Spacing.two,
     },
 
-    earningsText: {
-      fontSize: normalize(12),
-      fontFamily: Fonts.brandMedium,
+    flex: {
+      flex: 1,
+      gap: 2,
     },
 
-    earningsAmount: {
-      fontSize: normalize(24),
-      fontFamily: Fonts.brandSemiBold,
-    },
-
-    statsRow: {
+    earnings: {
       flexDirection: 'row',
-      gap: scale(20),
-      marginTop: scale(16),
+      alignItems: 'center',
+      gap: Spacing.two,
+      padding: 14,
+      borderRadius: 16,
+      backgroundColor: Colors.primary,
     },
 
-    statItem: {
-      flexDirection: 'column',
-      gap: scale(4),
+    earningsLabel: {
+      fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 16,
+    },
+
+    earningsValue: {
+      fontFamily: Fonts.brandBold,
+      fontSize: 24,
+      lineHeight: 30,
+    },
+
+    pressed: {
+      opacity: 0.8,
+    },
+
+    stats: {
+      flexDirection: 'row',
+      gap: Spacing.two,
+    },
+
+    stat: {
+      flex: 1,
+      gap: 2,
+      padding: 14,
+      borderRadius: 16,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: Colors.glassBorder,
+      backgroundColor: Colors.glass,
+    },
+
+    statValueRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
     },
 
     statValue: {
-      fontSize: normalize(14),
-      fontFamily: Fonts.brandRegular,
-    },
-
-    skeletonValue: {
-      height: scale(28),
-      width: scale(60),
-      backgroundColor: Colors.light,
-      borderRadius: scale(6),
+      fontFamily: Fonts.brandBold,
+      fontSize: 20,
+      lineHeight: 26,
+      flexShrink: 1,
     },
 
     statLabel: {
-      fontSize: normalize(10),
       fontFamily: Fonts.brandMedium,
+      fontSize: 12,
+      lineHeight: 16,
     },
   });

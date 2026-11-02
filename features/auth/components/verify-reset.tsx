@@ -141,11 +141,11 @@ export default function ResetVerifyEmailScreen() {
         >
           <View>
             <IconButton
-              variant="outlineSecondary"
+              icon="chevron-back"
+              size="md"
               onPress={() => router.back()}
-            >
-              <Ionicons name="arrow-back" size={24} style={styles.returnIcon} />
-            </IconButton>
+              accessibilityLabel="Go back"
+            />
 
             <AuthPageHeader />
           </View>

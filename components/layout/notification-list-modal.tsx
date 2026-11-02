@@ -148,9 +148,7 @@ export default function NotificationListModal({
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Notifications</Text>
 
-          <IconButton variant='outline' onPress={onClose} style={styles.closeButton}>
-            <Ionicons name="close" size={scale(20)} color={Colors.text} />
-          </IconButton>
+          <IconButton icon="close" size="md" variant="soft" onPress={onClose} style={styles.closeButton} accessibilityLabel="Close" />
         </View>
 
         {/* Notifications List */}

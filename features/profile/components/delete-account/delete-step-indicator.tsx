@@ -26,15 +26,7 @@ export default function DeleteStepIndicator({
 
   return (
     <View style={styles.container}>
-      <IconButton
-        variant="outlineSecondary"
-        size="sm"
-        onPress={onClose}
-        disabled={disabled}
-        style={styles.closeButton}
-      >
-        <Ionicons name="close" size={scale(20)} color={Colors.text} />
-      </IconButton>
+      <IconButton icon="close" size="md" variant="soft" onPress={onClose} disabled={disabled} style={styles.closeButton} accessibilityLabel="Close" />
 
       <View style={styles.stepsRow}>
         {Array.from({ length: total }, (_, index) => {

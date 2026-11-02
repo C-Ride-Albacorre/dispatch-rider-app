@@ -1,12 +1,7 @@
 import NotificationBanner from '@/components/layout/notification-banner';
 import NotificationPermissionModal from '@/components/layout/notification-permission-modal';
-import {
-  HEADER_HEIGHT,
-  ScrollHeaderContext,
-} from '@/components/layout/scroll-header-context';
 import { Fonts } from '@/constants/theme';
 import { useOrderTracking } from '@/features/active/use-fetch';
-import AppHeader from '@/features/dashboard/components/app-header';
 import { useDashboardStats } from '@/features/home/use-fetch';
 import { useDriverSocket } from '@/hooks/use-driver-socket';
 import { useMapSocket } from '@/hooks/use-map-socket';
@@ -18,21 +13,43 @@ import {
   DriverInfo,
   useDriverJobsStore,
 } from '@/store/driver-jobs-store';
-import { normalize, scale } from '@/utils/scaling';
 import {
   getActiveOrder,
   getNotificationPermissionDecision,
   saveNotificationPermissionDecision,
 } from '@/utils/token-storage';
-import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
+import {
+  Briefcase,
+  Home,
+  Routing,
+  User,
+  Wallet,
+  type Icon,
+} from 'iconsax-react-nativejs';
 import { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { StyleSheet, View, type ColorValue } from 'react-native';
+
+function tabIcon(TabIcon: Icon) {
+  function TabBarIcon({
+    focused,
+    color,
+    size,
+  }: {
+    focused: boolean;
+    color: ColorValue;
+    size: number;
+  }) {
+    return (
+      <TabIcon
+        size={size}
+        color={color as string}
+        variant={focused ? 'Bold' : 'Linear'}
+      />
+    );
+  }
+  return TabBarIcon;
+}
 
 export default function TabsLayout() {
   const { data: dashboardData } = useDashboardStats();
@@ -141,18 +158,8 @@ export default function TabsLayout() {
 
   const [showNotificationModal, setShowNotificationModal] =
     useState<boolean>(false);
-  const [showHeader, setShowHeader] = useState(true);
 
-  const { Colors, isDark } = useTheme();
-  const insets = useSafeAreaInsets();
-
-  // Shared values owned by the layout, consumed by child screens via context
-  const headerTranslateY = useSharedValue(0);
-  const lastScrollY = useSharedValue(0);
-
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: headerTranslateY.value }],
-  }));
+  const { Colors } = useTheme();
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -171,134 +178,44 @@ export default function TabsLayout() {
   }, []);
 
   return (
-    <ScrollHeaderContext.Provider
-      value={{ headerTranslateY, lastScrollY, showHeader, setShowHeader }}
-    >
-      <View
-        style={[
-          styles.root,
-          {
-            backgroundColor: Colors.backgroundTertiary,
-            paddingLeft: insets.left,
-            paddingRight: insets.right,
+    <View style={styles.root}>
+      <NotificationBanner />
+
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarHideOnKeyboard: true,
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.textMuted,
+          tabBarLabelStyle: styles.label,
+          tabBarStyle: {
+            backgroundColor: Colors.card,
+            borderColor: Colors.border,
           },
-        ]}
+          tabBarItemStyle: styles.tabItem,
+        }}
       >
-        <NotificationBanner />
-        {/* ── Shared animated header ─────────────────────────────────────── */}
-        {showHeader && (
-          <Animated.View
-            style={[
-              styles.header,
-              {
-                backgroundColor: Colors.background,
-                height: HEADER_HEIGHT + insets.top,
-                paddingTop: insets.top,
-              },
-              headerAnimatedStyle,
-            ]}
-          >
-            <AppHeader />
-          </Animated.View>
-        )}
-        {/* ── Tab navigator ──────────────────────────────────────────────── */}
-        <Tabs
-          screenOptions={{
-            tabBarHideOnKeyboard: true,
-                tabBarLabelPosition: 'below-icon',
-            tabBarLabelStyle: {
-              fontFamily: Fonts.brandMedium,
-              fontSize: normalize(11),
-            },
-            tabBarIconStyle: {
-              marginTop: scale(4),
-            },
-
-            tabBarActiveTintColor: Colors.primary,
-            tabBarInactiveTintColor: Colors.textMuted,
-            tabBarStyle: {
-              backgroundColor: isDark ? Colors.background : '#1A1A1A',
-              borderTopColor: Colors.border,
-            },
-          }}
-        >
-          <Tabs.Screen
-            name="home"
-            options={{
-              headerShown: false,
-              title: 'Home',
-
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? 'home' : 'home-outline'}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
-
-          <Tabs.Screen
-            name="jobs"
-            options={{
-              title: 'Jobs',
-              headerShown: false,
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? 'briefcase' : 'briefcase-outline'}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
-
-          <Tabs.Screen
-            name="active"
-            options={{
-              title: 'Active',
-              headerShown: false,
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? 'navigate' : 'navigate-outline'}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
-
-          <Tabs.Screen
-            name="earnings"
-            options={{
-              title: 'Earnings',
-              headerShown: false,
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? 'wallet' : 'wallet-outline'}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
-
-          <Tabs.Screen
-            name="profile"
-            options={{
-              title: 'Profile',
-              headerShown: false,
-              tabBarIcon: ({ color, size, focused }) => (
-                <Ionicons
-                  name={focused ? 'person' : 'person-outline'}
-                  size={size}
-                  color={color}
-                />
-              ),
-            }}
-          />
-        </Tabs>
-      </View>
+        <Tabs.Screen
+          name="home"
+          options={{ title: 'Home', tabBarIcon: tabIcon(Home) }}
+        />
+        <Tabs.Screen
+          name="jobs"
+          options={{ title: 'Jobs', tabBarIcon: tabIcon(Briefcase) }}
+        />
+        <Tabs.Screen
+          name="active"
+          options={{ title: 'Active', tabBarIcon: tabIcon(Routing) }}
+        />
+        <Tabs.Screen
+          name="earnings"
+          options={{ title: 'Earnings', tabBarIcon: tabIcon(Wallet) }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{ title: 'Profile', tabBarIcon: tabIcon(User) }}
+        />
+      </Tabs>
 
       <NotificationPermissionModal
         visible={showNotificationModal}
@@ -308,7 +225,7 @@ export default function TabsLayout() {
           initializeNotifications();
         }}
       />
-    </ScrollHeaderContext.Provider>
+    </View>
   );
 }
 
@@ -316,12 +233,13 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    // height: HEADER_HEIGHT,
-    zIndex: 10,
+
+  label: {
+    fontFamily: Fonts.brandMedium,
+    fontSize: 11,
+  },
+
+  tabItem: {
+    paddingVertical: 8,
   },
 });
