@@ -3,7 +3,7 @@ import { Fonts, Spacing } from '@/constants/theme';
 import {
   EarningsSummary,
   formatHours,
-  formatNaira,
+  formatNairaCompact,
 } from '@/features/earnings/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { StyleSheet, View } from 'react-native';
@@ -36,7 +36,7 @@ export default function DriverStats({
           numberOfLines={1}
           adjustsFontSizeToFit
         >
-          {formatNaira(earnings?.totalEarnings)}
+          {formatNairaCompact(earnings?.totalEarnings)}
         </ThemedText>
         <ThemedText style={styles.statLabel} themeColor="textMuted">
           Earnings

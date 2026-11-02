@@ -7,6 +7,7 @@ import {
   EarningsPeriod,
   formatHours,
   formatNaira,
+  formatNairaCompact,
   useEarningsDashboard,
 } from '@/features/earnings/use-fetch';
 import RecentDeliverySkeleton from '@/features/home/components/recent-delivery-skeleton';
@@ -75,7 +76,7 @@ export default function EarningsScreen() {
   const metrics: { label: string; value: string; color: string }[] = [
     {
       label: 'Total earnings',
-      value: formatNaira(summary?.totalEarnings),
+      value: formatNairaCompact(summary?.totalEarnings),
       color: Colors.primary,
     },
     {
@@ -85,12 +86,12 @@ export default function EarningsScreen() {
     },
     {
       label: 'Tips earned',
-      value: formatNaira(summary?.tipsEarned),
+      value: formatNairaCompact(summary?.tipsEarned),
       color: Colors.success,
     },
     {
       label: 'Bonuses',
-      value: formatNaira(summary?.bonuses),
+      value: formatNairaCompact(summary?.bonuses),
       color: Colors.info,
     },
   ];
