@@ -18,10 +18,8 @@ interface OtpInputProps {
   errorMessage?: string;
   OTP_LENGTH?: number;
 
-  /** Called with the full OTP string once all digits are entered */
   onComplete?: (otp: string) => void;
 
-  /** Called on every change */
   onChange?: (otp: string) => void;
 }
 
@@ -36,35 +34,18 @@ export default function OtpInput({
 
   const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
 
-  /**
-   * References to the visible OTP inputs.
-   */
   const inputRefs = useRef<Array<TextInput | null>>(
     Array(OTP_LENGTH).fill(null),
   );
 
-  /**
-   * Hidden/native input used specifically for
-   * iOS/Android OTP autofill.
-   */
   const autofillRef = useRef<TextInput | null>(null);
 
-  /**
-   * Shake animation when an error appears.
-   */
   const shakeAnim = useRef(new Animated.Value(0)).current;
 
   const { Colors } = useTheme();
 
   const styles = createStyles(Colors);
 
-  /**
-   * Fill all OTP cells from a string.
-   *
-   * This is used for:
-   * - SMS OTP autofill
-   * - Pasting an OTP
-   */
   const fillOtp = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, OTP_LENGTH);
 
@@ -84,24 +65,14 @@ export default function OtpInput({
 
     onChange?.(otp);
 
-    /**
-     * Only complete when ALL digits are present.
-     */
     if (cleaned.length === OTP_LENGTH) {
       onComplete?.(otp);
     }
   };
 
-  /**
-   * Handle typing into a visible OTP box.
-   */
   const handleChange = (value: string, index: number) => {
     const cleaned = value.replace(/\D/g, '');
 
-    /**
-     * If more than one digit arrives,
-     * treat it as paste/autofill.
-     */
     if (cleaned.length > 1) {
       fillOtp(cleaned);
       return;
@@ -119,25 +90,16 @@ export default function OtpInput({
 
     onChange?.(otp);
 
-    /**
-     * OTP is complete.
-     */
     if (otp.length === OTP_LENGTH) {
       onComplete?.(otp);
       return;
     }
 
-    /**
-     * Move to the next box after entering a digit.
-     */
     if (digit && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
     }
   };
 
-  /**
-   * Handle backspace.
-   */
   const handleKeyPress = (
     e: NativeSyntheticEvent<TextInputKeyPressEventData>,
     index: number,
@@ -146,10 +108,6 @@ export default function OtpInput({
       return;
     }
 
-    /**
-     * If current box contains a digit,
-     * just clear it.
-     */
     if (digits[index]) {
       const next = [...digits];
 
@@ -162,10 +120,6 @@ export default function OtpInput({
       return;
     }
 
-    /**
-     * If current box is empty,
-     * move to the previous box and clear it.
-     */
     if (index > 0) {
       const next = [...digits];
 
@@ -179,9 +133,6 @@ export default function OtpInput({
     }
   };
 
-  /**
-   * Shake the OTP fields when an error appears.
-   */
   useEffect(() => {
     if (!errorMessage) {
       return;
@@ -234,12 +185,6 @@ export default function OtpInput({
        * ==================================================
        * HIDDEN OTP AUTOFILL INPUT
        * ==================================================
-       *
-       * This input is intentionally not controlled with
-       * `value={digits.join('')}`.
-       *
-       * Native iOS/Android OTP autofill writes directly
-       * into this input.
        */}
       <TextInput
         ref={autofillRef}
@@ -384,7 +329,6 @@ const createStyles = (Colors: any) =>
       fontSize: 22,
       color: Colors.text,
       textAlign: 'center',
-      // Vertically center on Android
       paddingTop: 0,
       paddingBottom: 0,
       includeFontPadding: false,

@@ -32,7 +32,6 @@ type IconButtonProps = {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   accessibilityLabel?: string;
-  /** Red count badge on the corner, e.g. unread notifications */
   notificationCount?: number;
 };
 

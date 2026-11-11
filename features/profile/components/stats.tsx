@@ -8,7 +8,6 @@ import {
 import { useTheme } from '@/hooks/use-theme';
 import { StyleSheet, View } from 'react-native';
 
-/** Today's deliveries, earnings and online time */
 export default function DriverStats({
   earnings,
 }: {

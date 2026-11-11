@@ -25,7 +25,6 @@ const toastIcons = {
   info: 'information-circle',
 } as const;
 
-/** Accent colour and tinted background for each toast type */
 const toastTone = (type: ToastType, Colors: any) => {
   switch (type) {
     case 'error':

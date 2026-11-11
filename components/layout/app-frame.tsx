@@ -6,18 +6,13 @@ import { StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type AppFrameProps = {
-  /** Rendered at the top of the hero, below the status bar */
   header?: React.ReactNode;
-  /** Small pill above the headline, e.g. "Live orders" */
   badge?: string;
-  /** Dims the badge dot, e.g. while the connection is down */
   badgeMuted?: boolean;
   headline: React.ReactNode;
-  /** Sits under the headline inside the hero, e.g. stat tiles */
   children?: React.ReactNode;
 };
 
-/** Dark gradient hero at the top of a tab, with a headline and room for content */
 export default function AppFrame({ header, badge, badgeMuted, headline, children }: AppFrameProps) {
   const { Colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();

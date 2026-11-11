@@ -7,7 +7,6 @@ type Props = {
   isConnected: boolean;
 };
 
-/** Small live/connecting pill for the chat header */
 export function ConnectionStatus({ isConnected }: Props) {
   const { Colors, isDark } = useTheme();
 

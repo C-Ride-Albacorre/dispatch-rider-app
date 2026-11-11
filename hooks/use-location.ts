@@ -24,7 +24,7 @@ export function useLocation() {
   const [showPermissionModal, setShowPermissionModal] = useState(false);
 
   const subscription = useRef<Location.LocationSubscription | null>(null);
-  const initializeRef = useRef(false); // Prevent multiple initializations
+  const initializeRef = useRef(false);
 
   const startTracking = useCallback(async () => {
     try {
@@ -46,14 +46,12 @@ export function useLocation() {
       );
 
       setLoading(false);
-    } catch (error) {
-      console.error('Error starting location tracking:', error);
+    } catch {
       setLoading(false);
       setPermissionStatus('denied');
     }
   }, []);
 
-  // Initialize permission check on mount (run only once)
   useEffect(() => {
     if (initializeRef.current) return;
     initializeRef.current = true;
@@ -65,7 +63,6 @@ export function useLocation() {
         if (status === 'granted') {
           setPermissionStatus('granted');
           setShowPermissionModal(false);
-          // Start tracking after permission is confirmed
           await startTracking();
           return;
         }
@@ -77,12 +74,10 @@ export function useLocation() {
           return;
         }
 
-        // Status is 'undetermined'
         setPermissionStatus('undetermined');
         setShowPermissionModal(true);
         setLoading(false);
-      } catch (error) {
-        console.error('Error checking location permission:', error);
+      } catch {
         setPermissionStatus('denied');
         setShowPermissionModal(false);
         setLoading(false);
@@ -105,14 +100,12 @@ export function useLocation() {
 
       if (status === 'granted') {
         setPermissionStatus('granted');
-        // Start tracking after permission is granted
         await startTracking();
       } else if (status === 'denied') {
         setPermissionStatus('denied');
         setLoading(false);
       }
-    } catch (error) {
-      console.error('Error requesting location permission:', error);
+    } catch {
       setPermissionStatus('denied');
       setLoading(false);
     }

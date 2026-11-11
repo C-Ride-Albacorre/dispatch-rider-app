@@ -11,7 +11,6 @@ type StepCardProps = {
   children: React.ReactNode;
 };
 
-/** Card around one onboarding step: icon, title and subtitle above the form */
 export default function StepCard({ icon, title, subtitle, children }: StepCardProps) {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
@@ -36,7 +35,6 @@ export default function StepCard({ icon, title, subtitle, children }: StepCardPr
   );
 }
 
-/** Previous / Continue row at the bottom of a step */
 export function StepActions({ children }: { children: React.ReactNode }) {
   return <View style={stepActionStyles.row}>{children}</View>;
 }

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { Animated, Easing, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Keyboard, StyleSheet, View } from 'react-native';
 
 import * as Haptics from 'expo-haptics';
 
@@ -63,6 +63,8 @@ export default function SuccessModal({
 
   useEffect(() => {
     if (showSuccessModal) {
+      Keyboard.dismiss();
+
       // haptic feedback
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 
@@ -153,9 +155,7 @@ export default function SuccessModal({
                   setShowSuccessModal(false);
 
                   router.replace(path);
-                } catch (error) {
-                  console.log('Modal continue error:', error);
-                }
+                } catch {}
               }}
             >
               {buttonText || 'Continue'}

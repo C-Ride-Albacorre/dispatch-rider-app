@@ -54,8 +54,6 @@ export default function Documents({
 
     const file = result.assets[0];
 
-    console.log('Picked file:', file);
-
     saveDocument(documentType, {
       uri: file.uri,
       name: file.name,
@@ -88,11 +86,6 @@ export default function Documents({
         }
       }
 
-      console.log(
-        'Final documents payload:',
-        JSON.stringify(documents, null, 2),
-      );
-
       setSubmitting(true);
 
       setError(null);
@@ -104,9 +97,7 @@ export default function Documents({
       if (!result.success) return;
 
       setShowSuccessModal(true);
-    } catch (error) {
-      console.log('SUBMIT ERROR:', error);
-
+    } catch {
       setError('Failed to upload documents');
     } finally {
       setSubmitting(false);

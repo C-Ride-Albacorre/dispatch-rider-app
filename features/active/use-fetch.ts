@@ -39,10 +39,8 @@ export function useDeclineJob() {
       declineJobsService({ orderId, reason }),
 
     onSuccess: () => {
-      // Clear the active order from store
       clearActiveOrder();
 
-      // Invalidate all related caches
       queryClient.invalidateQueries({
         queryKey: ['available-jobs'],
       });
@@ -55,7 +53,6 @@ export function useDeclineJob() {
         queryKey: ['dashboard-stats'],
       });
 
-      // Invalidate active order tracking cache
       queryClient.invalidateQueries({
         queryKey: ['order-tracking'],
       });

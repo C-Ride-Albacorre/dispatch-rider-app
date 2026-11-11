@@ -26,7 +26,6 @@ function MetricBar({
 
   const width = useSharedValue(0);
 
-  // Grow the bar each time the metric is revealed
   useEffect(() => {
     width.value = withTiming(Math.min(Math.max(percent, 0), 100), {
       duration: 700,

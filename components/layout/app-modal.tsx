@@ -24,36 +24,12 @@ type AppModalProps = {
 
   closeOnBackdropPress?: boolean;
 
-  /**
-   * Controls whether the modal content
-   * receives the default padding.
-   */
   isPadding?: boolean;
 
-  /**
-   * Controls where the modal appears.
-   *
-   * center = regular centered modal
-   * bottom = bottom sheet / form sheet
-   */
   position?: ModalPosition;
 
-  /**
-   * Height of the bottom sheet.
-   *
-   * Example:
-   * height={400}
-   * height="50%"
-   */
   height?: ModalDimension;
 
-  /**
-   * Maximum height of the bottom sheet.
-   *
-   * Example:
-   * maxHeight={700}
-   * maxHeight="90%"
-   */
   maxHeight?: ModalDimension;
 };
 
@@ -117,7 +93,7 @@ export default function AppModal({
               : styles.centerModalContainer,
           ]}
         >
-          {/* Prevent taps inside the modal from closing it */}
+          {}
           <TouchableWithoutFeedback onPress={() => {}}>
             <View
               style={[
@@ -171,7 +147,6 @@ const createStyles = (Colors: any) =>
       padding: Spacing.four,
     },
 
-    // Height comes from the children, so no flex here
     centerModalContainer: {
       width: '90%',
       maxWidth: 420,

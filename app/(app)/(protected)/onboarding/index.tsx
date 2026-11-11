@@ -6,13 +6,9 @@ import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
 import { useTheme } from '@/hooks/use-theme';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { KEYBOARD_BOTTOM_OFFSET } from '@/features/auth/components/auth-screen';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
 export default function Onboarding() {
   const router = useRouter();
@@ -34,18 +30,15 @@ export default function Onboarding() {
   };
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAwareScrollView
       style={styles.keyboardSafeArea}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+      contentContainerStyle={styles.container}
+      bottomOffset={KEYBOARD_BOTTOM_OFFSET}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="interactive"
+      showsVerticalScrollIndicator={false}
+      bounces={false}
     >
-      <ScrollView
-        contentContainerStyle={styles.container}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        scrollEnabled={true}
-      >
         <View style={styles.textContainer}>
           <ThemedText style={styles.title}>
             Join C-Ride as a Fulfillment Partner
@@ -75,8 +68,7 @@ export default function Onboarding() {
             resumeStep={resumeStep}
           />
         )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+    </KeyboardAwareScrollView>
   );
 }
 const createStyles = (Colors: any) =>

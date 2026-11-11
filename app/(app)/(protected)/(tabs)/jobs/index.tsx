@@ -20,7 +20,6 @@ import { FlatList, Image, RefreshControl, StyleSheet, View } from 'react-native'
 import Toast from 'react-native-toast-message';
 import { DriverStatus } from '../home';
 
-// Stop the spinner if the server never answers with sync-orders
 const REFRESH_TIMEOUT = 8000;
 
 export type DriverOrder = {
@@ -46,7 +45,6 @@ export type DriverOrder = {
   created_at?: string;
 };
 
-/** Tab chrome shared by every state of the Jobs screen */
 function JobsShell({
   subtitle,
   children,
@@ -83,7 +81,6 @@ export default function Jobs() {
     requestPermission,
   } = useLocation();
 
-  // Jobs arrive in real time over the driver socket only
   const jobs = useDriverJobsStore((s) => s.incomingOrders);
 
   const socket = useDriverJobsStore((s) => s.socket);
@@ -92,6 +89,8 @@ export default function Jobs() {
 
   const handleRefresh = useCallback(() => {
     if (!socket?.connected || !location) {
+      if (socket && !socket.connected) socket.connect();
+
       Toast.show({
         type: 'error',
         text1: !location
@@ -131,7 +130,6 @@ export default function Jobs() {
     [],
   );
 
-  // Checking permission status
   if (permissionStatus === 'checking') {
     return (
       <JobsShell subtitle="Checking location access">
@@ -345,16 +343,16 @@ const styles = StyleSheet.create({
 
   title: {
     fontFamily: Fonts.brandSemiBold,
-    fontSize: 18,
-    lineHeight: 24,
+     fontSize: 16,
+      lineHeight: 22,
     letterSpacing: -0.2,
     textAlign: 'center',
   },
 
   subtitle: {
     fontFamily: Fonts.brandRegular,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+      lineHeight: 18,
     textAlign: 'center',
   },
 

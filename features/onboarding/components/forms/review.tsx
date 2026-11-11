@@ -19,7 +19,6 @@ export default function Review({
   const [insurance, setInsurance] = useState<string | null>(null);
   const [registration, setRegistration] = useState<string | null>(null);
 
-  // Generic picker function
   const pickDocument = async (setFile: (name: string) => void) => {
     const result = await DocumentPicker.getDocumentAsync({
       type: '*/*',

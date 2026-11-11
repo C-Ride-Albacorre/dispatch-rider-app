@@ -21,10 +21,6 @@ const FILL_DURATION = 1400;
 const HOLD_DURATION = 250;
 const FADE_DURATION = 350;
 
-/**
- * Primary "Accept" call-to-action with a looping left-to-right fill
- * that keeps new job requests feeling live.
- */
 export default function AcceptButton({
   amount,
   onPress,
@@ -40,7 +36,6 @@ export default function AcceptButton({
 
   const [width, setWidth] = useState(0);
 
-  // 0 → 1 progress of the fill sweep, plus its opacity for the reset fade
   const progress = useSharedValue(0);
   const fillOpacity = useSharedValue(1);
   const pressScale = useSharedValue(1);
@@ -131,7 +126,6 @@ export default function AcceptButton({
 }
 
 const styles = StyleSheet.create({
-  // Same footprint as the shared Button (size md, pill)
   button: {
     height: 52,
     borderRadius: 999,

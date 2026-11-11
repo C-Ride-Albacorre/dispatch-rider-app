@@ -72,8 +72,6 @@ export default function ConfirmDeclineRequest({
       return;
     }
 
-    // Awaited rather than mutate callbacks: a successful decline clears the
-    // active order, which unmounts this modal before callbacks would fire
     try {
       await declineJob({ orderId: selectedOrderId, reason: finalReason });
     } catch (error: any) {

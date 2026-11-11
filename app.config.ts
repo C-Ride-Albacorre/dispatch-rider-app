@@ -3,12 +3,6 @@ import { ConfigContext, ExpoConfig } from 'expo/config';
 
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-if (!GOOGLE_MAPS_API_KEY) {
-  console.warn(
-    'EXPO_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Maps will not work.',
-  );
-}
-
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...(config as ExpoConfig),
 

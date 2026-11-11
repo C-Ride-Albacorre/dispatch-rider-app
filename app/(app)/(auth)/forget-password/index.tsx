@@ -75,9 +75,7 @@ export default function ForgetPassword() {
 
         setSuccessModalVisible(true);
       }
-    } catch (error) {
-      console.error(error);
-    } finally {
+    } catch {} finally {
       setIsLoading(false);
     }
   };

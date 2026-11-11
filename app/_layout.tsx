@@ -10,6 +10,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 import '../global.css';
 import ReactQueryProvider from '../providers/react-query-provider';
 
@@ -28,23 +29,16 @@ import Toast from 'react-native-toast-message';
 
 SplashScreen.preventAutoHideAsync();
 
-// The native window behind the app defaults to white and shows through
-// around the tab bar / navigation bar on some Android devices
 SystemUI.setBackgroundColorAsync('#000000');
 
-// Black background shows outside the max-width content area
 const AppTheme = {
   ...DefaultTheme,
   colors: { ...DefaultTheme.colors, background: '#1A1A1A' },
 };
 
-// Initialize notification channels as early as possible.
-// The background message handler is registered in index.ts.
 setupNotificationChannels();
 
 export default function RootLayout() {
-  console.log('ROOT LAYOUT MOUNTED');
-
   const isHydrated = useAuthStore((state) => state.isHydrated);
   // const authStatus = useAuthStore((state) => state.authStatus);
   const verificationToken = useAuthStore((state) => state.verificationToken);
@@ -79,17 +73,13 @@ export default function RootLayout() {
 
   const appReady = fontsLoaded && isHydrated;
 
-  // Only restore auth if not on a verification route
   useEffect(() => {
     const isVerificationRoute =
       pathname.startsWith('/(verify)') ||
       pathname.startsWith('/(app)/(verify)');
     if (!isVerificationRoute) {
-      console.log('RESTORE AUTH STARTED');
-
       restoreAuth();
     } else {
-      // On verification route, check for verification data
       if (!verificationToken || (!verificationEmail && !verificationPhone)) {
         setShowExpiredModal(true);
       }
@@ -111,10 +101,10 @@ export default function RootLayout() {
   //   );
   // }
 
-  // The native splash is hidden by AnimatedSplash once it is on screen; it
-  // stays on top while the app loads and fades out when appReady is true.
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#1A1A1A' }}>
+      {}
+      <KeyboardProvider>
       {appReady && (
         <>
           <ReactQueryProvider>
@@ -152,6 +142,7 @@ export default function RootLayout() {
           onFinish={() => setSplashFinished(true)}
         />
       )}
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 

@@ -72,14 +72,10 @@ export default function VehicleInfo({
       setSubmitting(true);
       setError(null);
 
-      console.log(' Submitting vehicle info with payload:', payload);
-
       const result = await vehicleInfoAction({
         ...payload,
         year: Number(payload.year),
       });
-
-      console.log('Result from vehicle info action:', result);
 
       if (!result.success) return;
 

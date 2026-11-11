@@ -69,11 +69,6 @@ export type DriverInfo = {
   driver_status: string;
 };
 
-/**
- * Flattens a `new-order-request` socket payload into the shape the job
- * cards render. Accepts the payload bare or wrapped in `data` / `order`,
- * with snake_case or camelCase keys. Returns null when no order id exists.
- */
 export function normalizeIncomingJob(payload: any) {
   const raw = payload?.data ?? payload;
   const job = raw?.order ?? raw;
@@ -120,10 +115,10 @@ type DriverJobsState = {
 
   clearActiveOrder: () => void;
 
-  /** DERIVED SAFE ACCESS (prevents null flicker in UI) */
+  /** DERIVED SAFE ACCESS */
   hasActiveOrder: () => boolean;
 
-  /** DRIVER INFO (for the assigned driver) */
+  /** DRIVER INFO */
   driverInfo: DriverInfo | null;
   setDriverInfo: (driver: DriverInfo | null) => void;
 
@@ -228,7 +223,6 @@ export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
   /** INCOMING */
   incomingOrders: [],
 
-  /** Replace the whole list (sent by the server on connect) */
   setOrders: (orders) =>
     set({
       incomingOrders: (orders ?? [])
@@ -236,7 +230,6 @@ export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
         .filter((job): job is NonNullable<typeof job> => !!job),
     }),
 
-  /** Merge newly dispatched orders at the top, skipping ones already listed */
   addOrders: (orders) =>
     set((state) => {
       const known = new Set(state.incomingOrders.map((o) => o.order_id));
@@ -246,7 +239,6 @@ export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
         const job = normalizeIncomingJob(order);
 
         if (!job) {
-          console.warn('[driver-jobs-store] Order has no id:', order);
           continue;
         }
 
@@ -258,7 +250,6 @@ export const useDriverJobsStore = create<DriverJobsState>((set, get) => ({
 
       if (!fresh.length) return state;
 
-      // Newest first: the last order in the batch was dispatched most recently
       return { incomingOrders: [...fresh.reverse(), ...state.incomingOrders] };
     }),
 

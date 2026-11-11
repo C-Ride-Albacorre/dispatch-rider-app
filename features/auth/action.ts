@@ -34,12 +34,8 @@ export const registerAction = async (payload: RegisterPayload) => {
     phoneNumber: payload.phoneNumber.trim(),
   };
 
-  console.log(' Register payload:', parsedPayload);
-
   try {
     const result = await registerDriver(parsedPayload);
-
-    console.log('Register response:', result);
 
     await saveVerificationToken(result.data.verificationToken);
 
@@ -80,8 +76,6 @@ export const loginAction = async (payload: LoginPayload) => {
 
   try {
     const result = await loginDriver(parsedPayload);
-
-    console.log('Login response:', result);
 
     /**
      * =========================
@@ -168,9 +162,6 @@ export const loginAction = async (payload: LoginPayload) => {
       message: result.data.message || 'Login successful',
     };
   } catch (error: any) {
-    console.log('FULL ERROR');
-    console.log(JSON.stringify(error, null, 2));
-
     return {
       success: false as const,
       flow: 'error' as const,
@@ -189,8 +180,6 @@ export const forgetPasswordAction = async (payload: ForgetPasswordPayload) => {
       client: 'mobile',
     };
     const result = await forgotPassword(parsedPayload);
-
-    console.log('Forgot password response:', result);
 
     if (!result.data.identifier || !result.data.method) {
       Toast.show({
@@ -241,8 +230,6 @@ export const forgetPasswordAction = async (payload: ForgetPasswordPayload) => {
 export const VerifyResetAction = async (payload: VerifyResetRequest) => {
   try {
     const data = await verifyReset(payload);
-
-    console.log('Verify data response:', data);
 
     if (data?.status === 'error' || data?.statusCode >= 400) {
       return {

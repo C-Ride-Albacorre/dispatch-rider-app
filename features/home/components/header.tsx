@@ -6,7 +6,6 @@ import { ActivityIndicator, StyleSheet, Switch, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useUpdateDriverStatus } from '../use-fetch';
 
-/** Online/offline switch on the Home hero */
 export default function HomeHeader({
   driverStatus,
 }: {

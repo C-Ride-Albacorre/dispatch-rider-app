@@ -66,8 +66,6 @@ export default function PersonalInfo({
 
       if (!result.success) return;
 
-      console.log('Result from action:', result);
-
       handleNextStep();
     } catch (err) {
       setError('An unexpected error occurred');

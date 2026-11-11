@@ -5,60 +5,49 @@ import IconButton from '@/components/ui/buttons/icon-button';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+
+export const KEYBOARD_BOTTOM_OFFSET = 140;
 
 type AuthScreenProps = {
   title: string;
   subtitle?: React.ReactNode;
   children: React.ReactNode;
-  /** Shows a back button above the logo */
   onBack?: () => void;
 };
 
-/**
- * Back button, logo and heading shared by the auth and verify screens.
- * The auth/verify stacks already pad for the safe area.
- */
 export default function AuthScreen({ title, subtitle, children, onBack }: AuthScreenProps) {
   return (
     <ThemedView style={styles.flex}>
-      <KeyboardAvoidingView
+      {}
+      <KeyboardAwareScrollView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
+        contentContainerStyle={styles.content}
+        bottomOffset={KEYBOARD_BOTTOM_OFFSET}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
+        showsVerticalScrollIndicator={false}
+        bounces={false}
       >
-        <ScrollView
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          bounces={false}
-        >
-          {onBack && (
-            <IconButton
-              icon="chevron-back"
-              size="md"
-              onPress={onBack}
-              accessibilityLabel="Go back"
-              style={styles.back}
-            />
-          )}
+        {onBack && (
+          <IconButton
+            icon="chevron-back"
+            size="md"
+            onPress={onBack}
+            accessibilityLabel="Go back"
+            style={styles.back}
+          />
+        )}
 
-          <AuthPageHeader title={title} subtitle={subtitle} />
+        <AuthPageHeader title={title} subtitle={subtitle} />
 
-          {children}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        {children}
+      </KeyboardAwareScrollView>
     </ThemedView>
   );
 }
 
-/** The server's reason a submit failed */
 export function FormError({ message }: { message?: string | null }) {
   const { Colors } = useTheme();
   if (!message) return null;
@@ -73,7 +62,6 @@ export function FormError({ message }: { message?: string | null }) {
   );
 }
 
-/** "Don't have an account? Register" style link under a form */
 export function AuthSwitch({
   prompt,
   action,

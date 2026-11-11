@@ -6,7 +6,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { router } from 'expo-router';
 import { StyleSheet, View } from 'react-native';
 
-/** Home's empty state when the rider has nothing in progress */
 export default function NoDelivery() {
   const { Colors } = useTheme();
 

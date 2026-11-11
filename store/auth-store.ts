@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { BASE_URL } from '../config/base-api';
 
 import { getQueryClient } from '@/providers/react-query-provider';
+import { clearBackgroundLocation } from '@/services/location/background-location';
 import { cleanupNotifications } from '@/services/notifications/initializeNotifications';
 import { unregisterDeviceToken } from '@/services/notifications/unregisterDeviceToken';
 import {
@@ -41,10 +42,6 @@ type AuthState = {
   isHydrated: boolean;
 
   setAuth: (data: Partial<AuthState>) => void;
-  /**
-   * skipRemote: only clear the local session (e.g. after account deletion,
-   * when server calls would fail with 401).
-   */
   logout: (options?: { skipRemote?: boolean }) => Promise<void>;
 };
 
@@ -86,19 +83,17 @@ export const useAuthStore = create<AuthState>()(
 
         cleanupNotifications();
 
-        // Clear driver jobs store on logout
+        await clearBackgroundLocation();
+
         useDriverJobsStore.getState().clearActiveOrder();
 
-        // Clear React Query cache to prevent stale data after logout
         const queryClient = getQueryClient();
         queryClient.clear();
 
         if (!skipRemote) {
           try {
             await unregisterDeviceToken();
-          } catch (error) {
-            console.log('Failed to unregister device token:', error);
-          }
+          } catch {}
 
           try {
             await fetch(`${BASE_URL}/auth/logout`, {
@@ -112,9 +107,7 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken,
               }),
             });
-          } catch (e) {
-            console.error('Logout failed:', e);
-          }
+          } catch {}
         }
 
         await clearTokens();
@@ -207,9 +200,7 @@ export const restoreAuth = async () => {
 
       isHydrated: true,
     });
-  } catch (error) {
-    console.error('Restore auth failed:', error);
-
+  } catch {
     await clearTokens();
 
     useAuthStore.getState().setAuth({

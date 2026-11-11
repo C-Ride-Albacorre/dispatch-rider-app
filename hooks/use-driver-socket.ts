@@ -7,7 +7,6 @@ import { useDriverJobsStore } from '@/store/driver-jobs-store';
 import { useLocation } from './use-location';
 
 type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY' | 'UNKNOWN';
-const DEBUG_DRIVER_SOCKET = true;
 
 type SocketPayload = Record<string, any> | null | undefined;
 
@@ -58,12 +57,6 @@ function extractOrder(payload: unknown) {
   );
 }
 
-function driverSocketLog(...args: unknown[]) {
-  if (!DEBUG_DRIVER_SOCKET) return;
-
-  console.log('[driver-socket]', ...args);
-}
-
 export function useDriverSocket(
   status?: DriverStatus,
   activeOrderId?: string | null,
@@ -75,6 +68,11 @@ export function useDriverSocket(
   const hasInitialized = useRef(false);
 
   const { location } = useLocation();
+
+  const locationRef = useRef(location);
+  locationRef.current = location;
+
+  const pendingSyncRef = useRef(false);
 
   const lastSentRef = useRef(0);
 
@@ -97,16 +95,7 @@ export function useDriverSocket(
    * SOCKET SETUP
    */
   useEffect(() => {
-    driverSocketLog('effect run', {
-      ready,
-      hasToken: !!token,
-      driverId,
-      status,
-      alreadyInitialized: hasInitialized.current,
-    });
-
     if (!ready) {
-      driverSocketLog('not ready -> disconnecting current socket');
       socketRef.current?.disconnect();
       socketRef.current = null;
       setSocket(null);
@@ -115,7 +104,6 @@ export function useDriverSocket(
     }
 
     if (hasInitialized.current) {
-      driverSocketLog('skip init: already initialized');
       return;
     }
     hasInitialized.current = true;
@@ -134,45 +122,32 @@ export function useDriverSocket(
     socketRef.current = socket;
     setSocket(socket);
 
-    driverSocketLog('socket created', { driverId });
-
-    socket.on('connect_error', (err) => {
-      driverSocketLog('connect_error', err?.message ?? err);
-    });
-
-    socket.on('disconnect', (reason) => {
-      driverSocketLog('disconnect', { reason });
-    });
-
     socket.on('connect', () => {
-      driverSocketLog('connected', { socketId: socket.id, driverId });
+      const current = locationRef.current;
 
-      if (location) {
+      if (current) {
         socket.emit('driver-location', {
           driverId,
           orderId: activeOrderId,
-          lat: location.latitude,
-          lng: location.longitude,
-          heading: location.heading,
+          lat: current.latitude,
+          lng: current.longitude,
+          heading: current.heading,
         });
+
+        socket.emit('request-sync', {
+          lat: current.latitude,
+          lng: current.longitude,
+        });
+      } else {
+        pendingSyncRef.current = true;
       }
 
-      driverSocketLog('emit subscribe-assigned-orders', { driverId });
       socket.emit('subscribe-assigned-orders', { driverId }, (ack: unknown) => {
-        driverSocketLog('subscribe-assigned-orders ack', ack);
-
         const order = extractOrder(ack);
-
-        driverSocketLog('order extracted from ack', {
-          hasOrder: !!order,
-          orderId: order?.order_id ?? null,
-        });
 
         if (!order) return;
 
         setActiveOrder(order);
-        // Only clear incoming orders if we have an active order (user accepted a job)
-        // Don't clear on every reconnect as it causes race conditions
         if (order?.order_id) {
           clearIncoming();
         }
@@ -185,31 +160,19 @@ export function useDriverSocket(
       });
     });
 
-    // Full list of available orders, sent on every (re)connect
     socket.on('sync-orders', (payload) => {
       const orders = payload?.orders ?? [];
-
-      driverSocketLog('sync-orders', { count: orders.length });
 
       setOrders(orders);
     });
 
-    // Orders dispatched while connected
     socket.on('new-order-request', (payload) => {
       const orders = payload?.orders ?? [];
-
-      console.log(
-        '[driver-socket] new-order-request:',
-        JSON.stringify(payload, null, 2),
-      );
 
       addOrders(orders);
     });
 
-    // Order accepted by another driver (or otherwise withdrawn)
     socket.on('order-removed', (payload) => {
-      driverSocketLog('order-removed', { orderId: payload?.order_id });
-
       removeOrder(payload?.order_id);
     });
 
@@ -218,19 +181,12 @@ export function useDriverSocket(
     });
 
     socket.on('active-order', (payload) => {
-      driverSocketLog('active-order payload', payload);
-
-      // Don't accept active orders if status is OFFLINE or UNKNOWN
       // if (status === 'OFFLINE' || status === 'UNKNOWN') {
       //   driverSocketLog('rejecting active order: driver status is', status);
       //   return;
       // }
 
       const order = extractOrder(payload);
-      driverSocketLog('active-order extracted', {
-        hasOrder: !!order,
-        orderId: order?.order_id ?? null,
-      });
 
       if (!order) return;
 
@@ -239,16 +195,9 @@ export function useDriverSocket(
     });
 
     socket.on('driver-arrived', (data) => {
-      driverSocketLog('driver-arrived', data);
-
       const { leg } = data;
 
       if (leg === 'to-vendor') {
-        console.log('[VENDOR ARRIVAL] 🏪 Driver arrived at vendor:', {
-          timestamp: new Date().toISOString(),
-          fullResponse: data,
-          leg,
-        });
         Toast.show({
           type: 'success',
           text1: 'Driver Arrived',
@@ -256,11 +205,6 @@ export function useDriverSocket(
           // duration: 3000,
         });
       } else if (leg === 'to-customer') {
-        console.log('[CUSTOMER ARRIVAL] 📍 Driver arrived at customer:', {
-          timestamp: new Date().toISOString(),
-          fullResponse: data,
-          leg,
-        });
         Toast.show({
           type: 'success',
           text1: 'Driver Arrived',
@@ -271,7 +215,6 @@ export function useDriverSocket(
     });
 
     return () => {
-      driverSocketLog('cleanup -> disconnect socket');
       socket.disconnect();
       socketRef.current = null;
       setSocket(null);
@@ -289,6 +232,33 @@ export function useDriverSocket(
     removeOrder,
     clearIncoming,
   ]);
+
+  /**
+   * FIRST FIX AFTER CONNECT
+   */
+  useEffect(() => {
+    if (!location || !pendingSyncRef.current) return;
+
+    const socket = socketRef.current;
+
+    if (!socket?.connected) return;
+
+    pendingSyncRef.current = false;
+
+
+    socket.emit('driver-location', {
+      driverId,
+      orderId: activeOrderId,
+      lat: location.latitude,
+      lng: location.longitude,
+      heading: location.heading,
+    });
+
+    socket.emit('request-sync', {
+      lat: location.latitude,
+      lng: location.longitude,
+    });
+  }, [location, activeOrderId, driverId]);
 
   /**
    * LOCATION EMITTER (STABLE + SAFE)
@@ -332,13 +302,6 @@ export function useDriverSocket(
       longitude: location.longitude,
     };
 
-    driverSocketLog('emit driver-location', {
-      driverId,
-      orderId: activeOrderId,
-      latitude: location.latitude,
-      longitude: location.longitude,
-    });
-
     socket.emit(
       'driver-location',
       {
@@ -347,9 +310,6 @@ export function useDriverSocket(
         lat: location.latitude,
         lng: location.longitude,
         heading: location.heading,
-      },
-      (ack: unknown) => {
-        driverSocketLog('driver-location ack', ack);
       },
     );
   }, [location, activeOrderId, driverId]);

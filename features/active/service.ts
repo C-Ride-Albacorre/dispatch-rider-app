@@ -10,8 +10,6 @@ export async function getOrderTrackingService() {
   const response = await api.get(`/driver/tracking`);
 
   
-  console.log('[getOrderTrackingService] response:', response.data);
-
   return response.data;
 
 }
@@ -23,7 +21,6 @@ export async function declineJobsService({
   orderId: string;
   reason: string;
 }) {
-  console.log('Declining job with ID:', { orderId, reason });
   if (!orderId) {
     throw new Error('Order ID is required');
   }
@@ -34,7 +31,6 @@ export async function declineJobsService({
 }
 
 export async function pickupJobsService({ orderId }: { orderId: string }) {
-  console.log('Picking up job with ID:', { orderId });
   if (!orderId) {
     throw new Error('Order ID is required');
   }
@@ -51,7 +47,6 @@ export async function deliveryJobsService({
   orderId: string;
   code: string;
 }) {
-  console.log('🚗 Delivering job with ID:', { orderId, code });
   if (!orderId) {
     throw new Error('Order ID is required');
   }
@@ -61,21 +56,11 @@ export async function deliveryJobsService({
 
   try {
     const payload = { orderCode: code };
-    console.log('📤 Request payload:', payload);
-    console.log('📍 Request URL: /driver/${orderId}/deliver');
 
     const response = await api.post(`/driver/${orderId}/deliver`, payload);
 
-    console.log('✅ Delivery response:', response.data);
-
     return response.data;
   } catch (error: any) {
-    console.error('❌ Delivery error:', {
-      status: error?.response?.status,
-      data: error?.response?.data,
-      message: error?.message,
-    });
-    console.log(' 🚨 Error details Status:', error);
     throw error;
   }
 }

@@ -83,8 +83,6 @@ export default function LoginForm() {
 
       const response = await loginAction(data);
 
-      console.log('Login result:', response);
-
       if (!response.success) {
         setValue('password', '');
         setErrorMessage(response.message || 'Login failed');
@@ -134,9 +132,6 @@ export default function LoginForm() {
       if (response.flow === 'authenticated') {
         setPendingLogin(response);
 
-        /**
-         * ALWAYS show onboarding modal first.
-         */
         if (
           response.onboardingStatus === 'NOT_STARTED' ||
           response.onboardingStatus === 'IN_PROGRESS'
@@ -184,8 +179,7 @@ export default function LoginForm() {
 
         router.replace('/(app)/(protected)/(tabs)/home');
       }
-    } catch (error) {
-      console.log(error);
+    } catch {
       setErrorMessage('Something went wrong');
     } finally {
       setLoading(false);

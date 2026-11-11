@@ -9,7 +9,6 @@ import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, View } from 'react-native';
 
-/** Active tab when the rider has no delivery in progress */
 export default function NoActiveJob() {
   const { Colors } = useTheme();
 
@@ -23,7 +22,7 @@ export default function NoActiveJob() {
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.iconCircle}>
-            <Ionicons name="bicycle-outline" size={20} color={Colors.success} />
+            <Ionicons name="bicycle-outline" size={28} color={Colors.success} />
           </View>
 
           <View style={styles.text}>
@@ -75,16 +74,12 @@ const createStyles = (Colors: any) =>
       gap: Spacing.three,
       paddingVertical: Spacing.four,
       paddingHorizontal: Spacing.three,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      backgroundColor: Colors.card,
     },
 
     iconCircle: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+   width: 64,
+      height: 64,
+borderRadius: 999,
       alignItems: 'center',
       justifyContent: 'center',
       backgroundColor: Colors.successExtraLight,
@@ -97,8 +92,8 @@ const createStyles = (Colors: any) =>
 
     title: {
       fontFamily: Fonts.brandSemiBold,
-      fontSize: 15,
-      lineHeight: 20,
+    fontSize: 16,
+      lineHeight: 22,
       textAlign: 'center',
     },
 

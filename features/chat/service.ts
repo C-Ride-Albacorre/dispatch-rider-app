@@ -5,7 +5,6 @@ import { api } from '@/libs/api';
 
 /**
  * GET CHAT HISTORY
- * GET /chat/orders/:orderId/messages
  */
 export async function getChatService(
   orderId: string,
@@ -33,7 +32,6 @@ export async function getChatService(
 
 /**
  * SEND MESSAGE REST FALLBACK
- * POST /chat/orders/:orderId/messages
  */
 export async function sendMessageService({
   orderId,
@@ -72,7 +70,6 @@ export async function sendMessageService({
 
 /**
  * UPLOAD IMAGE
- * POST /chat/orders/:orderId/images
  */
 export async function uploadChatImageService({
   orderId,
@@ -119,7 +116,6 @@ export async function uploadChatImageService({
 
 /**
  * MARK READ REST FALLBACK
- * PATCH /chat/messages/:messageId/read
  */
 export async function markMessageReadService(
   messageId:string,
@@ -141,7 +137,6 @@ export async function markMessageReadService(
 
 /**
  * EDIT MESSAGE REST FALLBACK
- * PATCH /chat/messages/:messageId
  */
 export async function editMessageService({
   messageId,
@@ -170,7 +165,6 @@ export async function editMessageService({
 
 /**
  * DELETE MESSAGE REST FALLBACK
- * DELETE /chat/messages/:messageId
  */
 export async function deleteMessageService(
   messageId:string,

@@ -57,10 +57,6 @@ const COMPACT_UNITS = [
   { value: 1e3, suffix: 'k' },
 ];
 
-/**
- * Short naira amount for tight tiles: ₦ 950, ₦ 1.5k, ₦ 100k, ₦ 1.2M.
- * Use formatNaira wherever the exact figure matters.
- */
 export function formatNairaCompact(amount?: number) {
   const value = amount ?? 0;
   const abs = Math.abs(value);
@@ -70,7 +66,6 @@ export function formatNairaCompact(amount?: number) {
 
     const scaled = Number((abs / unit.value).toFixed(1));
 
-    // 999,950 rounds to "1000k"; show it as the next unit up instead
     const bigger = COMPACT_UNITS[i - 1];
     const text =
       scaled >= 1000 && bigger ? `1${bigger.suffix}` : `${scaled}${unit.suffix}`;

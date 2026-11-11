@@ -259,7 +259,7 @@ export default function ActiveDelivery({
             </View>
           </View>
 
-          {/* CTA: the whole card is the press target */}
+          {/* CTA */}
           <View style={styles.cta}>
             <ThemedText style={styles.ctaText} themeColor="onPrimary">
               Continue delivery

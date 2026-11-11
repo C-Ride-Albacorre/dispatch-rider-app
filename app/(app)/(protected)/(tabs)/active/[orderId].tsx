@@ -46,18 +46,14 @@ export default function ChatScreen() {
 
   const isConnected = useChatStore((state) => state.isConnected);
 
-  console.log(' ChatScreen orderId:', orderId, 'messages:', messages);
-
   const typingUsers = useChatStore((state) => state.typingUsers);
 
   const { sendMessage, sendImage, typing, markRead } = useChat(orderId);
 
   const driverId = useAuthStore((state) => state.driverId);
 
-  // Mark incoming messages as read when displayed
   useEffect(() => {
     messages.forEach((message) => {
-      // Only mark messages from other people (not the driver)
       if (!message.isRead && message.senderId !== driverId) {
         markRead(message.id);
       }

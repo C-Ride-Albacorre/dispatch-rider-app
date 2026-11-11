@@ -24,8 +24,6 @@ export const verifyPhoneAction = async (
   try {
     const data = await verifyPhone(payload);
 
-    console.log('Verify phone response:', data);
-
     const message = data?.message || 'Verification failed';
     const normalizedMessage = message.toLowerCase();
 
@@ -37,11 +35,6 @@ export const verifyPhoneAction = async (
     if (data?.status === 'error' || data?.statusCode >= 400) {
       /**
        * TOKEN ERROR
-       *
-       * Examples:
-       * - Invalid or expired verification token
-       * - Verification token expired
-       * - Invalid verification token
        */
       const tokenError =
         normalizedMessage.includes('verification token') ||
@@ -50,11 +43,6 @@ export const verifyPhoneAction = async (
 
       /**
        * CODE ERROR
-       *
-       * Examples:
-       * - Invalid or expired verification code
-       * - Invalid verification code
-       * - Verification code expired
        */
       const codeError =
         normalizedMessage.includes('verification code') ||
@@ -63,22 +51,13 @@ export const verifyPhoneAction = async (
 
       /**
        * TOKEN HAS EXPIRED/IS INVALID
-       *
-       * Only logout for an actual TOKEN error.
        */
       if (tokenError && !codeError) {
-        console.log(
-          'Verification token is invalid/expired. Requesting a new one...',
-        );
-
         return refreshExpiredVerificationToken(payload.phoneNumber, message);
       }
 
       /**
        * OTP/CODE IS INVALID OR EXPIRED
-       *
-       * Do NOT logout.
-       * Keep the verification token.
        */
       if (codeError) {
         return {
@@ -118,9 +97,6 @@ export const verifyPhoneAction = async (
      * ==========================================
      * SUCCESS
      * ==========================================
-     *
-     * Keep the verification session alive because
-     * the next step is email verification.
      */
     useAuthStore.getState().setAuth({
       isPhoneVerified: true,
@@ -158,10 +134,6 @@ export const verifyPhoneAction = async (
      * Actual token failure.
      */
     if (tokenError && !codeError) {
-      console.log(
-        'Verification token is invalid/expired. Requesting a new one...',
-      );
-
       return refreshExpiredVerificationToken(payload.phoneNumber, message);
     }
 
@@ -192,8 +164,6 @@ export const verifyEmailAction = async (
   try {
     const data = await verifyEmail(payload);
 
-    console.log('Verify email response:', data);
-
     const message =
       data?.message || 'Verification failed';
 
@@ -223,10 +193,6 @@ export const verifyEmailAction = async (
        * TOKEN ERROR
        */
       if (tokenError && !codeError) {
-        console.log(
-          'Email verification token invalid/expired',
-        );
-
         return refreshExpiredVerificationToken(payload.email, message);
       }
 
@@ -337,8 +303,6 @@ export const resendOtpAction = async (identifier: string) => {
   try {
     const data = await resendOtp(identifier);
 
-    console.log('Resend OTP response:', data);
-
     if (!data.success) {
       Toast.show({
         type: 'error',
@@ -368,18 +332,10 @@ export const resendOtpAction = async (identifier: string) => {
   }
 };
 
-/**
- * Reissues the verification token and resends the OTP.
- *
- * Used to recover when the previous verification token has expired.
- * (The "Resend Code" button uses resendOtpAction, which only resends the OTP.)
- */
 export const resendVerificationTokenAction = async (identifier: string) => {
   try {
     const data: ResendVerificationTokenResponse =
       await resendVerificationToken(identifier);
-
-    console.log('Resend verification token response:', data);
 
     if (!data?.verificationToken) {
       return {
@@ -408,12 +364,6 @@ export const resendVerificationTokenAction = async (identifier: string) => {
   }
 };
 
-/**
- * Called when verification fails because the token expired.
- *
- * Requests a fresh token + OTP instead of logging the user out.
- * Only logs out if the token cannot be reissued.
- */
 const refreshExpiredVerificationToken = async (
   identifier: string,
   message: string,
@@ -436,8 +386,6 @@ const refreshExpiredVerificationToken = async (
     };
   }
 
-  console.log('Could not reissue verification token. Logging out...');
-
   await useAuthStore.getState().logout();
 
   return {
@@ -448,21 +396,12 @@ const refreshExpiredVerificationToken = async (
   };
 };
 
-/**
- * Validates verification state and logs out user if:
- * 1. No verification info exists (verificationToken is null/empty)
- * 2. Account is already verified (both email and phone verified)
- *
- * This function should be called during verification flow initialization
- * to ensure data consistency and prevent verification attempts on already-verified accounts
- */
 export const validateVerificationStateAction = async () => {
   const authStore = useAuthStore.getState();
   const { verificationToken, isEmailVerified, isPhoneVerified } = authStore;
 
   // Case 1: No verification info exists
   if (!verificationToken) {
-    console.log('No verification token found, logging out user');
     await authStore.logout();
     Toast.show({
       type: 'error',
@@ -477,7 +416,6 @@ export const validateVerificationStateAction = async () => {
 
   // Case 2: Account is already verified
   if (isEmailVerified && isPhoneVerified) {
-    console.log('Account already verified, logging out user');
     await authStore.logout();
     Toast.show({
       type: 'error',

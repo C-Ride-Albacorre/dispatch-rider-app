@@ -46,11 +46,6 @@ export default function DeliveryDetailsModal({
   const assignment = data?.assignment;
   const stores = data?.stores ?? [];
 
-  /**
-   * The recipient is the person actually receiving
-   * the delivery. This is more useful to the driver
-   * than the account customer's information.
-   */
   const recipientName =
     order?.recipientName ||
     `${customer?.firstName ?? ''} ${customer?.lastName ?? ''}`.trim();

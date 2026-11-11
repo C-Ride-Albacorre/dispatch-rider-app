@@ -9,7 +9,6 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
-/** Top row of the Home hero: brand, notifications and the driver's avatar */
 export default function AppHeader() {
   const { data } = useDashboardStats();
   const [isModalOpen, setIsModalOpen] = useState(false);

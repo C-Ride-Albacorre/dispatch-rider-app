@@ -75,8 +75,6 @@ export default function VerifyEmailScreen() {
         verificationToken,
       });
 
-      console.log('Verification result:', result);
-
       /**
        * ==========================================
        * VERIFICATION FAILED
@@ -85,11 +83,6 @@ export default function VerifyEmailScreen() {
       if (!result.success) {
         /**
          * TOKEN INVALID / EXPIRED
-         *
-         * The action already logs the user out.
-         *
-         * We clear the verification data and
-         * send the user back to login.
          */
         if (result.tokenExpired) {
           Toast.show({
@@ -105,12 +98,6 @@ export default function VerifyEmailScreen() {
 
         /**
          * OTP/CODE INVALID / EXPIRED
-         *
-         * IMPORTANT:
-         * Do NOT logout.
-         *
-         * Keep the verification token alive so
-         * the user can retry or resend the OTP.
          */
         if (result.codeInvalid) {
           setErrorMessage(
@@ -134,9 +121,7 @@ export default function VerifyEmailScreen() {
        * ==========================================
        */
       setShowSuccessModal(true);
-    } catch (error) {
-      console.log('Email verification screen error:', error);
-
+    } catch {
       setErrorMessage('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

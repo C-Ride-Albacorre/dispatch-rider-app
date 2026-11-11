@@ -16,12 +16,6 @@ function toRadians(value: number) {
   return (value * Math.PI) / 180;
 }
 
-/**
- * Projects a coordinate onto a line segment.
- *
- * Uses a local meter-based coordinate system rather than
- * raw latitude/longitude differences.
- */
 function projectPointOnSegment(
   point: RoutePoint,
   start: RoutePoint,
@@ -91,12 +85,6 @@ function projectPointOnSegment(
   };
 }
 
-/**
- * Finds the closest point on a route.
- *
- * startIndex allows us to avoid repeatedly scanning the entire
- * route from the beginning as the driver moves forward.
- */
 export function findNearestPointOnPolyline(
   polyline: RoutePoint[],
   driverLocation: RoutePoint,
@@ -179,10 +167,6 @@ export function distanceBetweenPoints(
   );
 }
 
-/**
- * Trims the route so that it starts exactly at the driver's
- * projected position on the route.
- */
 export function trimPolyline(
   polyline: RoutePoint[],
   driverLocation: RoutePoint,

@@ -44,8 +44,6 @@ export default function ConfirmRequest({
       onSuccess: () => {
         setShowConfirmRequestModal(false);
 
-        // Drop it from our own list now, and tell the server so it can
-        // broadcast order-removed to the other drivers
         removeOrder(selectedOrderId);
         socket?.emit('order-removed', { order_id: selectedOrderId });
 
@@ -56,7 +54,6 @@ export default function ConfirmRequest({
           text1: 'Request accepted successfully',
         });
 
-        // Close the job details page first, then navigate
         router.dismiss();
         router.replace('/(app)/(protected)/(tabs)/active');
       },

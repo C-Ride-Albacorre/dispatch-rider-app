@@ -30,13 +30,10 @@ export default function NotificationListModal({
   const styles = createStyles(Colors);
 
   const handleNotificationPress = (notification: NotificationItem) => {
-    // Mark as viewed
     markAsViewed(notification.messageId);
 
-    // Navigate based on notification type
     handleNotificationNavigation(notification as any);
 
-    // Close modal after navigation
     onClose();
   };
 

@@ -5,7 +5,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 
-/** Avatar, name and rating at the top of Profile */
 export default function ProfileFrame({
   stats,
   driverInfo,

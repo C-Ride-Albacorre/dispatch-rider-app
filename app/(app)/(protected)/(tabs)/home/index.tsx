@@ -80,7 +80,7 @@ export default function Dashboard() {
 
   return (
     <ThemedView style={styles.flex}>
-      {/* Light icons over the dark hero */}
+      {}
       <StatusBar style="light" />
       <ScrollView
         showsVerticalScrollIndicator={false}

@@ -11,14 +11,14 @@ import {
 } from 'react-native';
 
 const GRADIENTS: [string, string][] = [
-  ['#2563EB', '#60A5FA'], // blue
-  ['#DC2626', '#F87171'], // red
-  ['#16A34A', '#4ADE80'], // green
-  ['#7C3AED', '#A78BFA'], // violet
-  ['#EA580C', '#FB923C'], // orange
-  ['#DB2777', '#F472B6'], // pink
-  ['#0891B2', '#22D3EE'], // cyan
-  ['#4F46E5', '#818CF8'], // indigo
+  ['#2563EB', '#60A5FA'],
+  ['#DC2626', '#F87171'],
+  ['#16A34A', '#4ADE80'],
+  ['#7C3AED', '#A78BFA'],
+  ['#EA580C', '#FB923C'],
+  ['#DB2777', '#F472B6'],
+  ['#0891B2', '#22D3EE'],
+  ['#4F46E5', '#818CF8'],
 ];
 
 function getGradientFromName(name?: string) {
@@ -112,7 +112,6 @@ const createStyles = (Colors: any) =>
       alignItems: 'center',
     },
 
-    // Gradients are always saturated, so initials stay white in both themes
     initials: {
       fontFamily: Fonts.brandSemiBold,
       letterSpacing: 0.5,

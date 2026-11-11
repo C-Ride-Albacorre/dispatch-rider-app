@@ -7,7 +7,6 @@ type AuthPageHeaderProps = {
   subtitle?: React.ReactNode;
 };
 
-/** Logo, title and subtitle at the top of the auth and verify screens */
 export default function AuthPageHeader({
   title,
   subtitle = 'Begin your journey with care',

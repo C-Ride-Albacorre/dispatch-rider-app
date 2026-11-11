@@ -9,15 +9,12 @@ import {
 // ─── State shape ──────────────────────────────────────────────────────────────
 
 interface OnboardingState {
-  // Persisted form data per step
   step1Data: Partial<PersonalInfoFormValues>;
   step2Data: Partial<VehicleInfoFormValues>;
   step3Data: Partial<Record<DriverDocumentType, UploadDocument>>;
 
-  // Which step the user is currently on
   currentStep: string;
 
-  // Loading / error state for the API call
   isSubmitting: boolean;
   error: string | null;
 

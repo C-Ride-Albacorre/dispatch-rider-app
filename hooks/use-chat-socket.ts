@@ -39,7 +39,6 @@ export function useChat(orderId: string) {
 
   /**
    * Load old messages
-   * REST only
    */
   useEffect(() => {
     if (!orderId) return;
@@ -48,12 +47,8 @@ export function useChat(orderId: string) {
       try {
         const response = await getChatService(orderId);
 
-        console.log('CHAT HISTORY:', response);
-
         setMessages(response);
-      } catch (error) {
-        console.log('CHAT HISTORY ERROR:', error);
-      }
+      } catch {}
     }
 
     loadMessages();
@@ -84,18 +79,9 @@ export function useChat(orderId: string) {
     setSocket(socket);
 
     /**
-     * Debug every server event
-     */
-    socket.onAny((event, payload) => {
-      console.log('CHAT SOCKET EVENT:', event, payload);
-    });
-
-    /**
      * Connected
      */
     socket.on('connect', () => {
-      console.log('CHAT SOCKET CONNECTED', socket.id);
-
       setConnected(true);
 
       /**
@@ -105,32 +91,13 @@ export function useChat(orderId: string) {
     });
 
     socket.on('disconnect', (reason) => {
-      console.log('CHAT SOCKET DISCONNECTED:', reason);
-
       setConnected(false);
-    });
-
-    /**
-     * Server confirms room join
-     */
-    socket.on('joined', (payload) => {
-      console.log('CHAT ROOM JOINED:', payload);
     });
 
     /**
      * Live messages
      */
     socket.on('new-message', (payload) => {
-      console.log('NEW MESSAGE EVENT:', payload);
-
-      /**
-       * Backend sends:
-       * {
-       *   orderId,
-       *   message
-       * }
-       */
-
       if (payload?.message) {
         addMessage(payload.message);
       }
@@ -205,8 +172,6 @@ export function useChat(orderId: string) {
 
   /**
    * Send message
-   * WebSocket first
-   * REST fallback
    */
   const sendMessage = useCallback(
     async (text: string) => {
@@ -230,38 +195,28 @@ export function useChat(orderId: string) {
         return;
       }
 
-      /**
-       * Socket unavailable
-       * fallback REST
-       */
       try {
         const response = await sendMessageService(payload);
 
         addMessage(response);
-      } catch (error) {
-        console.log('SEND MESSAGE ERROR:', error);
-      }
+      } catch {}
     },
     [orderId, addMessage],
   );
 
   /**
    * Upload image
-   * WebSocket first with confirmation
-   * REST fallback
    */
   const sendImage = useCallback(
     async (uri: string) => {
       const socket = socketRef.current;
 
       try {
-        // Upload image and get URL from server
         const response = await uploadChatImageService({
           orderId,
           uri,
         });
 
-        // Emit via socket if connected
         if (socket && socket.connected) {
           const payload = {
             orderId,
@@ -270,18 +225,14 @@ export function useChat(orderId: string) {
           };
 
           socket.emit('send-message', payload, (ack: any) => {
-            console.log('IMAGE SENT ACK:', ack);
             addMessage(ack?.message || response);
           });
 
           return;
         }
 
-        // Fallback: add message directly if socket not connected
         addMessage(response);
-      } catch (error) {
-        console.log('IMAGE ERROR:', error);
-      }
+      } catch {}
     },
     [orderId, addMessage],
   );
@@ -291,12 +242,6 @@ export function useChat(orderId: string) {
    */
   const typing = useCallback(
     (isTyping: boolean) => {
-      console.log('EMIT typing', {
-        orderId,
-        isTyping,
-        connected: socketRef.current?.connected,
-      });
-
       socketRef.current?.emit('typing', {
         orderId,
         isTyping,

@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactNode, useState } from 'react';
 
-// Global queryClient instance for access outside of React components
 let globalQueryClient: QueryClient | null = null;
 
 export function getQueryClient() {

@@ -10,19 +10,14 @@ export function useDeleteAccount() {
 
   return useMutation({
     mutationFn: async ({ reason }: { reason: string }) => {
-      // Unregister push token while the account still exists,
-      // otherwise the request would 401 after deletion.
       try {
         await unregisterDeviceToken();
-      } catch (error) {
-        console.log('Failed to unregister device token:', error);
-      }
+      } catch {}
 
       return deleteAccountService({ reason });
     },
 
     onSuccess: async () => {
-      // Account no longer exists — only clear the local session
       await logout({ skipRemote: true });
     },
   });

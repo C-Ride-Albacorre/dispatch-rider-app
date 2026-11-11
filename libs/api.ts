@@ -22,13 +22,6 @@ interface CustomAxiosRequestConfig extends AxiosRequestConfig {
 
 /**
  * ENDPOINTS THAT SHOULD NEVER TRIGGER REFRESH
- *
- * Why?
- * These endpoints can legitimately return 401
- * for invalid OTP / expired code.
- *
- * We do NOT want:
- * 401 -> refresh -> logout
  */
 const AUTH_EXCLUDED_ENDPOINTS = [
   '/auth/user/verify/email',
@@ -45,10 +38,6 @@ const AUTH_EXCLUDED_ENDPOINTS = [
 
 /**
  * ENDPOINTS THAT SHOULD NOT SHOW ERROR TOAST
- *
- * Why?
- * These endpoints can return errors for legitimate reasons
- * (e.g., no active delivery) and shouldn't show error notifications
  */
 const SILENT_ERROR_ENDPOINTS = ['/driver/tracking', '/driver/history'];
 
@@ -63,9 +52,6 @@ api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
     const token = await getAccessToken();
 
-    /**
-     * Only attach access token if it exists
-     */
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -87,78 +73,43 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config as CustomAxiosRequestConfig;
 
-    /**
-     * If no request exists
-     */
     if (!originalRequest) {
       return Promise.reject(error);
     }
 
-    /**
-     * Prevent refresh logic for excluded auth routes
-     */
     const requestUrl = (originalRequest.url || '').split('?')[0];
 
     const isExcluded = AUTH_EXCLUDED_ENDPOINTS.includes(requestUrl);
 
-    /**
-     * IMPORTANT:
-     * Verification endpoints can return 401
-     * for invalid OTP codes.
-     *
-     * We should NOT refresh/logout.
-     */
     if (isExcluded) {
       return Promise.reject(error);
     }
 
-    /**
-     * ONLY refresh on protected route 401
-     */
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {
         const refreshToken = await getRefreshToken();
 
-        /**
-         * No refresh token available
-         * Just reject without attempting logout
-         */
         if (!refreshToken) {
           return Promise.reject(error);
         }
 
-        /**
-         * Refresh access token
-         */
         const response = await axios.post(`${BASE_URL}/auth/refresh`, {
           refreshToken,
         });
 
-        /**
-         * API response shape: { data: { accessToken, refreshToken } }
-         */
         const { accessToken, refreshToken: newRefreshToken } =
           response.data.data;
 
-        /**
-         * Save both rotated tokens
-         */
         await saveAccessToken(accessToken);
         await saveRefreshToken(newRefreshToken);
 
-        /**
-         * Update Zustand store with both tokens
-         */
         useAuthStore.getState().setAuth({
           accessToken,
           refreshToken: newRefreshToken,
         });
 
-        /**
-         * Retry original request
-         */
         originalRequest.headers = {
           ...originalRequest.headers,
           Authorization: `Bearer ${accessToken}`,
@@ -166,11 +117,6 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError: any) {
-        console.error('Refresh token failed:', refreshError);
-
-        /**
-         * Session fully expired — clear everything
-         */
         await clearTokens();
         await useAuthStore.getState().logout();
 
@@ -180,10 +126,6 @@ api.interceptors.response.use(
           text2: 'Please login again',
         });
 
-        /**
-         * Redirect to login regardless of which
-         * component is currently mounted
-         */
         router.replace('/(app)/(auth)/login');
 
         return Promise.reject(refreshError);
@@ -196,7 +138,6 @@ api.interceptors.response.use(
     const message =
       error?.response?.data?.message || error.message || 'Something went wrong';
 
-    // Don't show error toast for endpoints that legitimately return errors
     const shouldSilenceError = SILENT_ERROR_ENDPOINTS.some((endpoint) =>
       requestUrl.includes(endpoint),
     );

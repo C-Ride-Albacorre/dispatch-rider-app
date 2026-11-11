@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
 import { formatDate } from '@/helpers/date-formatter';
+import { formatNaira } from '@/features/earnings/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -38,11 +39,15 @@ export default function RenderRecentDeliveries({
           numberOfLines={1}
           ellipsizeMode="tail"
         >
-          {customerName}
+          {customerName.length > 24
+            ? `${customerName.slice(0, 24)}...`
+            : customerName}
         </ThemedText>
 
         <ThemedText style={styles.secondary} themeColor="textSecondary">
-          {delivery.orderNumber}
+          {delivery.orderNumber.length > 24
+            ? `${delivery.orderNumber.slice(0, 24)}...`
+            : delivery.orderNumber}
         </ThemedText>
 
         <ThemedText style={styles.meta} themeColor="textMuted">
@@ -50,7 +55,9 @@ export default function RenderRecentDeliveries({
         </ThemedText>
       </View>
 
-      <ThemedText style={styles.amount}>₦ {delivery.deliveryFee}</ThemedText>
+      <ThemedText style={styles.amount}>
+        {formatNaira(delivery.deliveryFee)}
+      </ThemedText>
     </Pressable>
   );
 }

@@ -67,14 +67,12 @@ export default function ConfirmDelivery({
             text1: 'Delivery confirmed successfully',
           });
 
-          // Clear state after navigation starts
           setTimeout(() => {
             setActiveOrder(null);
             clearTracking();
             void clearActiveOrder();
           }, 100);
 
-          // Navigate to jobs tab
           router.replace('/jobs');
         },
 

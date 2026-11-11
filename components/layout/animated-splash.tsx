@@ -12,8 +12,6 @@ import Animated, {
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-// Must match the expo-splash-screen plugin config in app.json so the swap
-// from the native splash to this screen is seamless.
 const SPLASH_IMAGE = require('@/assets/images/splash-icon.png');
 const SPLASH_IMAGE_WIDTH = 200;
 const SPLASH_BACKGROUND = { light: '#ffffff', dark: '#000000' };
@@ -23,10 +21,6 @@ type AnimatedSplashProps = {
   onFinish: () => void;
 };
 
-/**
- * Takes over from the native splash screen and gently pulses the logo while
- * the app loads, then fades out as soon as `ready` is true.
- */
 export default function AnimatedSplash({ ready, onFinish }: AnimatedSplashProps) {
   const colorScheme = useColorScheme();
 

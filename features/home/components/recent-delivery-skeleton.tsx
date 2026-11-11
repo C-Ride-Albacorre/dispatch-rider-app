@@ -15,7 +15,6 @@ type RecentDeliverySkeletonProps = {
   count?: number;
 };
 
-/** Pulsing block, same as the sibling apps' Skeleton */
 function Block({
   width = '100%',
   height = 16,

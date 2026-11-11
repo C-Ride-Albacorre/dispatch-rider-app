@@ -44,8 +44,9 @@ export default function OrderDetailSheet() {
   const styles = createStyles(Colors);
 
   const handleAccept = () => {
+    if (!order) return;
     setShowConfirmRequestModal(true);
-    setSelectedOrderId(order.id);
+    setSelectedOrderId(order?.id);
     // setSelectedOrder(order);
   };
 
@@ -335,7 +336,6 @@ const createStyles = (Colors: any) =>
       overflow: 'hidden',
     },
 
-    // Grouped list card; rows carry their own padding and hairlines
     groupCard: {
       borderRadius: 20,
       borderWidth: 1,

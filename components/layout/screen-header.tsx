@@ -7,12 +7,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 type ScreenHeaderProps = {
   title: string;
   subtitle?: string;
-  /** Shows a back button */
   onBack?: () => void;
   right?: React.ReactNode;
 };
 
-/** Title bar for full screens, padded below the status bar */
 export default function ScreenHeader({ title, subtitle, onBack, right }: ScreenHeaderProps) {
   const insets = useSafeAreaInsets();
 

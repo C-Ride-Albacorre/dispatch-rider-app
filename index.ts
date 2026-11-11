@@ -1,6 +1,5 @@
-// Must be imported before the router so the FCM background handler is
-// registered even when Android wakes the app from a closed state to deliver a
-// push (headless JS, no UI rendered)
 import './services/notifications/backgroundHandler';
+
+import './services/location/background-location';
 
 import 'expo-router/entry';

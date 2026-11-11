@@ -53,8 +53,6 @@ export default function VerifyPhoneScreen() {
         verificationToken,
       });
 
-      console.log('Verification result:', result);
-
       /**
        * ==========================================
        * FAILED
@@ -63,9 +61,6 @@ export default function VerifyPhoneScreen() {
       if (!result.success) {
         /**
          * TOKEN INVALID/EXPIRED
-         *
-         * Action has already logged the user out.
-         * Clear local verification data and go to login.
          */
         if (result.tokenExpired) {
           Toast.show({
@@ -81,10 +76,6 @@ export default function VerifyPhoneScreen() {
 
         /**
          * CODE INVALID/EXPIRED
-         *
-         * DO NOT logout.
-         *
-         * Just show the error underneath the OTP input.
          */
         if (result.codeInvalid) {
           setErrorMessage(
@@ -124,7 +115,6 @@ export default function VerifyPhoneScreen() {
           errorMessage={errorMessage}
           onComplete={(otp) => {
             setCode(otp);
-            // Auto-submit verification when OTP is complete
             handleVerify(otp);
           }}
           onChange={(otp) => {

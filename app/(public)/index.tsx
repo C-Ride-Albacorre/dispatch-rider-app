@@ -13,8 +13,6 @@ export default function Index() {
     const supported = await Linking.canOpenURL(url);
     if (supported) {
       await Linking.openURL(url);
-    } else {
-      console.warn("Can't open URL:", url);
     }
   };
 
@@ -24,7 +22,6 @@ export default function Index() {
   const styles = createStyles(Colors);
 
   return (
-    // Scrollable so short screens can still reach the terms text
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.scrollContent}
@@ -48,7 +45,6 @@ export default function Index() {
       <View
         style={[
           styles.contentContainer,
-          // Keep the terms text above the Android navigation bar / iOS home indicator
           { paddingBottom: insets.bottom + Spacing.four },
         ]}
       >
@@ -129,8 +125,6 @@ const createStyles = (Colors: any) =>
       transform: [{ scale: 1.01 }],
     },
 
-    // Takes whatever height the content leaves over, but never collapses on
-    // short screens; past this minimum the page scrolls instead
     imageContainer: {
       flexGrow: 1,
       minHeight: 220,

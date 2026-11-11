@@ -4,7 +4,6 @@ import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { StyleSheet, View } from 'react-native';
 
-/** Empty state for the recent deliveries list */
 export default function NoRecentDelivery() {
   const { Colors } = useTheme();
 

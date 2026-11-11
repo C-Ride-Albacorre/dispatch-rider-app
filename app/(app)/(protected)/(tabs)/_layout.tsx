@@ -1,8 +1,10 @@
+import BackgroundLocationModal from '@/components/layout/background-location-modal';
 import NotificationBanner from '@/components/layout/notification-banner';
 import NotificationPermissionModal from '@/components/layout/notification-permission-modal';
 import { Fonts } from '@/constants/theme';
 import { useOrderTracking } from '@/features/active/use-fetch';
 import { useDashboardStats } from '@/features/home/use-fetch';
+import { useBackgroundLocation } from '@/hooks/use-background-location';
 import { useDriverSocket } from '@/hooks/use-driver-socket';
 import { useMapSocket } from '@/hooks/use-map-socket';
 import { useNotificationListeners } from '@/hooks/use-notification-listeners';
@@ -65,8 +67,6 @@ export default function TabsLayout() {
   const setOrderStatus = useDriverJobsStore((s) => s.setOrderStatus);
   const setDriverInfo = useDriverJobsStore((s) => s.setDriverInfo);
 
-  // On startup, restore the persisted orderId from SecureStore so we can
-  // call the tracking endpoint even before the socket fires
   const [restoredOrderId, setRestoredOrderId] = useState<string | undefined>(
     undefined,
   );
@@ -77,21 +77,13 @@ export default function TabsLayout() {
     void (async () => {
       const persisted = await getActiveOrder();
 
-      console.log(
-        '[TabsLayout] Restored persisted order from SecureStore:',
-        persisted,
-      );
-
       if (persisted?.order_id) {
         setRestoredOrderId(persisted.order_id);
       }
     })();
   }, []);
 
-  // Fetch a tracking snapshot to pre-seed the map before the first socket event
   const { data: trackingSnapshot } = useOrderTracking();
-
-  console.log(' [TabsLayout] trackingSnapshot:', trackingSnapshot);
 
   const activeOrderId =
     useDriverJobsStore((s) => s.activeOrder?.order_id) ??
@@ -103,7 +95,6 @@ export default function TabsLayout() {
 
     if (!d) return;
 
-    // Hydrate activeOrder from tracking response if the store is empty
     if (!activeOrder && d.order) {
       const order: ActiveOrderProps = {
         order_id: d.order.id,
@@ -125,7 +116,6 @@ export default function TabsLayout() {
       setActiveOrder(order);
     }
 
-    // Hydrate driver info from tracking response
     if (d.driver) {
       const driverInfo: DriverInfo = {
         driver_id: d.driver.id,
@@ -140,7 +130,6 @@ export default function TabsLayout() {
       setDriverInfo(driverInfo);
     }
 
-    // Seed tracking fields so the map renders immediately
     const t = d.tracking;
 
     if (!t) return;
@@ -156,6 +145,11 @@ export default function TabsLayout() {
   useDriverSocket(driverStatus, activeOrderId);
   useMapSocket(activeOrderId);
 
+  const backgroundLocation = useBackgroundLocation(
+    driverStatus,
+    activeOrderId,
+  );
+
   const [showNotificationModal, setShowNotificationModal] =
     useState<boolean>(false);
 
@@ -168,8 +162,6 @@ export default function TabsLayout() {
       if (decision === 'allowed') {
         initializeNotifications();
       } else {
-        // Includes 'denied' saved by the old "Not Now" button, so those
-        // drivers still reach the system prompt once
         setShowNotificationModal(true);
       }
     };
@@ -224,6 +216,12 @@ export default function TabsLayout() {
           await saveNotificationPermissionDecision('allowed');
           initializeNotifications();
         }}
+      />
+
+      <BackgroundLocationModal
+        visible={backgroundLocation.showDisclosure && !showNotificationModal}
+        onContinue={backgroundLocation.onContinue}
+        onDismiss={backgroundLocation.onDismiss}
       />
     </View>
   );

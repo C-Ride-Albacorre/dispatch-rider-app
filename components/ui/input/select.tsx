@@ -4,6 +4,7 @@ import { Fonts, Spacing } from '@/constants/theme';
 import React, { useState } from 'react';
 import {
   FlatList,
+  Keyboard,
   Modal,
   Pressable,
   StyleSheet,
@@ -69,7 +70,11 @@ export default function Select({
       <TouchableOpacity
         activeOpacity={0.8}
         disabled={disabled}
-        onPress={() => !disabled && setOpen(true)}
+        onPress={() => {
+          if (disabled) return;
+          Keyboard.dismiss();
+          setOpen(true);
+        }}
         style={[
           styles.inputContainer,
           {

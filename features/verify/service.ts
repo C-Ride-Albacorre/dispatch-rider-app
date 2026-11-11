@@ -4,8 +4,6 @@ import { VerifyEmailPayload, VerifyPhonePayload } from './types';
 export const verifyPhone = async (payload: VerifyPhonePayload) => {
   const response = await api.post('/auth/user/verify/phone', payload);
 
-    console.log(' Verify phone response:', response.data.data);
-
   return response.data.data;
 
 

@@ -34,7 +34,6 @@ export default function ResendOTP({
       return;
     }
 
-    // restart timer
     setCountdown(30);
     setCanResend(false);
   };

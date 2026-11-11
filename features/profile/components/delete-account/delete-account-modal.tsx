@@ -33,8 +33,6 @@ export default function DeleteAccountModal({
 
   const { mutate: deleteAccount, isPending } = useDeleteAccount();
 
-  // Fixed height so the modal doesn't jump between steps;
-  // the step content scrolls inside it.
   const { height: windowHeight } = useWindowDimensions();
   const modalHeight = Math.min(windowHeight * 0.75, 580);
 

@@ -52,13 +52,6 @@ export default function ResetPassword() {
 
     setLoading(true);
 
-    console.log(
-      'Resetting password with token:',
-      token,
-      'and new password:',
-      password,
-    );
-
     const response = await ResetPasswordAction({
       token,
       newPassword: password,

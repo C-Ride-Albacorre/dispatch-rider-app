@@ -59,7 +59,6 @@ export default function VerifyResetScreen() {
       identifier: verificationIdentifier,
       otp: code,
     });
-    console.log(' Verify reset result:', result);
 
     setLoading(false);
 

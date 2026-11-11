@@ -295,7 +295,6 @@ const createStyles = (Colors: any) =>
       lineHeight: 16,
     },
 
-    // Softer meta text on the gold bubble
     mineMeta: {
       opacity: 0.7,
     },

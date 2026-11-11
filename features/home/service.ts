@@ -34,8 +34,6 @@ export async function getRecentDeliveriesService({
 export async function getDeliveryDetailsService(orderId: string) {
   const response = await api.get(`/driver/history/${orderId}`);
 
-  console.log('[getDeliveryDetailsService] response:', response.data);
-
   return response.data;
 
 }

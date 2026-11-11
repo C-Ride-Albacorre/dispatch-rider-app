@@ -18,7 +18,6 @@ type MethodTabsProps<T extends string> = {
   onChange: (value: T) => void;
 };
 
-/** Pill-shaped switch between a few views, e.g. Email / Phone */
 export default function MethodTabs<T extends string>({
   tabs,
   value,

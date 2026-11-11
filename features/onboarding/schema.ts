@@ -40,7 +40,7 @@ export const vehicleInfoSchema = z.object({
 
 export type VehicleInfoFormValues = z.infer<typeof vehicleInfoSchema>;
 
-// ─── Combined type (useful for Zustand store) ─────────────────────────────────
+// ─── Combined type ───────────────────────────────────────────────────────────
 
 export type DriverDocumentType =
   | 'DRIVER_LICENSE'

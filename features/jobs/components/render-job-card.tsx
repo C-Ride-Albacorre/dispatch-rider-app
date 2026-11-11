@@ -36,14 +36,12 @@ export default function RenderJobCard({ item }: { item: any }) {
     setShowConfirmRequestModal(true);
   }, []);
 
-  // Total number of discrete products ordered
   const totalItemsCount =
     item.items?.reduce(
       (acc: number, curr: any) => acc + (curr.quantity || 1),
       0,
     ) || 0;
 
-  // Parse approximate distance to string value
   const distanceKm = item.distance_meters
     ? `${(item.distance_meters / 1000).toFixed(2)} km`
     : 'Nearby';

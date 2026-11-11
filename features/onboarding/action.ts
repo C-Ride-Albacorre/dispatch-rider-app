@@ -24,11 +24,7 @@ export async function personalInfoAction(
   try {
     const result = await onboarding(payload, 1);
 
-    console.log('Result from action:', result);
-
     const responseData = result?.data;
-
-    console.log('Response data from action:', responseData);
 
     if (!responseData?.success) {
       Toast.show({
@@ -47,11 +43,6 @@ export async function personalInfoAction(
       };
     }
 
-    /**
-     * API successfully saved step 1.
-     *
-     * Now persist local onboarding progress.
-     */
     const onboardingStatus =
       normalizeOnboardingStatus(
         responseData?.onboardingStatus,
@@ -76,9 +67,7 @@ export async function personalInfoAction(
       onboardingStatus,
       data: responseData,
     };
-  } catch (error) {
-    console.log('Personal information error:', error);
-
+  } catch {
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -95,16 +84,9 @@ export async function vehicleInfoAction(
   payload: VehicleInfoPayload,
 ) {
   try {
-    console.log(
-      'Calling onboarding service with payload:',
-      payload,
-    );
-
     const result = await onboarding(payload, 2);
 
     const responseData = result?.data;
-
-    console.log('Result from action:', responseData);
 
     if (!responseData?.success) {
       Toast.show({
@@ -123,9 +105,6 @@ export async function vehicleInfoAction(
       };
     }
 
-    /**
-     * Step 2 successfully saved.
-     */
     const onboardingStatus =
       normalizeOnboardingStatus(
         responseData?.onboardingStatus,
@@ -150,9 +129,7 @@ export async function vehicleInfoAction(
       onboardingStatus,
       data: responseData,
     };
-  } catch (error) {
-    console.log('Vehicle information error:', error);
-
+  } catch {
     Toast.show({
       type: 'error',
       text1: 'Error',
@@ -169,15 +146,8 @@ export async function vehicleInfoAction(
 export async function submitDocumentsAction(
   payload: Step3Payload,
 ) {
-  console.log(
-    'Submitting documents with payload:',
-    payload,
-  );
-
   try {
     const response = await submitDriverDocuments(payload);
-
-    console.log('Raw API response:', response);
 
     const data = response?.data;
 
@@ -198,9 +168,6 @@ export async function submitDocumentsAction(
       };
     }
 
-    /**
-     * API successfully completed step 3.
-     */
     const latestStatus =
       normalizeOnboardingStatus(
         data?.onboardingStatus,
@@ -209,9 +176,6 @@ export async function submitDocumentsAction(
     const completedStep =
       Number(data?.onboardingStep) || 3;
 
-    /**
-     * Persist onboarding progress locally.
-     */
     await saveOnboardingProgress({
       step: completedStep,
       status: latestStatus,
@@ -232,11 +196,6 @@ export async function submitDocumentsAction(
       data,
     };
   } catch (error: any) {
-    console.log(
-      'UPLOAD ERROR:',
-      error?.response?.data || error,
-    );
-
     Toast.show({
       type: 'error',
       text1: 'Error',

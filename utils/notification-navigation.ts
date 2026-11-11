@@ -5,7 +5,6 @@ type NotificationData = {
   orderId?: string;
 };
 
-// Accepts both FCM remote messages and expo-notifications content
 export function handleNotificationNavigation(notification: {
   data?: Record<string, unknown> | null;
 }) {

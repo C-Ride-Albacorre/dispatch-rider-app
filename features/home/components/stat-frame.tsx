@@ -10,7 +10,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-/** Today's numbers as tiles on the Home hero */
 export default function StatFrame({
   stats,
   earnings,
@@ -64,7 +63,6 @@ export default function StatFrame({
   );
 }
 
-/** A count tile on the dark hero */
 function Stat({
   label,
   value,

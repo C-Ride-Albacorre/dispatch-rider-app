@@ -51,7 +51,6 @@ const LOCATION_ANIMATION_DURATION = 450;
 
 const CAMERA_ANIMATION_DURATION = 350;
 
-// The collapsed sheet covers the bottom 40%, leaving 60% of the screen for the map
 const SHEET_COLLAPSED_RATIO = 0.4;
 
 const MAP_CONTROL_SIZE = 48;
@@ -60,7 +59,6 @@ const MAP_CONTROLS_GAP = 10;
 
 const MAP_CONTROLS_HEIGHT = MAP_CONTROL_SIZE * 2 + MAP_CONTROLS_GAP;
 
-// Space at the end of the sheet content so the sticky footer doesn't cover it
 const SHEET_FOOTER_SPACE = 104;
 
 export default function ActiveDeliveryContent() {
@@ -74,42 +72,32 @@ export default function ActiveDeliveryContent() {
 
   const sheetIndexRef = useRef(0);
 
-  // The sheet must never close: layout changes (tab switch, returning from
-  // chat, app resume) can leave it at index -1, so bring it back to the
-  // collapsed snap point
   const handleSheetChange = useCallback((index: number) => {
     sheetIndexRef.current = index;
 
     if (index < 0) sheetRef.current?.snapToIndex(0);
   }, []);
 
-  // Coming back to this tab, make sure the sheet is open again
   useFocusEffect(
     useCallback(() => {
       if (sheetIndexRef.current < 0) sheetRef.current?.snapToIndex(0);
     }, []),
   );
 
-  // The map runs edge to edge; floating controls sit below the status bar
   const mapTopInset = insets.top;
 
   const [containerHeight, setContainerHeight] = useState(0);
 
   const collapsedSheetHeight = containerHeight * SHEET_COLLAPSED_RATIO;
 
-  // Top edge of the bottom sheet, in screen-container coordinates
   const sheetPosition = useSharedValue(0);
 
-  // Expanding stops at 70% so part of the map always stays visible
   const snapPoints = useMemo(() => ['40%', '70%'], []);
 
-  // Back to the last snap point the driver left it at, or collapsed
   const restoreSheet = useCallback(() => {
     sheetRef.current?.snapToIndex(Math.max(sheetIndexRef.current, 0));
   }, []);
 
-  // On app resume Android re-measures the screen, and the sheet can be left
-  // parked off-screen without onChange ever reporting -1
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') setTimeout(restoreSheet, 300);
@@ -118,8 +106,6 @@ export default function ActiveDeliveryContent() {
     return () => subscription.remove();
   }, [restoreSheet]);
 
-  // Catch-all: the sheet never legitimately sits below its collapsed
-  // height, so if less than half of that is showing, bring it back
   useAnimatedReaction(
     () =>
       containerHeight > 0 &&
@@ -154,7 +140,6 @@ export default function ActiveDeliveryContent() {
   const activeOrder = useDriverJobsStore((s) => s.activeOrder);
   const setActiveOrder = useDriverJobsStore((s) => s.setActiveOrder);
 
-  // Fetch active order from API
   const {
     data: fetchedOrder,
     isLoading: isOrderLoading,
@@ -167,9 +152,6 @@ export default function ActiveDeliveryContent() {
   const polylineToVendor = useDriverJobsStore((s) => s.polylineToVendor);
   const polylineToCustomer = useDriverJobsStore((s) => s.polylineToCustomer);
 
-  console.log('DRIVER LOCATION FOR MARKER:', driverLocation);
-
-  // Sync fetched order to store and handle loading state
   useEffect(() => {
     if (fetchedOrder?.order_id) {
       setActiveOrder(fetchedOrder);
@@ -178,37 +160,19 @@ export default function ActiveDeliveryContent() {
     }
 
     if (!isOrderLoading) {
-      // If loading finished but no order, show no active job
       setIsWaitingForOrder(false);
     }
   }, [fetchedOrder, isOrderLoading, setActiveOrder]);
 
-  // Preload store logo image
   useEffect(() => {
     if (activeOrder?.store_logo) {
       Image.prefetch(activeOrder.store_logo)
         .then(() => setStoreLogoLoaded(true))
         .catch(() => {
-          // Fallback to bag icon if image fails
           setStoreLogoLoaded(false);
         });
     }
   }, [activeOrder?.store_logo]);
-
-  console.log(
-    // 'ACTIVE ORDER :',
-    // activeOrder,
-    // 'DRIVER LOCATION :',
-    // driverLocation,
-    // 'ETA TO CUSTOMER : ',
-    // etaToCustomer,
-    // 'ETA TO VENDOR : ',
-    // etaToVendor,
-    ' POLYLINE TO CUSTOMER :',
-    polylineToCustomer,
-    ' POLYLINE TO VENDOR :',
-    polylineToVendor,
-  );
 
   function getBearing(
     startLat: number,
@@ -262,24 +226,19 @@ export default function ActiveDeliveryContent() {
   const isCustomerActive =
     deliveryPhase === 'TO_CUSTOMER' || deliveryPhase === 'DELIVERED';
 
-  // Computed on the JS thread so the worklet below only reads plain numbers
   const mapControlsOffset = MAP_CONTROLS_HEIGHT + Spacing.three;
 
-  // Drivers can close the ETA card; it comes back when the delivery phase changes
   const [etaCardDismissedPhase, setEtaCardDismissedPhase] = useState<
     string | null
   >(null);
 
   const showEtaCard = etaCardDismissedPhase !== deliveryPhase;
 
-  // Bottom edge of the ETA card (or the compact pill when it's closed)
   const etaCardBottom = mapTopInset + (showEtaCard ? 92 : 52);
 
-  // Fade the buttons out only when they'd overlap the ETA card at the top
   const mapControlsFadeStart = etaCardBottom + mapControlsOffset;
   const mapControlsFadeEnd = mapControlsFadeStart + 60;
 
-  // Refresh/recenter buttons ride just above the sheet and fade out as it expands
   const mapControlsStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: sheetPosition.value - mapControlsOffset }],
     opacity: interpolate(
@@ -312,8 +271,7 @@ export default function ActiveDeliveryContent() {
         .filter(
           (p) => Number.isFinite(p.latitude) && Number.isFinite(p.longitude),
         );
-    } catch (error) {
-      console.log('❌ polyline decode error:', error);
+    } catch {
       return [];
     }
   }, [activePolyline]);
@@ -346,12 +304,6 @@ export default function ActiveDeliveryContent() {
       return fullCoordinates;
     }
 
-    /**
-     * Only move forward.
-     *
-     * This prevents GPS noise from making the route jump
-     * backwards when the driver's location fluctuates slightly.
-     */
     if (result.index >= routeProgressRef.current) {
       routeProgressRef.current = result.index;
     }
@@ -421,7 +373,6 @@ export default function ActiveDeliveryContent() {
 
     hasFittedRoute.current = true;
 
-    // mapPadding already keeps the route clear of the header and the sheet
     mapRef.current?.fitToCoordinates(coordinates, {
       edgePadding: {
         top: 60,
@@ -538,17 +489,12 @@ export default function ActiveDeliveryContent() {
     activeOrder?.pickup_location?.longitude,
   ]);
 
-  // The map unmounts while there's no order; a remounted map must wait for
-  // its own onMapReady before receiving padding
   const hasOrder = Boolean(activeOrder?.order_id);
 
   useEffect(() => {
     if (!hasOrder) setIsMapReady(false);
   }, [hasOrder]);
 
-  // Decline/pickup/delivery clear the order before their modals can close
-  // themselves (the modals unmount first), so close them here or they
-  // reopen on the next job
   useEffect(() => {
     if (hasOrder) return;
 
@@ -675,7 +621,6 @@ export default function ActiveDeliveryContent() {
 
   const mapStyle: any[] = [];
 
-  // Snap back to the driver's latest position and resume following them
   const recenterDriver = () => {
     if (!driverLocation) return;
 
@@ -697,7 +642,6 @@ export default function ActiveDeliveryContent() {
       },
     );
   };
-  console.log('Storeeeeeeeeee Logooooo:', activeOrder.store_logo);
 
   const driverMarkerCoordinate = driverLocation
     ? {
@@ -804,9 +748,6 @@ export default function ActiveDeliveryContent() {
             mapType="standard"
             provider={PROVIDER_GOOGLE}
             style={StyleSheet.absoluteFill}
-            // Android crashes (NPE in GoogleMap.setPadding) if padding changes
-            // after layout but before the native map exists, so hold it back
-            // until onMapReady
             mapPadding={
               isMapReady
                 ? {
@@ -849,7 +790,6 @@ export default function ActiveDeliveryContent() {
                   borderWidth: 2,
                   borderColor: Colors.primary,
 
-                  // Only add shadows on Android, iOS handles differently
                   ...Platform.select({
                     android: {
                       elevation: 8,
