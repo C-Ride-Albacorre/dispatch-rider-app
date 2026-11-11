@@ -2,8 +2,9 @@ import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useRecentDeliveries } from '../use-fetch';
 import DeliveryDetailsModal from './delivery-details-modal';
 import NoRecentDelivery from './no-recent-delivery';
@@ -24,11 +25,26 @@ export default function RecentDeliveries() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.sectionHeader}>
-        <ThemedText style={styles.title}>Recent deliveries</ThemedText>
-        <ThemedText style={styles.subtitle} themeColor="textMuted">
-          Your latest completed drop-offs
-        </ThemedText>
+      <View style={styles.headerRow}>
+        <View style={styles.sectionHeader}>
+          <ThemedText style={styles.title}>Recent deliveries</ThemedText>
+          <ThemedText style={styles.subtitle} themeColor="textMuted">
+            Your latest completed drop-offs
+          </ThemedText>
+        </View>
+
+        <Pressable
+          onPress={() => router.push('/(app)/(protected)/(tabs)/home/history')}
+          hitSlop={8}
+          style={({ pressed }) => [styles.seeAll, pressed && styles.pressed]}
+          accessibilityRole="button"
+          accessibilityLabel="See all order history"
+        >
+          <ThemedText style={styles.seeAllText} themeColor="primary">
+            See all
+          </ThemedText>
+          <Ionicons name="chevron-forward" size={14} color={Colors.primary} />
+        </Pressable>
       </View>
 
       {error ? (
@@ -84,8 +100,35 @@ const createStyles = (Colors: any) =>
       gap: Spacing.three,
     },
 
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.two,
+    },
+
     sectionHeader: {
+      flex: 1,
       gap: 2,
+    },
+
+    seeAll: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 2,
+      paddingVertical: Spacing.one,
+      paddingHorizontal: Spacing.two,
+      borderRadius: 999,
+      backgroundColor: Colors.primaryExtraLight,
+    },
+
+    seeAllText: {
+      fontFamily: Fonts.brandSemiBold,
+      fontSize: 13,
+      lineHeight: 18,
+    },
+
+    pressed: {
+      opacity: 0.7,
     },
 
     title: {

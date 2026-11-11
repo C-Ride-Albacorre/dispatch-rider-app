@@ -20,7 +20,6 @@ type AuthScreenProps = {
 export default function AuthScreen({ title, subtitle, children, onBack }: AuthScreenProps) {
   return (
     <ThemedView style={styles.flex}>
-      {}
       <KeyboardAwareScrollView
         style={styles.flex}
         contentContainerStyle={styles.content}

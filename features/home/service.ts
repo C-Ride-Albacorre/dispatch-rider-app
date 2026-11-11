@@ -16,15 +16,18 @@ export async function updateDriverStatusService(status: 'ONLINE' | 'OFFLINE') {
 
 export async function getRecentDeliveriesService({
   status,
-
+  page,
+  limit,
 }: {
-  status: string;
-
+  status?: string;
+  page?: number;
+  limit?: number;
 }) {
   const response = await api.get(`/driver/history`, {
     params: {
       status,
-    
+      page,
+      limit,
     },
   });
 

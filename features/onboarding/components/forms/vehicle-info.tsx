@@ -17,6 +17,7 @@ import { vehicleInfoAction } from '../../action';
 import { VehicleInfoFormValues, vehicleInfoSchema } from '../../schema';
 import { useOnboardingStore } from '../../store';
 import { useVehicleTypeConfigs } from '../../use-fetch';
+import VehicleTypeIcon from '../vehicle-type-icon';
 
 export default function VehicleInfo({
   goToStep,
@@ -121,8 +122,16 @@ export default function VehicleInfo({
                         value === type.id && styles.selectedVehicleType,
                       ]}
                     >
+                      <VehicleTypeIcon
+                        config={type}
+                        size={28}
+                        color={
+                          value === type.id ? Colors.primary : Colors.textSecondary
+                        }
+                      />
                       <ThemedText
                         style={styles.vehicleOptionText}
+                        numberOfLines={1}
                         themeColor={value === type.id ? 'text' : 'textSecondary'}
                       >
                         {type.name}
@@ -257,15 +266,16 @@ const createStyles = (Colors: any) =>
 
     vehicleTypeOptions: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: 12,
     },
 
     vehicleOption: {
-      flex: 1,
-      flexDirection: 'row',
+      flexGrow: 1,
+      flexBasis: '40%',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: Spacing.two,
+      gap: Spacing.one,
       padding: 14,
       borderWidth: 1,
       borderColor: Colors.border,

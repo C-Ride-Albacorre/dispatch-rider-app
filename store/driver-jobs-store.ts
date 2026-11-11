@@ -13,6 +13,7 @@ export interface ActiveOrderProps {
   order_id: string;
   order_number: string;
   order_status: OrderStatus;
+  vendor_code?: string | null;
 
   store_id: string;
   store_name: string;
@@ -85,6 +86,7 @@ export function normalizeIncomingJob(payload: any) {
     ...job,
     order_id: orderId,
     order_number: job.order_number ?? job.orderNumber,
+    vendor_code: job.vendor_code ?? job.vendorCode ?? null,
     store_name:
       job.store_name ?? job.storeName ?? store.name ?? pickup.storeName,
     store_logo: job.store_logo ?? job.storeLogo ?? store.logo,

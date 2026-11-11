@@ -10,6 +10,8 @@ import { Fonts, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 import { usePickupJob } from './use-fetch';
+import { useVendorCode } from './use-vendor-code';
+import VendorCodeCard from './vendor-code-card';
 
 export default function ConfirmPickup({
   showConfirmPickupModal,
@@ -25,6 +27,8 @@ export default function ConfirmPickup({
   const styles = createStyles(Colors);
 
   const { mutate: pickupJob, isPending } = usePickupJob();
+
+  const vendorCode = useVendorCode();
 
   const handlePickup = () => {
     if (!selectedOrderId) {
@@ -86,8 +90,16 @@ export default function ConfirmPickup({
           style={styles.confirmRequestDescription}
           themeColor="textSecondary"
         >
-          Are you sure you want to confirm the pickup?
+          {vendorCode
+            ? 'Give the vendor this code, then confirm once you have the order.'
+            : 'Are you sure you want to confirm the pickup?'}
         </ThemedText>
+
+        {!!vendorCode && (
+          <View style={styles.codeWrapper}>
+            <VendorCodeCard code={vendorCode} size="compact" hint="" />
+          </View>
+        )}
 
         <View style={styles.actionContainer}>
           <Button
@@ -147,6 +159,10 @@ const createStyles = (Colors: any) =>
       lineHeight: 20,
       textAlign: 'center',
       marginBottom: Spacing.four,
+    },
+
+    codeWrapper: {
+      width: '100%',
     },
 
     actionContainer: {

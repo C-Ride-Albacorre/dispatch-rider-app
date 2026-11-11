@@ -93,7 +93,6 @@ export default function AppModal({
               : styles.centerModalContainer,
           ]}
         >
-          {}
           <TouchableWithoutFeedback onPress={() => {}}>
             <View
               style={[

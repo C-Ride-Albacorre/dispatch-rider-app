@@ -1,5 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
+import { useVendorCode } from '@/features/active/use-vendor-code';
+import VendorCodeCard from '@/features/active/vendor-code-card';
 import { useTheme } from '@/hooks/use-theme';
 import { ActiveOrderProps } from '@/store/driver-jobs-store';
 import { Ionicons } from '@expo/vector-icons';
@@ -74,6 +76,8 @@ export default function ActiveDelivery({
   const styles = createStyles(Colors);
 
   const pressScale = useSharedValue(1);
+
+  const vendorCode = useVendorCode();
 
   const pressStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pressScale.value }],
@@ -224,6 +228,10 @@ export default function ActiveDelivery({
               );
             })}
           </View>
+
+          {phase === 'TO_VENDOR' && !!vendorCode && (
+            <VendorCodeCard code={vendorCode} size="compact" />
+          )}
 
           {/* Next stop */}
           <View style={styles.nextStop}>

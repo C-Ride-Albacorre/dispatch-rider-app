@@ -9,6 +9,8 @@ import ConfirmPickup from '@/features/active/confirm-pickup';
 import NoActiveJob from '@/features/active/no-active-job';
 import StatusDot from '@/features/active/status-dot';
 import { useOrderTracking } from '@/features/active/use-fetch';
+import { useVendorCode } from '@/features/active/use-vendor-code';
+import VendorCodeCard from '@/features/active/vendor-code-card';
 import { formatDate } from '@/helpers/date-formatter';
 import { useTheme } from '@/hooks/use-theme';
 import { useDriverJobsStore } from '@/store/driver-jobs-store';
@@ -225,6 +227,8 @@ export default function ActiveDeliveryContent() {
   const isPickupActive = deliveryPhase === 'TO_VENDOR';
   const isCustomerActive =
     deliveryPhase === 'TO_CUSTOMER' || deliveryPhase === 'DELIVERED';
+
+  const vendorCode = useVendorCode();
 
   const mapControlsOffset = MAP_CONTROLS_HEIGHT + Spacing.three;
 
@@ -944,6 +948,10 @@ export default function ActiveDeliveryContent() {
             <ThemedText style={styles.sheetTitle}>
               Order #{activeOrder.order_number}
             </ThemedText>
+
+            {isPickupActive && !!vendorCode && (
+              <VendorCodeCard code={vendorCode} />
+            )}
 
             <View style={styles.card}>
               <View style={styles.addressesContainerHeader}>

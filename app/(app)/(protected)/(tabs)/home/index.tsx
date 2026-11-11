@@ -17,6 +17,7 @@ import {
   ActiveOrderProps,
   useDriverJobsStore,
 } from '@/store/driver-jobs-store';
+import { useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { useMemo } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
@@ -50,6 +51,8 @@ export default function Dashboard() {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
+  const queryClient = useQueryClient();
+
   const { data, isLoading, isFetching, refetch } = useDashboardStats();
 
   const {
@@ -80,7 +83,6 @@ export default function Dashboard() {
 
   return (
     <ThemedView style={styles.flex}>
-      {}
       <StatusBar style="light" />
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -91,6 +93,7 @@ export default function Dashboard() {
             onRefresh={() => {
               refetch();
               refetchEarnings();
+              queryClient.invalidateQueries({ queryKey: ['recent-deliveries'] });
             }}
             tintColor={Colors.white}
           />

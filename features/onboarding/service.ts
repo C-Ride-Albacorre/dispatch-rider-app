@@ -25,9 +25,21 @@ export interface OnboardingStepResponse {
   };
 }
 
+export const VehicleType = {
+  CAR: 'CAR',
+  EV: 'EV',
+  E_BIKE: 'E_BIKE',
+  MOTORCYCLE: 'MOTORCYCLE',
+} as const;
+
+export type VehicleTypeValue = (typeof VehicleType)[keyof typeof VehicleType];
+
 export interface VehicleTypeConfig {
   id: string;
   name: string;
+  icon?: string | null;
+  vehicleType?: VehicleTypeValue | string | null;
+  type?: VehicleTypeValue | string | null;
 }
 
 interface VehicleTypeConfigsResponse {

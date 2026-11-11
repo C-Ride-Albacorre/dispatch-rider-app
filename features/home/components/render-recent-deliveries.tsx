@@ -7,6 +7,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { RecentDelivery } from '../use-fetch';
 
+type IconName = keyof typeof Ionicons.glyphMap;
+
+function getStatusDisplay(status: string, Colors: any) {
+  switch (status) {
+    case 'DELIVERED':
+      return {
+        label: 'Delivered',
+        icon: 'checkmark' as IconName,
+        color: Colors.success,
+        background: Colors.successExtraLight,
+      };
+    case 'PICKED_UP':
+    case 'IN_TRANSIT':
+      return {
+        label: 'Picked up',
+        icon: 'bicycle' as IconName,
+        color: Colors.primary,
+        background: Colors.primaryExtraLight,
+      };
+    case 'CANCELLED':
+    case 'DECLINED':
+      return {
+        label: 'Cancelled',
+        icon: 'close' as IconName,
+        color: Colors.error,
+        background: Colors.errorExtraLight,
+      };
+    default:
+      return {
+        label: 'Assigned',
+        icon: 'time-outline' as IconName,
+        color: Colors.textMuted,
+        background: Colors.backgroundTertiary,
+      };
+  }
+}
+
 export default function RenderRecentDeliveries({
   delivery,
   onPress,
@@ -21,6 +58,8 @@ export default function RenderRecentDeliveries({
   const customerName =
     delivery.customer.firstName + ' ' + delivery.customer.lastName;
 
+  const statusDisplay = getStatusDisplay(delivery.orderStatus, Colors);
+
   return (
     <Pressable
       onPress={onPress}
@@ -29,8 +68,14 @@ export default function RenderRecentDeliveries({
       accessibilityRole="button"
       accessibilityLabel={`Delivery for ${customerName}`}
     >
-      <View style={styles.statusIcon}>
-        <Ionicons name="checkmark" size={18} color={Colors.success} />
+      <View
+        style={[styles.statusIcon, { backgroundColor: statusDisplay.background }]}
+      >
+        <Ionicons
+          name={statusDisplay.icon}
+          size={18}
+          color={statusDisplay.color}
+        />
       </View>
 
       <View style={styles.customerDetails}>
@@ -51,7 +96,8 @@ export default function RenderRecentDeliveries({
         </ThemedText>
 
         <ThemedText style={styles.meta} themeColor="textMuted">
-          {formatDate(delivery.deliveredAt)}
+          {statusDisplay.label} ·{' '}
+          {formatDate(delivery.deliveredAt ?? delivery.createdAt)}
         </ThemedText>
       </View>
 
@@ -86,7 +132,6 @@ const createStyles = (Colors: any) =>
       borderRadius: 20,
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: Colors.successExtraLight,
     },
 
     customerDetails: {

@@ -26,6 +26,10 @@ export function useAcceptJob() {
       queryClient.invalidateQueries({
         queryKey: ['dashboard-stats'],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ['order-tracking'],
+      });
     },
   });
 }

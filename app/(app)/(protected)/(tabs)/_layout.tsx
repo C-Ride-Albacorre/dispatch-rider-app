@@ -100,6 +100,7 @@ export default function TabsLayout() {
         order_id: d.order.id,
         order_number: d.order.number,
         order_status: d.order.status,
+        vendor_code: d.order.vendorCode ?? null,
         store_id: d.store?.id ?? '',
         store_name: d.store?.name ?? '',
         store_logo: d.store?.logo ?? '',

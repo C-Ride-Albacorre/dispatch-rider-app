@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 
 import {
   getDashboardStatsService,
@@ -51,11 +56,12 @@ export interface RecentDelivery {
   orderId: string;
   orderNumber: string;
   orderCode: string;
+  vendorCode?: string;
   orderStatus: string;
   paymentStatus: string;
   totalAmount: number;
   deliveryFee: number;
-  deliveredAt: string;
+  deliveredAt: string | null;
   createdAt: string;
   customer: {
     id: string;
@@ -94,7 +100,7 @@ export interface RecentDeliveriesResponse {
   totalPages: number;
 }
 
-export type DeliveryHistoryStatus = 'DELIVERED';
+export type DeliveryHistoryStatus = 'DELIVERED' | 'PICKED_UP' | 'CANCELLED';
 
 export function useDashboardStats() {
   return useQuery<DashboardApiData>({
@@ -170,16 +176,46 @@ export function useUpdateDriverStatus() {
 //   });
 // }
 
-export function useRecentDeliveries() {
+export const RECENT_DELIVERIES_LIMIT = 5;
+export const DELIVERY_HISTORY_PAGE_SIZE = 20;
+
+export function useRecentDeliveries(limit = RECENT_DELIVERIES_LIMIT) {
   return useQuery<RecentDeliveriesResponse>({
-    queryKey: ['recent-deliveries'],
+    queryKey: ['recent-deliveries', limit],
     queryFn: async () => {
       const res = await getRecentDeliveriesService({
         status: 'DELIVERED',
+        page: 1,
+        limit,
       });
       return res.data as RecentDeliveriesResponse;
     },
     refetchInterval: 30000,
+  });
+}
+
+export function useDeliveryHistory(status?: DeliveryHistoryStatus) {
+  return useInfiniteQuery<RecentDeliveriesResponse>({
+    queryKey: ['delivery-history', status ?? 'ALL'],
+    queryFn: async ({ pageParam }) => {
+      const res = await getRecentDeliveriesService({
+        status,
+        page: Number(pageParam),
+        limit: DELIVERY_HISTORY_PAGE_SIZE,
+      });
+      return res.data as RecentDeliveriesResponse;
+    },
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      const page = Number(lastPage?.page);
+      const totalPages = Number(lastPage?.totalPages);
+
+      if (!Number.isFinite(page) || !Number.isFinite(totalPages)) {
+        return undefined;
+      }
+
+      return page < totalPages ? page + 1 : undefined;
+    },
   });
 }
 
