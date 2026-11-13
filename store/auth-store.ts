@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { BASE_URL } from '../config/base-api';
 
+import { useOnboardingStore } from '@/features/onboarding/store';
 import { getQueryClient } from '@/providers/react-query-provider';
 import { clearBackgroundLocation } from '@/services/location/background-location';
 import { cleanupNotifications } from '@/services/notifications/initializeNotifications';
@@ -86,6 +87,10 @@ export const useAuthStore = create<AuthState>()(
         await clearBackgroundLocation();
 
         useDriverJobsStore.getState().clearActiveOrder();
+
+        // Drop half-filled onboarding drafts so the next account signed in on
+        // this device starts clean. Completed steps are stored on the server.
+        useOnboardingStore.getState().reset();
 
         const queryClient = getQueryClient();
         queryClient.clear();

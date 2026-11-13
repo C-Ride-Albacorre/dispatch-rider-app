@@ -4,9 +4,11 @@ import { ThemedView } from '@/components/themed-view';
 import { Fonts, Spacing } from '@/constants/theme';
 import AppHeader from '@/features/dashboard/components/app-header';
 import { useEarningsDashboard } from '@/features/earnings/use-fetch';
+import { useOrderTracking } from '@/features/active/use-fetch';
 import ActiveDelivery, {
   DeliveryPhase,
 } from '@/features/home/components/active-delivery';
+import ActiveDeliverySkeleton from '@/features/home/components/active-delivery-skeleton';
 import HomeHeader from '@/features/home/components/header';
 import NoDelivery from '@/features/home/components/no-delivery';
 import RecentDeliveries from '@/features/home/components/recent-deliveries';
@@ -19,7 +21,7 @@ import {
 } from '@/store/driver-jobs-store';
 import { useQueryClient } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
-import { useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 
 export type DriverStatus = 'ONLINE' | 'OFFLINE' | 'BUSY';
@@ -53,12 +55,11 @@ export default function Dashboard() {
 
   const queryClient = useQueryClient();
 
-  const { data, isLoading, isFetching, refetch } = useDashboardStats();
+  const { data, isLoading, refetch } = useDashboardStats();
 
   const {
     data: earningsData,
     isLoading: isEarningsLoading,
-    isFetching: isEarningsFetching,
     refetch: refetchEarnings,
   } = useEarningsDashboard('TODAY');
 
@@ -71,6 +72,8 @@ export default function Dashboard() {
   const activeOrder: ActiveOrderProps | null = useDriverJobsStore(
     (s) => s.activeOrder,
   );
+  // Shared with the tabs layout via the React Query cache, so no extra request.
+  const { isLoading: isActiveOrderLoading } = useOrderTracking();
   const etaToVendor = useDriverJobsStore((s) => s.etaToVendor);
   const etaToCustomer = useDriverJobsStore((s) => s.etaToCustomer);
 
@@ -81,6 +84,24 @@ export default function Dashboard() {
 
   const firstName = driverInfo?.firstName?.trim();
 
+  // Only show the pull-to-refresh spinner for a refresh the user started.
+  // Tying it to isFetching made it appear (and push the content down) on every
+  // app launch and background refetch.
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetch(),
+        refetchEarnings(),
+        queryClient.invalidateQueries({ queryKey: ['recent-deliveries'] }),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch, refetchEarnings, queryClient]);
+
   return (
     <ThemedView style={styles.flex}>
       <StatusBar style="light" />
@@ -89,12 +110,8 @@ export default function Dashboard() {
         contentContainerStyle={styles.content}
         refreshControl={
           <RefreshControl
-            refreshing={isFetching || isEarningsFetching}
-            onRefresh={() => {
-              refetch();
-              refetchEarnings();
-              queryClient.invalidateQueries({ queryKey: ['recent-deliveries'] });
-            }}
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
             tintColor={Colors.white}
           />
         }
@@ -130,15 +147,17 @@ export default function Dashboard() {
         </AppFrame>
 
         <View style={styles.section}>
-          {!activeOrder ? (
-            <NoDelivery />
-          ) : (
+          {activeOrder ? (
             <ActiveDelivery
               activeOrder={activeOrder}
               phase={deliveryPhase}
               etaVendor={etaToVendor}
               etaCustomer={etaToCustomer}
             />
+          ) : isActiveOrderLoading ? (
+            <ActiveDeliverySkeleton />
+          ) : (
+            <NoDelivery />
           )}
 
           <RecentDeliveries />
@@ -166,8 +185,8 @@ const createStyles = (Colors: any) =>
     },
 
     section: {
-      gap: Spacing.four,
+      gap: Spacing.five,
       paddingHorizontal: Spacing.three,
-      paddingTop: Spacing.four,
+      paddingTop: Spacing.five,
     },
   });

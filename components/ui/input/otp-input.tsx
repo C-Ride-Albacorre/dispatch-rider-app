@@ -206,6 +206,12 @@ export default function OtpInput({
         spellCheck={false}
       />
 
+      {hasError && (
+        <ThemedText style={styles.errorPill} themeColor="error">
+          {errorMessage}
+        </ThemedText>
+      )}
+
       {/**
        * ==================================================
        * VISIBLE OTP INPUTS
@@ -266,11 +272,7 @@ export default function OtpInput({
         })}
       </Animated.View>
 
-      {hasError && (
-        <ThemedText style={styles.errorText} themeColor="error">
-          {errorMessage}
-        </ThemedText>
-      )}
+   
     </View>
   );
 }
@@ -341,10 +343,17 @@ const createStyles = (Colors: any) =>
       opacity: 0,
     },
 
-    errorText: {
-      fontFamily: Fonts.brandRegular,
+    errorPill: {
+      alignSelf: 'center',
+      marginBottom: Spacing.three,
+      paddingVertical: 6,
+      paddingHorizontal: Spacing.three,
+      borderRadius: 999,
+      overflow: 'hidden',
+      backgroundColor: Colors.errorLight,
+      textAlign: 'center',
+      fontFamily: Fonts.brandMedium,
       fontSize: 12,
       lineHeight: 16,
-      marginTop: Spacing.one,
     },
   });

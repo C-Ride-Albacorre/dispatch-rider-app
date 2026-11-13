@@ -698,6 +698,103 @@ export default function ActiveDeliveryContent() {
     </BottomSheetFooter>
   );
 
+  const vendorCard = (
+    <View style={styles.card}>
+      <View style={styles.addressesContainerHeader}>
+        <StatusDot active={isPickupActive} />
+        <ThemedText style={styles.sectionLabel} themeColor="textMuted">
+          Vendor location
+        </ThemedText>
+      </View>
+
+      <View style={styles.storeRow}>
+        <Image
+          source={{
+            uri: activeOrder.store_logo,
+          }}
+          style={styles.logo}
+        />
+
+        <View style={styles.stopBody}>
+          <ThemedText style={styles.storeName}>
+            {activeOrder.store_name}
+          </ThemedText>
+
+          <ThemedText style={styles.address} themeColor="textSecondary">
+            {activeOrder?.pickup_location?.address ?? 'N/A'}
+          </ThemedText>
+
+          <ThemedText style={styles.coordinates} themeColor="textMuted">
+            {activeOrder.store_lat.toFixed(5)},{' '}
+            {activeOrder.store_lng.toFixed(5)}
+          </ThemedText>
+        </View>
+      </View>
+
+      {/* <Button
+    variant="inverted"
+    leftIcon={<Ionicons name="navigate" size={16} color="#FFF" />}
+    >
+    Navigate to Store
+    </Button> */}
+    </View>
+  );
+
+  const customerCard = (
+    <View style={styles.card}>
+      <View style={styles.cardHeaderRow}>
+        <View style={styles.addressesContainerHeader}>
+          <StatusDot active={isCustomerActive} />
+          <ThemedText style={styles.sectionLabel} themeColor="textMuted">
+            Customer location
+          </ThemedText>
+        </View>
+      </View>
+
+      <View style={styles.addressesContainerRow}>
+        <View style={styles.addressWrapper}>
+          <Ionicons name="location" size={20} color={Colors.success} />
+        </View>
+
+        <View style={styles.stopBody}>
+          <ThemedText style={styles.customerAddress}>
+            {activeOrder.dropoff_location.address}
+          </ThemedText>
+
+          <ThemedText style={styles.city} themeColor="textMuted">
+            {activeOrder.dropoff_location.city},{' '}
+            {activeOrder.dropoff_location.state}
+          </ThemedText>
+
+          <ThemedText style={styles.city} themeColor="textMuted">
+            {activeOrder.dropoff_location.country}
+          </ThemedText>
+
+          <ThemedText style={styles.city} themeColor="textMuted">
+            {activeOrder.dropoff_location.postalCode}
+          </ThemedText>
+        </View>
+      </View>
+
+      <View style={styles.chatRow}>
+        <Button
+          size="sm"
+          variant="chip"
+          onPress={handleChat}
+          leftIcon={
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={16}
+              color={Colors.textSecondary}
+            />
+          }
+        >
+          Chat with Customer
+        </Button>
+      </View>
+    </View>
+  );
+
   return (
     <>
       <StatusBar style="auto" />
@@ -953,100 +1050,20 @@ export default function ActiveDeliveryContent() {
               <VendorCodeCard code={vendorCode} />
             )}
 
-            <View style={styles.card}>
-              <View style={styles.addressesContainerHeader}>
-                <StatusDot active={isPickupActive} />
-                <ThemedText style={styles.sectionLabel} themeColor="textMuted">
-                  Vendor location
-                </ThemedText>
-              </View>
+            {/* The active stop is always shown first. */}
+            {isCustomerActive ? (
+              <>
+                {customerCard}
+                {vendorCard}
+              </>
+            ) : (
+              <>
+                {vendorCard}
+                {customerCard}
+              </>
+            )}
 
-              <View style={styles.storeRow}>
-                <Image
-                  source={{
-                    uri: activeOrder.store_logo,
-                  }}
-                  style={styles.logo}
-                />
-
-                <View style={styles.stopBody}>
-                  <ThemedText style={styles.storeName}>
-                    {activeOrder.store_name}
-                  </ThemedText>
-
-                  <ThemedText style={styles.address} themeColor="textSecondary">
-                    {activeOrder?.pickup_location?.address ?? 'N/A'}
-                  </ThemedText>
-
-                  <ThemedText style={styles.coordinates} themeColor="textMuted">
-                    {activeOrder.store_lat.toFixed(5)},{' '}
-                    {activeOrder.store_lng.toFixed(5)}
-                  </ThemedText>
-                </View>
-              </View>
-
-              {/* <Button
-            variant="inverted"
-            leftIcon={<Ionicons name="navigate" size={16} color="#FFF" />}
-          >
-            Navigate to Store
-          </Button> */}
-            </View>
-
-            <View style={styles.card}>
-              <View style={styles.cardHeaderRow}>
-                <View style={styles.addressesContainerHeader}>
-                  <StatusDot active={isCustomerActive} />
-                  <ThemedText style={styles.sectionLabel} themeColor="textMuted">
-                    Customer location
-                  </ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.addressesContainerRow}>
-                <View style={styles.addressWrapper}>
-                  <Ionicons name="location" size={20} color={Colors.success} />
-                </View>
-
-                <View style={styles.stopBody}>
-                  <ThemedText style={styles.customerAddress}>
-                    {activeOrder.dropoff_location.address}
-                  </ThemedText>
-
-                  <ThemedText style={styles.city} themeColor="textMuted">
-                    {activeOrder.dropoff_location.city},{' '}
-                    {activeOrder.dropoff_location.state}
-                  </ThemedText>
-
-                  <ThemedText style={styles.city} themeColor="textMuted">
-                    {activeOrder.dropoff_location.country}
-                  </ThemedText>
-
-                  <ThemedText style={styles.city} themeColor="textMuted">
-                    {activeOrder.dropoff_location.postalCode}
-                  </ThemedText>
-                </View>
-              </View>
-
-              <View style={styles.chatRow}>
-                <Button
-                  size="sm"
-                  variant="chip"
-                  onPress={handleChat}
-                  leftIcon={
-                    <Ionicons
-                      name="chatbubble-ellipses-outline"
-                      size={16}
-                      color={Colors.textSecondary}
-                    />
-                  }
-                >
-                  Chat with Customer
-                </Button>
-              </View>
-            </View>
-
-            <View style={styles.card}>
+            {/* <View style={styles.card}>
               <View style={styles.metaGrid}>
                 <View style={styles.metaItem}>
                   <ThemedText style={styles.metaLabel} themeColor="textMuted">
@@ -1064,13 +1081,13 @@ export default function ActiveDeliveryContent() {
                     {formatDate(activeOrder.assigned_at)}
                   </ThemedText>
                 </View>
-                {activeOrder?.distance_meters && (
+                {!!activeOrder?.distance_meters && (
                   <View style={styles.metaItem}>
                     <ThemedText style={styles.metaLabel} themeColor="textMuted">
-                    Distance
-                  </ThemedText>
+                      Distance
+                    </ThemedText>
                     <ThemedText style={styles.metaValue}>
-                      {(activeOrder?.distance_meters / 1000).toFixed(1)} km
+                      {(activeOrder.distance_meters / 1000).toFixed(1)} km
                     </ThemedText>
                   </View>
                 )}
@@ -1081,7 +1098,7 @@ export default function ActiveDeliveryContent() {
                   <ThemedText style={styles.metaValue}>{activeOrder.order_id}</ThemedText>
                 </View>
               </View>
-            </View>
+            </View> */}
           </BottomSheetScrollView>
         </BottomSheet>
       </View>

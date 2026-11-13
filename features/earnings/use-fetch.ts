@@ -2,12 +2,19 @@ import { useQuery } from '@tanstack/react-query';
 
 import { getEarningsDashboardService } from './service';
 
-export type EarningsPeriod = 'TODAY' | 'WEEK' | 'MONTH';
+export type EarningsPeriod = 'TODAY' | 'WEEK' | 'MONTH' | 'CUSTOM';
+
+/** ISO 8601 UTC bounds, required when period is CUSTOM. */
+export interface EarningsRange {
+  from: string;
+  to: string;
+}
 
 export interface EarningsWallet {
   availableBalance: number;
   pendingBalance: number;
   currency: string;
+  totalOnCard: number;
 }
 
 export interface EarningsSummary {
@@ -26,6 +33,22 @@ export interface EarningsBreakdownDay {
   onlineHours: number;
 }
 
+export interface EarningsPerformance {
+  /** Currently always "lifetime": these rates ignore the selected period. */
+  scope: string;
+  acceptanceRate: number;
+  completionRate: number;
+  onTimeRate: number;
+  counts: {
+    offered: number;
+    accepted: number;
+    declined: number;
+    expired: number;
+    completed: number;
+    onTime: number;
+  };
+}
+
 export interface EarningsDashboardData {
   period: {
     start: string;
@@ -34,16 +57,22 @@ export interface EarningsDashboardData {
   };
   wallet: EarningsWallet;
   summary: EarningsSummary;
+  performance?: EarningsPerformance;
   breakdown: EarningsBreakdownDay[];
 }
 
-export function useEarningsDashboard(period: EarningsPeriod = 'TODAY') {
+export function useEarningsDashboard(
+  period: EarningsPeriod = 'TODAY',
+  range?: EarningsRange,
+) {
   return useQuery<EarningsDashboardData>({
-    queryKey: ['earnings-dashboard', period],
+    queryKey: ['earnings-dashboard', period, range?.from, range?.to],
     queryFn: async () => {
-      const res = await getEarningsDashboardService(period);
+      const res = await getEarningsDashboardService(period, range);
       return res.data as EarningsDashboardData;
     },
+    // The backend rejects CUSTOM without from/to.
+    enabled: period !== 'CUSTOM' || !!range,
   });
 }
 

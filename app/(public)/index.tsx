@@ -157,6 +157,7 @@ const createStyles = (Colors: any) =>
     logo: {
       width: 64,
       height: 64,
+      borderRadius: 14,
     },
 
     tagline: {

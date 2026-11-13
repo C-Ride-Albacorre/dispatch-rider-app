@@ -23,12 +23,15 @@ export function handleNotificationNavigation(notification: {
         return;
       }
 
-      router.push({
-        pathname: '/jobs',
-        params: {
-          orderId,
+      // Open the order's detail screen. withAnchor keeps the jobs list
+      // underneath, so closing the detail works even on a cold start.
+      router.push(
+        {
+          pathname: '/jobs/[id]',
+          params: { id: orderId },
         },
-      });
+        { withAnchor: true },
+      );
 
       break;
 

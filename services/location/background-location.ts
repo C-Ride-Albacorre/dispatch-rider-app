@@ -175,9 +175,16 @@ export async function getBackgroundPermissionStatus(): Promise<BackgroundPermiss
 
   if (foreground.status !== 'granted') return 'denied';
 
-  const background = await Location.getBackgroundPermissionsAsync();
+  try {
+    const background = await Location.getBackgroundPermissionsAsync();
 
-  return background.status === 'granted' ? 'granted' : 'foreground-only';
+    return background.status === 'granted' ? 'granted' : 'foreground-only';
+  } catch (error) {
+    // Throws when ACCESS_BACKGROUND_LOCATION is missing from the native
+    // manifest (e.g. a stale android/ folder). Treat as foreground-only.
+    console.warn('[location] background permission check failed', error);
+    return 'foreground-only';
+  }
 }
 
 export async function requestBackgroundPermission(): Promise<BackgroundPermissionResult> {
@@ -187,9 +194,14 @@ export async function requestBackgroundPermission(): Promise<BackgroundPermissio
 
   if (foreground.status !== 'granted') return 'denied';
 
-  const background = await Location.requestBackgroundPermissionsAsync();
+  try {
+    const background = await Location.requestBackgroundPermissionsAsync();
 
-  return background.status === 'granted' ? 'granted' : 'foreground-only';
+    return background.status === 'granted' ? 'granted' : 'foreground-only';
+  } catch (error) {
+    console.warn('[location] background permission request failed', error);
+    return 'foreground-only';
+  }
 }
 
 export async function startBackgroundLocation(): Promise<boolean> {

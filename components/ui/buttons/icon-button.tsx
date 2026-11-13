@@ -14,6 +14,13 @@ import {
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
+/** 1–9 as-is, 10–99 as "9+", 100+ as "99+", so the badge stays small. */
+export function formatBadgeCount(count: number) {
+  if (count > 99) return '99+';
+  if (count > 9) return '9+';
+  return String(count);
+}
+
 type IconButtonProps = {
   icon: IconName;
   variant?:
@@ -110,7 +117,11 @@ export default function IconButton({
       disabled={disabled || loading}
       hitSlop={8}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={
+        notificationCount && notificationCount > 0 && accessibilityLabel
+          ? `${accessibilityLabel}, ${notificationCount} unread`
+          : accessibilityLabel
+      }
       accessibilityState={{ disabled: disabled || loading, busy: loading }}
     >
       {loading ? (
@@ -123,10 +134,20 @@ export default function IconButton({
         />
       )}
 
-      {!!notificationCount && (
-        <View style={[styles.badge, { backgroundColor: Colors.error, borderColor: Colors.card }]}>
-          <Text style={[styles.badgeText, { color: Colors.white }]}>
-            {notificationCount > 99 ? '99+' : notificationCount}
+      {!!notificationCount && notificationCount > 0 && (
+        <View
+          style={[
+            styles.badge,
+            { backgroundColor: Colors.error },
+          ]}
+          accessible={false}
+          importantForAccessibility="no-hide-descendants"
+        >
+          <Text
+            style={[styles.badgeText, { color: Colors.white }]}
+            numberOfLines={1}
+          >
+            {formatBadgeCount(notificationCount)}
           </Text>
         </View>
       )}
@@ -153,21 +174,22 @@ const styles = StyleSheet.create({
 
   badge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
-    minWidth: 16,
-    height: 16,
-    paddingHorizontal: 3,
-    borderRadius: 8,
+    top: -4,
+    right: -4,
+    minWidth: 20,
+    height: 20,
+    paddingHorizontal: 4,
+    borderRadius: 9,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
 
   badgeText: {
-    fontFamily: Fonts.brandMedium,
-    fontSize: 9,
-    lineHeight: 12,
+    fontFamily: Fonts.brandSemiBold,
+    fontSize: 10,
+    // lineHeight: 13,
+    textAlign: 'center',
     includeFontPadding: false,
   },
 

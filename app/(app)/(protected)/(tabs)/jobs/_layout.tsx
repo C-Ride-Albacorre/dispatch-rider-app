@@ -2,6 +2,12 @@ import { useTheme } from '@/hooks/use-theme';
 import { Stack } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+// Lets deep links (e.g. notification taps) into /jobs/[id] keep the list
+// underneath, so the detail screen can be closed.
+export const unstable_settings = {
+  initialRouteName: 'index',
+};
+
 export default function JobsLayout() {
   const { Colors } = useTheme();
 

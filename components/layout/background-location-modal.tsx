@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Modal, Platform, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import Button from '@/components/ui/buttons/button';
@@ -9,13 +9,11 @@ import { useTheme } from '@/hooks/use-theme';
 type BackgroundLocationModalProps = {
   visible: boolean;
   onContinue: () => void;
-  onDismiss: () => void;
 };
 
 export default function BackgroundLocationModal({
   visible,
   onContinue,
-  onDismiss,
 }: BackgroundLocationModalProps) {
   const { Colors } = useTheme();
 
@@ -30,7 +28,7 @@ export default function BackgroundLocationModal({
       transparent
       animationType="fade"
       statusBarTranslucent
-      onRequestClose={onDismiss}
+      onRequestClose={onContinue}
     >
       <View style={styles.overlay}>
         <View style={styles.content}>
@@ -59,11 +57,6 @@ export default function BackgroundLocationModal({
             Continue
           </Button>
 
-          <Pressable onPress={onDismiss} hitSlop={8}>
-            <ThemedText style={styles.secondary} themeColor="textSecondary">
-              Not now
-            </ThemedText>
-          </Pressable>
         </View>
       </View>
     </Modal>
@@ -122,8 +115,4 @@ const createStyles = (Colors: any) =>
       width: '100%',
     },
 
-    secondary: {
-      fontFamily: Fonts.brandMedium,
-      fontSize: 14,
-    },
   });

@@ -1,5 +1,5 @@
 {
   "react-native": {
-    "messaging_android_notification_channel_id": "delivery_requests"
+    "messaging_android_notification_channel_id": "delivery_requests_v2"
   }
 }

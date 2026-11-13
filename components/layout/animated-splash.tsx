@@ -103,5 +103,8 @@ const styles = StyleSheet.create({
   logo: {
     width: SPLASH_IMAGE_WIDTH,
     height: SPLASH_IMAGE_WIDTH,
+    // ~22% of the size, matching app-icon style corners.
+    borderRadius: SPLASH_IMAGE_WIDTH * 0.22,
+    overflow: 'hidden',
   },
 });

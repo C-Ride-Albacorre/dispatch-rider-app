@@ -5,7 +5,12 @@ import {
   formatHours,
   formatNaira,
 } from '@/features/earnings/use-fetch';
+import AmountVisibilityToggle from '@/features/earnings/components/amount-visibility-toggle';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  MASKED_AMOUNT,
+  useAmountVisibility,
+} from '@/store/amount-visibility-store';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -25,6 +30,8 @@ export default function StatFrame({
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
+  const amountsHidden = useAmountVisibility((s) => s.hidden);
+
   return (
     <View style={styles.container}>
       <Pressable
@@ -34,11 +41,18 @@ export default function StatFrame({
         accessibilityLabel="Today’s earnings"
       >
         <View style={styles.flex}>
-          <ThemedText style={styles.earningsLabel} themeColor="onPrimary">
-            Today’s earnings
-          </ThemedText>
+          <View style={styles.earningsLabelRow}>
+            <ThemedText style={styles.earningsLabel} themeColor="onPrimary">
+              Today’s earnings
+            </ThemedText>
+            <AmountVisibilityToggle color={Colors.onPrimary} size={16} />
+          </View>
           <ThemedText style={styles.earningsValue} themeColor="onPrimary">
-            {isLoading ? '–' : formatNaira(earnings?.totalEarnings)}
+            {isLoading
+              ? '–'
+              : amountsHidden
+                ? MASKED_AMOUNT
+                : formatNaira(earnings?.totalEarnings)}
           </ThemedText>
         </View>
         <Ionicons name="chevron-forward" size={18} color={Colors.onPrimary} />
@@ -108,6 +122,12 @@ const createStyles = (Colors: any) =>
       padding: 14,
       borderRadius: 16,
       backgroundColor: Colors.primary,
+    },
+
+    earningsLabelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
     },
 
     earningsLabel: {

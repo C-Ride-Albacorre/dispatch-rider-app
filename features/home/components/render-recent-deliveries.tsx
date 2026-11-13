@@ -3,6 +3,10 @@ import { Fonts, Spacing } from '@/constants/theme';
 import { formatDate } from '@/helpers/date-formatter';
 import { formatNaira } from '@/features/earnings/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
+import {
+  MASKED_AMOUNT,
+  useAmountVisibility,
+} from '@/store/amount-visibility-store';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { RecentDelivery } from '../use-fetch';
@@ -60,6 +64,8 @@ export default function RenderRecentDeliveries({
 
   const statusDisplay = getStatusDisplay(delivery.orderStatus, Colors);
 
+  const amountsHidden = useAmountVisibility((s) => s.hidden);
+
   return (
     <Pressable
       onPress={onPress}
@@ -102,7 +108,7 @@ export default function RenderRecentDeliveries({
       </View>
 
       <ThemedText style={styles.amount}>
-        {formatNaira(delivery.deliveryFee)}
+        {amountsHidden ? MASKED_AMOUNT : formatNaira(delivery.deliveryFee)}
       </ThemedText>
     </Pressable>
   );

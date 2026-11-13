@@ -3,8 +3,18 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import Button from '@/components/ui/buttons/button';
 import { Fonts, Spacing } from '@/constants/theme';
+import DateRangeModal, {
+  DayRange,
+  formatDayKey,
+} from '@/features/earnings/components/date-range-modal';
+import AmountVisibilityToggle from '@/features/earnings/components/amount-visibility-toggle';
+import {
+  MASKED_AMOUNT,
+  useAmountVisibility,
+} from '@/store/amount-visibility-store';
 import {
   EarningsPeriod,
+  EarningsRange,
   formatHours,
   formatNaira,
   formatNairaCompact,
@@ -14,7 +24,7 @@ import RecentDeliverySkeleton from '@/features/home/components/recent-delivery-s
 import { useTheme } from '@/hooks/use-theme';
 import { Ionicons } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated as RNAnimated,
   RefreshControl,
@@ -23,11 +33,25 @@ import {
   View,
 } from 'react-native';
 
-const PERIODS: { label: string; value: EarningsPeriod }[] = [
+const PRESET_PERIODS: {
+  label: string;
+  value: Exclude<EarningsPeriod, 'CUSTOM'>;
+}[] = [
   { label: 'Today', value: 'TODAY' },
-  { label: 'Week', value: 'WEEK' },
-  { label: 'Month', value: 'MONTH' },
+  { label: 'This week', value: 'WEEK' },
+  { label: 'This month', value: 'MONTH' },
 ];
+
+/** Picked calendar days are sent as full UTC days, matching the backend's day buckets. */
+function toEarningsRange({ start, end }: DayRange): EarningsRange {
+  return { from: `${start}T00:00:00.000Z`, to: `${end}T23:59:59.999Z` };
+}
+
+function formatRangeLabel({ start, end }: DayRange) {
+  return start === end
+    ? formatDayKey(start)
+    : `${formatDayKey(start)} – ${formatDayKey(end)}`;
+}
 
 function formatBreakdownDate(date: string) {
   return new Date(`${date}T00:00:00`).toLocaleDateString('en-US', {
@@ -39,8 +63,24 @@ function formatBreakdownDate(date: string) {
 
 export default function EarningsScreen() {
   const [period, setPeriod] = useState<EarningsPeriod>('WEEK');
+  const [customRange, setCustomRange] = useState<DayRange | null>(null);
+  const [showRangeModal, setShowRangeModal] = useState(false);
 
-  const { data, isLoading, isFetching, refetch } = useEarningsDashboard(period);
+  const apiRange = useMemo(
+    () => (customRange ? toEarningsRange(customRange) : undefined),
+    [customRange],
+  );
+
+  const { data, isLoading, isFetching, refetch } = useEarningsDashboard(
+    period,
+    period === 'CUSTOM' ? apiRange : undefined,
+  );
+
+  const handleApplyRange = (range: DayRange) => {
+    setCustomRange(range);
+    setPeriod('CUSTOM');
+    setShowRangeModal(false);
+  };
 
   const wallet = data?.wallet;
   const summary = data?.summary;
@@ -73,10 +113,14 @@ export default function EarningsScreen() {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
+  const amountsHidden = useAmountVisibility((s) => s.hidden);
+  const money = (format: (amount?: number) => string, amount?: number) =>
+    amountsHidden ? MASKED_AMOUNT : format(amount);
+
   const metrics: { label: string; value: string; color: string }[] = [
     {
       label: 'Total earnings',
-      value: formatNairaCompact(summary?.totalEarnings),
+      value: money(formatNairaCompact, summary?.totalEarnings),
       color: Colors.primary,
     },
     {
@@ -86,12 +130,12 @@ export default function EarningsScreen() {
     },
     {
       label: 'Tips earned',
-      value: formatNairaCompact(summary?.tipsEarned),
+      value: money(formatNairaCompact, summary?.tipsEarned),
       color: Colors.success,
     },
     {
       label: 'Bonuses',
-      value: formatNairaCompact(summary?.bonuses),
+      value: money(formatNairaCompact, summary?.bonuses),
       color: Colors.info,
     },
   ];
@@ -115,29 +159,39 @@ export default function EarningsScreen() {
         {/* Wallet balance */}
         <View style={styles.walletCard}>
           <View style={styles.walletLabelRow}>
-            <Ionicons name="wallet-outline" size={16} color={Colors.onPrimary} />
+            <Ionicons
+              name="wallet-outline"
+              size={16}
+              color={Colors.onPrimary}
+            />
             <ThemedText style={styles.walletLabel} themeColor="onPrimary">
               Wallet balance
             </ThemedText>
+            <View style={styles.flex} />
+            <AmountVisibilityToggle color={Colors.onPrimary} />
           </View>
 
           {isLoading ? (
             <RNAnimated.View style={{ opacity: pulseAnim }}>
-              <View style={[styles.skeletonOnPrimary, styles.skeletonBalance]} />
+              <View
+                style={[styles.skeletonOnPrimary, styles.skeletonBalance]}
+              />
             </RNAnimated.View>
           ) : (
             <ThemedText style={styles.walletBalance} themeColor="onPrimary">
-              {formatNaira(wallet?.availableBalance)}
+              {money(formatNaira, wallet?.availableBalance)}
             </ThemedText>
           )}
 
           {isLoading ? (
             <RNAnimated.View style={{ opacity: pulseAnim }}>
-              <View style={[styles.skeletonOnPrimary, styles.skeletonPending]} />
+              <View
+                style={[styles.skeletonOnPrimary, styles.skeletonPending]}
+              />
             </RNAnimated.View>
           ) : (
             <ThemedText style={styles.walletPending} themeColor="onPrimary">
-              Pending: {formatNaira(wallet?.pendingBalance)}
+              Available to Withdraw: {money(formatNaira, wallet?.pendingBalance)}
             </ThemedText>
           )}
         </View>
@@ -145,7 +199,7 @@ export default function EarningsScreen() {
         {/* Period filter */}
         <View style={styles.section}>
           <View style={styles.periods}>
-            {PERIODS.map(({ label, value }) => (
+            {PRESET_PERIODS.map(({ label, value }) => (
               <Button
                 key={value}
                 size="xs"
@@ -155,6 +209,26 @@ export default function EarningsScreen() {
                 {label}
               </Button>
             ))}
+            <Button
+              size="xs"
+              variant={period === 'CUSTOM' ? 'chipActive' : 'chip'}
+              onPress={() => setShowRangeModal(true)}
+              leftIcon={
+                <Ionicons
+                  name="calendar-outline"
+                  size={13}
+                  color={
+                    period === 'CUSTOM'
+                      ? Colors.onPrimary
+                      : Colors.textSecondary
+                  }
+                />
+              }
+            >
+              {period === 'CUSTOM' && customRange
+                ? formatRangeLabel(customRange)
+                : 'Custom'}
+            </Button>
           </View>
 
           {/* Summary metrics */}
@@ -183,13 +257,19 @@ export default function EarningsScreen() {
 
         {/* Per-day earnings breakdown for the selected period */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Delivery breakdown</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            Delivery breakdown
+          </ThemedText>
 
           {isLoading && <RecentDeliverySkeleton count={3} />}
 
           {!isLoading && breakdown.length === 0 && (
             <View style={styles.empty}>
-              <Ionicons name="receipt-outline" size={20} color={Colors.textMuted} />
+              <Ionicons
+                name="receipt-outline"
+                size={20}
+                color={Colors.textMuted}
+              />
               <ThemedText style={styles.emptyText} themeColor="textMuted">
                 No deliveries in this period yet.
               </ThemedText>
@@ -200,7 +280,7 @@ export default function EarningsScreen() {
             <View style={styles.listCard}>
               {breakdown.map((day, index) => (
                 <View
-                  key={day.date}
+                  key={`${day.date}-${index}`}
                   style={[
                     styles.row,
                     index === breakdown.length - 1 && styles.lastRow,
@@ -227,7 +307,7 @@ export default function EarningsScreen() {
 
                   <View style={styles.rowAmountGroup}>
                     <ThemedText style={styles.rowAmount}>
-                      {formatNaira(day.earnings)}
+                      {money(formatNaira, day.earnings)}
                     </ThemedText>
                     <ThemedText style={styles.rowMeta} themeColor="textMuted">
                       earned
@@ -239,6 +319,13 @@ export default function EarningsScreen() {
           )}
         </View>
       </ScrollView>
+
+      <DateRangeModal
+        visible={showRangeModal}
+        initialRange={customRange}
+        onClose={() => setShowRangeModal(false)}
+        onApply={handleApplyRange}
+      />
     </ThemedView>
   );
 }
@@ -314,6 +401,7 @@ const createStyles = (Colors: any) =>
 
     periods: {
       flexDirection: 'row',
+      flexWrap: 'wrap',
       gap: Spacing.two,
     },
 

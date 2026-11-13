@@ -44,6 +44,7 @@ export default function ProfileScreen() {
 
         <ProfileMenu
           stats={stats}
+          performance={earningsData?.performance}
           onSignOut={() => setShowLogoutModal(true)}
           onDeleteAccount={() => setShowDeleteModal(true)}
         />

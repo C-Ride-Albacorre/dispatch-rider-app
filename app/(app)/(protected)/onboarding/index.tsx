@@ -1,12 +1,16 @@
 import { ThemedText } from '@/components/themed-text';
+import Button from '@/components/ui/buttons/button';
 import { Fonts, Spacing } from '@/constants/theme';
 import Documents from '@/features/onboarding/components/forms/documents';
 import PersonalInfo from '@/features/onboarding/components/forms/personal-info';
 import VehicleInfo from '@/features/onboarding/components/forms/vehicle-info';
 import StepIndicator from '@/features/onboarding/components/step-indicator';
+import ConfirmLogout from '@/features/profile/components/confirm-logout';
 import { useTheme } from '@/hooks/use-theme';
+import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { KEYBOARD_BOTTOM_OFFSET } from '@/features/auth/components/auth-screen';
+import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 
@@ -22,6 +26,17 @@ export default function Onboarding() {
   const step = Number(params.step || 1);
 
   const resumeStep = Number(params.resumeStep || 0);
+
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  // Steps the server already accepted are kept; only the step in progress is
+  // lost. Say exactly that so "finish later" isn't a surprise.
+  const savedSteps = Math.max(resumeStep, step - 1);
+
+  const exitDescription =
+    savedSteps > 0
+      ? `Your progress up to step ${savedSteps} is saved. Log back in anytime to pick up where you left off. Anything you haven't submitted on this step will need to be re-entered.`
+      : "You'll be signed out. Log back in anytime to start your application.";
 
   const goToStep = (nextStep: number) => {
     router.push(
@@ -39,6 +54,24 @@ export default function Onboarding() {
       showsVerticalScrollIndicator={false}
       bounces={false}
     >
+        <View style={styles.topBar}>
+          <Button
+            variant="ghost"
+            size="xs"
+            onPress={() => setShowExitModal(true)}
+            leftIcon={
+              <Ionicons
+                name="log-out-outline"
+                size={16}
+                color={Colors.textSecondary}
+              />
+            }
+            textStyle={{ color: Colors.textSecondary }}
+          >
+            Finish later
+          </Button>
+        </View>
+
         <View style={styles.textContainer}>
           <ThemedText style={styles.title}>
             Join C-Ride as a Fulfillment Partner
@@ -68,6 +101,14 @@ export default function Onboarding() {
             resumeStep={resumeStep}
           />
         )}
+
+        <ConfirmLogout
+          showLogoutModal={showExitModal}
+          setShowLogoutModal={setShowExitModal}
+          title="Finish later?"
+          description={exitDescription}
+          confirmLabel="Log out"
+        />
     </KeyboardAwareScrollView>
   );
 }
@@ -85,10 +126,16 @@ const createStyles = (Colors: any) =>
       paddingBottom: Spacing.five,
     },
 
+    topBar: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      marginBottom: -Spacing.three,
+    },
+
     textContainer: {
       alignItems: 'center',
       gap: Spacing.one,
-      marginTop: Spacing.three,
+      marginTop: Spacing.one,
     },
 
     title: {

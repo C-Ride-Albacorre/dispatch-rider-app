@@ -14,6 +14,8 @@
       "bundleIdentifier": "com.albacorre.cridedriver",
       "googleServicesFile": "./GoogleService-Info.plist",
       "icon": "./assets/images/c-ride-icon.png",
+      "entitlements": { "aps-environment": "production" },
+
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSLocationWhenInUseUsageDescription": "Your location is required to find nearby delivery jobs.",

@@ -13,7 +13,7 @@ type VendorCodeCardProps = {
 export default function VendorCodeCard({
   code,
   size = 'large',
-  hint = 'Show this code to the vendor to collect the order',
+  hint = 'Show this code to the vendor to pick up the order',
 }: VendorCodeCardProps) {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);

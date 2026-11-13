@@ -98,7 +98,5 @@ export function useBackgroundLocation(
     });
   }, []);
 
-  const onDismiss = useCallback(() => setShowDisclosure(false), []);
-
-  return { showDisclosure, onContinue, onDismiss };
+  return { showDisclosure, onContinue };
 }

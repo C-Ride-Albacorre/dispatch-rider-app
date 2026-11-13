@@ -159,6 +159,7 @@ export default function TabsLayout() {
   useEffect(() => {
     const checkPermission = async () => {
       const decision = await getNotificationPermissionDecision();
+      console.log('[push] saved permission decision', decision);
 
       if (decision === 'allowed') {
         initializeNotifications();
@@ -214,6 +215,7 @@ export default function TabsLayout() {
         visible={showNotificationModal}
         onContinue={async () => {
           setShowNotificationModal(false);
+          console.log('[push] user accepted notification modal');
           await saveNotificationPermissionDecision('allowed');
           initializeNotifications();
         }}
@@ -222,7 +224,6 @@ export default function TabsLayout() {
       <BackgroundLocationModal
         visible={backgroundLocation.showDisclosure && !showNotificationModal}
         onContinue={backgroundLocation.onContinue}
-        onDismiss={backgroundLocation.onDismiss}
       />
     </View>
   );

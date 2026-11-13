@@ -1,5 +1,6 @@
 import { ThemedText } from '@/components/themed-text';
 import { Fonts, Spacing } from '@/constants/theme';
+import { EarningsPerformance } from '@/features/earnings/use-fetch';
 import { useTheme } from '@/hooks/use-theme';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -15,11 +16,13 @@ function MetricBar({
   value,
   percent,
   color,
+  caption,
 }: {
   title: string;
   value: string;
   percent: number;
   color: string;
+  caption?: string;
 }) {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
@@ -51,21 +54,32 @@ function MetricBar({
           style={[styles.metricProgressBar, { backgroundColor: color }, barStyle]}
         />
       </View>
+
+      {caption && (
+        <ThemedText style={styles.caption} themeColor="textMuted">
+          {caption}
+        </ThemedText>
+      )}
     </View>
   );
 }
 
+const formatRate = (rate?: number) => `${Number((rate ?? 0).toFixed(1))}%`;
+
 export default function DriverPerformance({
   stats,
+  performance,
 }: {
   stats?: {
     rating?: number;
   };
+  performance?: EarningsPerformance;
 }) {
   const { Colors } = useTheme();
   const styles = createStyles(Colors);
 
   const rating = stats?.rating ?? 0;
+  const counts = performance?.counts;
 
   return (
     <View style={styles.metricsContainer}>
@@ -75,6 +89,38 @@ export default function DriverPerformance({
         percent={rating * 20}
         color={Colors.success}
       />
+
+      {performance && (
+        <>
+          <MetricBar
+            title="Acceptance rate"
+            value={formatRate(performance.acceptanceRate)}
+            percent={performance.acceptanceRate}
+            color={Colors.primary}
+            caption={`${counts?.accepted ?? 0} of ${counts?.offered ?? 0} offers accepted`}
+          />
+          <MetricBar
+            title="Completion rate"
+            value={formatRate(performance.completionRate)}
+            percent={performance.completionRate}
+            color={Colors.info}
+            caption={`${counts?.completed ?? 0} of ${counts?.accepted ?? 0} accepted orders completed`}
+          />
+          <MetricBar
+            title="On-time rate"
+            value={formatRate(performance.onTimeRate)}
+            percent={performance.onTimeRate}
+            color={Colors.success}
+            caption={`${counts?.onTime ?? 0} deliveries on time`}
+          />
+
+          {performance.scope === 'lifetime' && (
+            <ThemedText style={styles.scopeNote} themeColor="textMuted">
+              Based on all your deliveries to date.
+            </ThemedText>
+          )}
+        </>
+      )}
     </View>
   );
 }
@@ -117,5 +163,18 @@ const createStyles = (Colors: any) =>
     metricProgressBar: {
       height: '100%',
       borderRadius: 3,
+    },
+
+    caption: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 16,
+    },
+
+    scopeNote: {
+      fontFamily: Fonts.brandRegular,
+      fontSize: 12,
+      lineHeight: 16,
+      fontStyle: 'italic',
     },
   });

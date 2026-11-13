@@ -11,9 +11,15 @@ import { StyleSheet, View } from 'react-native';
 export default function ConfirmLogout({
   showLogoutModal,
   setShowLogoutModal,
+  title = 'Sign out?',
+  description = 'Are you sure you want to sign out? You will need to log in again to access your account.',
+  confirmLabel = 'Sign out',
 }: {
   showLogoutModal: boolean;
   setShowLogoutModal: (value: boolean) => void;
+  title?: string;
+  description?: string;
+  confirmLabel?: string;
 }) {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -40,11 +46,10 @@ export default function ConfirmLogout({
           <Ionicons name="log-out-outline" size={28} color={Colors.error} />
         </View>
 
-        <ThemedText style={styles.logoutTitle}>Sign out?</ThemedText>
+        <ThemedText style={styles.logoutTitle}>{title}</ThemedText>
 
         <ThemedText style={styles.logoutDescription} themeColor="textSecondary">
-          Are you sure you want to sign out? You will need to log in again to
-          access your account.
+          {description}
         </ThemedText>
 
         <View style={styles.actionContainer}>
@@ -63,7 +68,7 @@ export default function ConfirmLogout({
             onPress={handleLogout}
             style={styles.logoutButton}
           >
-            Sign out
+            {confirmLabel}
           </Button>
         </View>
       </View>

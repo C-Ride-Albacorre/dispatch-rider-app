@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { EarningsPerformance } from '@/features/earnings/use-fetch';
 import DriverPerformance from './performamce';
 
 type MenuRowProps = {
@@ -116,10 +117,12 @@ function MenuRow({
 
 export default function ProfileMenu({
   stats,
+  performance,
   onSignOut,
   onDeleteAccount,
 }: {
   stats?: { rating?: number };
+  performance?: EarningsPerformance;
   onSignOut: () => void;
   onDeleteAccount: () => void;
 }) {
@@ -143,7 +146,7 @@ export default function ProfileMenu({
           expanded={showPerformance}
           onPress={() => setShowPerformance((v) => !v)}
         >
-          <DriverPerformance stats={stats} />
+          <DriverPerformance stats={stats} performance={performance} />
         </MenuRow>
 
         <MenuRow
