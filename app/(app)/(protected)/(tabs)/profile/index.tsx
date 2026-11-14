@@ -7,14 +7,27 @@ import ProfileFrame from '@/features/profile/components/profile-frame';
 import ProfileMenu from '@/features/profile/components/profile-menu';
 import DriverStats from '@/features/profile/components/stats';
 
-import ConfirmLogout from '@/features/profile/components/confirm-logout';
 import DeleteAccountModal from '@/features/profile/components/delete-account/delete-account-modal';
+import { useAuthStore } from '@/store/auth-store';
 import { StatusBar } from 'expo-status-bar';
 import { useState } from 'react';
-import { ScrollView, StyleSheet } from 'react-native';
+import { Alert, ScrollView, StyleSheet } from 'react-native';
+
+const confirmSignOut = () =>
+  Alert.alert(
+    'Sign out?',
+    'You will need to log in again to access your account.',
+    [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Sign out',
+        style: 'destructive',
+        onPress: () => useAuthStore.getState().logout(),
+      },
+    ],
+  );
 
 export default function ProfileScreen() {
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const { data, isLoading } = useDashboardStats();
@@ -45,15 +58,10 @@ export default function ProfileScreen() {
         <ProfileMenu
           stats={stats}
           performance={earningsData?.performance}
-          onSignOut={() => setShowLogoutModal(true)}
+          onSignOut={confirmSignOut}
           onDeleteAccount={() => setShowDeleteModal(true)}
         />
       </ScrollView>
-
-      <ConfirmLogout
-        showLogoutModal={showLogoutModal}
-        setShowLogoutModal={setShowLogoutModal}
-      />
 
       <DeleteAccountModal
         showDeleteModal={showDeleteModal}

@@ -45,6 +45,51 @@ export const api = axios.create({
   baseURL: BASE_URL,
 });
 
+let refreshing: Promise<string | null> | null = null;
+
+/**
+ * Swaps the refresh token for a new access token. Requests that hit 401 at the
+ * same moment all wait on the same call, so the refresh token (which the server
+ * replaces on every refresh) is only used once. If the refresh fails, the user
+ * is logged out once, not once per request.
+ * Resolves to null when there is no refresh token to use.
+ */
+function refreshSession() {
+  if (!refreshing) {
+    refreshing = (async () => {
+      const refreshToken = await getRefreshToken();
+      if (!refreshToken) return null;
+
+      try {
+        const response = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+        await saveAccessToken(accessToken);
+        await saveRefreshToken(newRefreshToken);
+        useAuthStore.getState().setAuth({ accessToken, refreshToken: newRefreshToken });
+
+        return accessToken as string;
+      } catch (refreshError) {
+        await clearTokens();
+        await useAuthStore.getState().logout();
+
+        Toast.show({
+          type: 'error',
+          text1: 'Session Expired',
+          text2: 'Please login again',
+        });
+
+        router.replace('/(app)/(auth)/login');
+
+        throw refreshError;
+      }
+    })().finally(() => {
+      refreshing = null;
+    });
+  }
+  return refreshing;
+}
+
 /**
  * REQUEST INTERCEPTOR
  */
@@ -88,48 +133,18 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = await getRefreshToken();
+      const accessToken = await refreshSession();
 
-        if (!refreshToken) {
-          return Promise.reject(error);
-        }
-
-        const response = await axios.post(`${BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } =
-          response.data.data;
-
-        await saveAccessToken(accessToken);
-        await saveRefreshToken(newRefreshToken);
-
-        useAuthStore.getState().setAuth({
-          accessToken,
-          refreshToken: newRefreshToken,
-        });
-
-        originalRequest.headers = {
-          ...originalRequest.headers,
-          Authorization: `Bearer ${accessToken}`,
-        };
-
-        return api(originalRequest);
-      } catch (refreshError: any) {
-        await clearTokens();
-        await useAuthStore.getState().logout();
-
-        Toast.show({
-          type: 'error',
-          text1: 'Session Expired',
-          text2: 'Please login again',
-        });
-
-        router.replace('/(app)/(auth)/login');
-
-        return Promise.reject(refreshError);
+      if (!accessToken) {
+        return Promise.reject(error);
       }
+
+      originalRequest.headers = {
+        ...originalRequest.headers,
+        Authorization: `Bearer ${accessToken}`,
+      };
+
+      return api(originalRequest);
     }
 
     /**

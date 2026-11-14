@@ -21,11 +21,10 @@ import ExpiredTokenModal from '@/features/verify/components/expired-token-modal'
 
 import AnimatedSplash from '@/components/layout/animated-splash';
 import OfflineBanner from '@/components/layout/offline-banner';
-import { toastConfig } from '@/components/ui/input/toast-config';
 import { setupNotificationChannels } from '@/services/notifications/setupNotificationChannels';
 import NetInfo from '@react-native-community/netinfo';
 import { usePathname } from 'expo-router';
-import Toast from 'react-native-toast-message';
+import { AppToast } from '@/components/ui/toast';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -131,7 +130,7 @@ export default function RootLayout() {
             )}
           </ReactQueryProvider>
 
-          <Toast config={toastConfig} />
+          <AppToast />
         </>
       )}
 
@@ -156,7 +155,7 @@ export default function RootLayout() {
   //         setShowExpiredModal={setShowExpiredModal}
   //       />
   //     </ReactQueryProvider>
-  //     <Toast config={toastConfig} />
+  //     <AppToast />
   //   </GestureHandlerRootView>
   // );
 }

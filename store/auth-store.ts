@@ -100,19 +100,15 @@ export const useAuthStore = create<AuthState>()(
             await unregisterDeviceToken();
           } catch {}
 
-          try {
-            await fetch(`${BASE_URL}/auth/logout`, {
-              method: 'POST',
-
-              headers: {
-                'Content-Type': 'application/json',
-              },
-
-              body: JSON.stringify({
-                refreshToken,
-              }),
-            });
-          } catch {}
+          // The backend reads the refresh token from the Authorization header.
+          if (refreshToken) {
+            try {
+              await fetch(`${BASE_URL}/auth/logout`, {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${refreshToken}` },
+              });
+            } catch {}
+          }
         }
 
         await clearTokens();
